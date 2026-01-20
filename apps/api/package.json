@@ -58,7 +58,7 @@
     "@babynest/tsconfig": "*",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
-    "@nestjs/testing": "^10.3.8",
+    "@nestjs/testing": "^11.1.12",
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^4.17.21",
     "@types/ioredis": "^4.28.10",
