@@ -1,0 +1,10 @@
+{
+  "extends": "@babynest/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@babynest/*": ["packages/*/src"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "build"]
+}

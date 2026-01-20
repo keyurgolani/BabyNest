@@ -1,0 +1,27 @@
+# BabyNest Web App - Development Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies for monorepo
+COPY package*.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/types/package.json ./packages/types/
+COPY packages/validators/package.json ./packages/validators/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
+COPY packages/eslint-config/package.json ./packages/eslint-config/
+
+RUN npm install
+
+# Copy source files
+COPY apps/web ./apps/web
+COPY packages ./packages
+COPY tsconfig.json ./
+
+WORKDIR /app/apps/web
+
+# Expose Next.js dev server port
+EXPOSE 3001
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "-p", "3001"]

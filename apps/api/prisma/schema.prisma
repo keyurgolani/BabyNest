@@ -1,0 +1,511 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// Core Entities
+// ============================================================================
+
+model Caregiver {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  babies              BabyCaregiver[]
+  apiKeys             ApiKey[]
+  invitationsSent     Invitation[]      @relation("InvitationsSent")
+  invitationsAccepted Invitation[]      @relation("InvitationsAccepted")
+  scheduledReports    ScheduledReport[]
+
+  @@map("caregivers")
+}
+
+model Baby {
+  id          String   @id @default(uuid())
+  name        String
+  dateOfBirth DateTime @map("date_of_birth")
+  gender      String
+  photoUrl    String?  @map("photo_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  caregivers        BabyCaregiver[]
+  invitations       Invitation[]
+  feedings          FeedingEntry[]
+  sleeps            SleepEntry[]
+  diapers           DiaperEntry[]
+  growth            GrowthEntry[]
+  milestones        MilestoneEntry[]
+  medications       MedicationEntry[]
+  vaccinations      VaccinationEntry[]
+  symptoms          SymptomEntry[]
+  doctorVisits      DoctorVisitEntry[]
+  activities        ActivityEntry[]
+  scheduledReports  ScheduledReport[]
+  memories          MemoryEntry[]
+  reminders         Reminder[]
+  insightConfig     InsightConfig?
+  generatedInsights GeneratedInsight[]
+
+  @@map("babies")
+}
+
+model BabyCaregiver {
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  role        String    @default("secondary")
+  invitedAt   DateTime  @default(now()) @map("invited_at")
+  acceptedAt  DateTime? @map("accepted_at")
+
+  // Relations
+  baby      Baby      @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  caregiver Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+
+  @@id([babyId, caregiverId])
+  @@map("baby_caregivers")
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  caregiverId String    @map("caregiver_id")
+  key         String    @unique
+  name        String
+  lastUsedAt  DateTime? @map("last_used_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  expiresAt   DateTime? @map("expires_at")
+
+  // Relations
+  caregiver Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+model Invitation {
+  id           String    @id @default(uuid())
+  token        String    @unique
+  babyId       String    @map("baby_id")
+  inviterId    String    @map("inviter_id")
+  inviteeEmail String    @map("invitee_email")
+  status       String    @default("pending") // pending, accepted, expired, revoked
+  createdAt    DateTime  @default(now()) @map("created_at")
+  expiresAt    DateTime  @map("expires_at")
+  acceptedAt   DateTime? @map("accepted_at")
+  acceptedById String?   @map("accepted_by_id")
+
+  // Relations
+  baby       Baby       @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  inviter    Caregiver  @relation("InvitationsSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  acceptedBy Caregiver? @relation("InvitationsAccepted", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([token])
+  @@index([inviteeEmail])
+  @@map("invitations")
+}
+
+// ============================================================================
+// Tracking Entries - Base fields are repeated in each model for Prisma
+// ============================================================================
+
+model FeedingEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Feeding specific fields
+  type          String // breastfeeding, bottle, pumping, solid
+  leftDuration  Int?    @map("left_duration") // seconds
+  rightDuration Int?    @map("right_duration") // seconds
+  lastSide      String? @map("last_side") // left, right
+  amount        Int? // ml (for bottle)
+  bottleType    String? @map("bottle_type") // formula, breastMilk, water
+  pumpedAmount  Int?    @map("pumped_amount") // ml
+  pumpSide      String? @map("pump_side") // left, right, both
+  foodType      String? @map("food_type")
+  reaction      String?
+  notes         String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("feeding_entries")
+}
+
+model SleepEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Sleep specific fields
+  startTime DateTime  @map("start_time")
+  endTime   DateTime? @map("end_time")
+  duration  Int? // minutes, calculated
+  sleepType String    @map("sleep_type") // nap, night
+  quality   String? // good, fair, poor
+  notes     String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, startTime])
+  @@map("sleep_entries")
+}
+
+model DiaperEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Diaper specific fields
+  type        String // wet, dirty, mixed, dry
+  color       String?
+  consistency String?
+  hasRash     Boolean @default(false) @map("has_rash")
+  notes       String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("diaper_entries")
+}
+
+model GrowthEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Growth specific fields
+  weight            Int? // grams
+  height            Int? // mm
+  headCircumference Int?    @map("head_circumference") // mm
+  weightPercentile  Float?  @map("weight_percentile")
+  heightPercentile  Float?  @map("height_percentile")
+  headPercentile    Float?  @map("head_percentile")
+  notes             String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("growth_entries")
+}
+
+model MilestoneDefinition {
+  id                   String @id @default(uuid())
+  category             String // social, language, cognitive, movement
+  name                 String
+  description          String
+  expectedAgeMonthsMin Int    @map("expected_age_months_min")
+  expectedAgeMonthsMax Int    @map("expected_age_months_max")
+
+  // Relations
+  entries MilestoneEntry[]
+
+  @@map("milestone_definitions")
+}
+
+model MilestoneEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Milestone specific fields
+  milestoneId  String   @map("milestone_id")
+  achievedDate DateTime @map("achieved_date")
+  photoUrl     String?  @map("photo_url")
+  notes        String?
+
+  // Relations
+  baby      Baby                @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  milestone MilestoneDefinition @relation(fields: [milestoneId], references: [id], onDelete: Restrict)
+
+  @@index([babyId, achievedDate])
+  @@map("milestone_entries")
+}
+
+model MedicationEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Medication specific fields
+  name      String
+  dosage    String
+  unit      String
+  frequency String
+  nextDueAt DateTime? @map("next_due_at")
+  notes     String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("medication_entries")
+}
+
+model VaccinationEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Vaccination specific fields
+  vaccineName String    @map("vaccine_name")
+  provider    String?
+  location    String?
+  nextDueAt   DateTime? @map("next_due_at")
+  notes       String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("vaccination_entries")
+}
+
+model SymptomEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Symptom specific fields
+  symptomType String  @map("symptom_type")
+  severity    String // mild, moderate, severe
+  temperature Float? // Celsius
+  notes       String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("symptom_entries")
+}
+
+model DoctorVisitEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Doctor visit specific fields
+  visitType    String    @map("visit_type") // checkup, sick, emergency, specialist
+  provider     String
+  location     String?
+  diagnosis    String?
+  followUpDate DateTime? @map("follow_up_date")
+  notes        String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("doctor_visit_entries")
+}
+
+model ActivityEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  timestamp   DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Activity specific fields
+  activityType String    @map("activity_type") // tummy_time, bath, outdoor, play
+  startTime    DateTime? @map("start_time")
+  endTime      DateTime? @map("end_time")
+  duration     Int? // minutes, calculated from startTime and endTime
+  notes        String?
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, timestamp])
+  @@map("activity_entries")
+}
+
+// ============================================================================
+// Memory/Photo Journal Entries
+// ============================================================================
+
+model MemoryEntry {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  syncedAt    DateTime? @map("synced_at")
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+
+  // Memory specific fields
+  title           String?
+  note            String?
+  photoUrl        String   @map("photo_url")
+  thumbnailUrl    String?  @map("thumbnail_url")
+  entryType       String   @map("entry_type") // photo, milestone, first, note
+  linkedEntryId   String?  @map("linked_entry_id")
+  linkedEntryType String?  @map("linked_entry_type") // feeding, sleep, diaper, milestone, etc.
+  takenAt         DateTime @map("taken_at")
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, takenAt])
+  @@index([babyId, entryType])
+  @@map("memory_entries")
+}
+
+// ============================================================================
+// Scheduled Reports
+// ============================================================================
+
+model ScheduledReport {
+  id          String    @id @default(uuid())
+  babyId      String    @map("baby_id")
+  caregiverId String    @map("caregiver_id")
+  name        String
+  frequency   String // daily, weekly, monthly
+  dayOfWeek   Int?      @map("day_of_week") // 0-6 for weekly
+  dayOfMonth  Int?      @map("day_of_month") // 1-31 for monthly
+  time        String    @default("09:00") // HH:mm format
+  email       String
+  isActive    Boolean   @default(true) @map("is_active")
+  lastSentAt  DateTime? @map("last_sent_at")
+  nextSendAt  DateTime  @map("next_send_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  baby      Baby      @relation(fields: [babyId], references: [id], onDelete: Cascade)
+  caregiver Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+
+  @@index([babyId])
+  @@index([nextSendAt, isActive])
+  @@map("scheduled_reports")
+}
+
+// ============================================================================
+// Reminders
+// ============================================================================
+
+model Reminder {
+  id                  String    @id @default(uuid())
+  babyId              String    @map("baby_id")
+  caregiverId         String    @map("caregiver_id")
+  type                String // feeding, sleep, diaper, medication, custom
+  name                String
+  intervalMinutes     Int?      @map("interval_minutes") // for interval-based reminders
+  scheduledTimes      Json?     @map("scheduled_times") // JSON array of times like ["08:00", "12:00", "16:00"]
+  basedOnLastEntry    Boolean   @default(false) @map("based_on_last_entry") // if true, reminder is X minutes after last entry
+  isEnabled           Boolean   @default(true) @map("is_enabled")
+  notifyAllCaregivers Boolean   @default(false) @map("notify_all_caregivers")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  isDeleted           Boolean   @default(false) @map("is_deleted")
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId])
+  @@index([babyId, isEnabled, isDeleted])
+  @@map("reminders")
+}
+
+// ============================================================================
+// AI Insights Configuration
+// ============================================================================
+
+model InsightConfig {
+  id             String    @id @default(uuid())
+  babyId         String    @unique @map("baby_id")
+  cadence        String    @default("weekly") // everytime, daily, weekly, monthly
+  isEnabled      Boolean   @default(true) @map("is_enabled")
+  lastGenerated  DateTime? @map("last_generated")
+  nextGeneration DateTime? @map("next_generation")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId])
+  @@index([nextGeneration, isEnabled])
+  @@map("insight_configs")
+}
+
+model GeneratedInsight {
+  id          String   @id @default(uuid())
+  babyId      String   @map("baby_id")
+  type        String // weekly_summary, sleep_prediction, anomaly, daily_summary, trend
+  content     Json
+  generatedAt DateTime @default(now()) @map("generated_at")
+  periodStart DateTime @map("period_start")
+  periodEnd   DateTime @map("period_end")
+
+  // Relations
+  baby Baby @relation(fields: [babyId], references: [id], onDelete: Cascade)
+
+  @@index([babyId, generatedAt])
+  @@index([babyId, type])
+  @@map("generated_insights")
+}

@@ -1,0 +1,19 @@
+{{/*
+BabyNest Connection Test
+Requirements: 15.2 (Kubernetes deployment with Helm charts)
+*/}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "babynest.fullname" . }}-test-connection"
+  labels:
+    {{- include "babynest.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "babynest.fullname" . }}-api:{{ .Values.api.service.port }}{{ .Values.api.healthCheck.livenessPath }}']
+  restartPolicy: Never

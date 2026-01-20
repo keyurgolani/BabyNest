@@ -1,0 +1,273 @@
+# BabyNest Helm Chart Values
+# Self-hosted baby tracking application
+# Requirements: 15.2, 15.5 (Kubernetes deployment, environment variable configuration)
+
+# =============================================================================
+# Global Configuration
+# =============================================================================
+global:
+  # Image pull secrets for private registries
+  imagePullSecrets: []
+  # Storage class for persistent volumes
+  storageClass: ""
+
+# =============================================================================
+# API Service Configuration
+# =============================================================================
+api:
+  # Replica count for the API deployment
+  replicaCount: 1
+
+  image:
+    repository: babynest/api
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion
+    tag: ""
+
+  # Service account configuration
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+
+  # Pod annotations
+  podAnnotations: {}
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 1000
+
+  # Container security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 3000
+
+  # Ingress configuration
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: babynest.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+    #  - secretName: babynest-tls
+    #    hosts:
+    #      - babynest.local
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Autoscaling configuration
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+
+  # Node selector
+  nodeSelector: {}
+
+  # Tolerations
+  tolerations: []
+
+  # Affinity rules
+  affinity: {}
+
+  # Health check configuration
+  healthCheck:
+    enabled: true
+    livenessPath: /api/v1/health/live
+    readinessPath: /api/v1/health/ready
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Application configuration
+  config:
+    # Node environment
+    nodeEnv: production
+    # API port
+    port: 3000
+    # API prefix
+    apiPrefix: api/v1
+    # CORS origins (comma-separated)
+    corsOrigins: ""
+    # Rate limiting
+    throttleTtl: 60
+    throttleLimit: 100
+
+# =============================================================================
+# PostgreSQL Configuration
+# =============================================================================
+postgresql:
+  # Enable bundled PostgreSQL
+  enabled: true
+  
+  # PostgreSQL authentication
+  auth:
+    username: babynest
+    password: ""  # Set via --set or secrets
+    database: babynest
+    existingSecret: ""
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+
+  # Primary configuration
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: ""
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+  # External PostgreSQL configuration (when postgresql.enabled=false)
+  external:
+    host: ""
+    port: 5432
+    database: babynest
+    username: babynest
+    existingSecret: ""
+    existingSecretPasswordKey: password
+
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+redis:
+  # Enable bundled Redis
+  enabled: true
+
+  # Redis architecture (standalone or replication)
+  architecture: standalone
+
+  # Redis authentication
+  auth:
+    enabled: false
+    password: ""
+    existingSecret: ""
+    existingSecretPasswordKey: redis-password
+
+  # Master configuration
+  master:
+    persistence:
+      enabled: true
+      size: 2Gi
+      storageClass: ""
+
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+  # External Redis configuration (when redis.enabled=false)
+  external:
+    host: ""
+    port: 6379
+    password: ""
+    existingSecret: ""
+    existingSecretPasswordKey: redis-password
+
+# =============================================================================
+# Ollama Configuration (Optional AI Service)
+# =============================================================================
+ollama:
+  # Enable Ollama deployment
+  enabled: false
+
+  image:
+    repository: ollama/ollama
+    pullPolicy: IfNotPresent
+    tag: latest
+
+  # Replica count (typically 1 for Ollama)
+  replicaCount: 1
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 11434
+
+  # Resource limits (Ollama requires significant resources)
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      # Uncomment for GPU support
+      # nvidia.com/gpu: 1
+    requests:
+      cpu: 1000m
+      memory: 4Gi
+
+  # Persistence for model storage
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: ""
+
+  # Node selector (useful for GPU nodes)
+  nodeSelector: {}
+    # nvidia.com/gpu: "true"
+
+  # Tolerations
+  tolerations: []
+
+  # Model to pull on startup
+  model: llama3
+
+# =============================================================================
+# Secrets Configuration
+# =============================================================================
+secrets:
+  # JWT secrets (required)
+  jwt:
+    # Secret for access tokens
+    secret: ""  # Set via --set or use existingSecret
+    # Secret for refresh tokens
+    refreshSecret: ""  # Set via --set or use existingSecret
+    # Use existing secret
+    existingSecret: ""
+    existingSecretKeys:
+      jwtSecret: jwt-secret
+      jwtRefreshSecret: jwt-refresh-secret
+
+  # JWT token expiration
+  jwtExpiresIn: 15m
+  jwtRefreshExpiresIn: 7d
+
+# =============================================================================
+# ConfigMap Configuration
+# =============================================================================
+configMap:
+  # Additional environment variables
+  extraEnvVars: {}
