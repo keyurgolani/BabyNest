@@ -11,6 +11,8 @@
 #
 # Set REGISTRY_OWNER in .env to your GitHub username/org
 
+name: babynest
+
 services:
   # ===========================================================================
   # API Service - NestJS Backend (Production Image)
@@ -67,7 +69,12 @@ services:
       - "${WEB_PORT:-3001}:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/v1}
+      # API_BACKEND_URL is a server-side env var for Next.js rewrites (runtime configurable!)
+      # This proxies /api/* requests from the browser to the backend
+      API_BACKEND_URL: ${API_BACKEND_URL:-http://api:3000}
+      # NEXT_PUBLIC_API_URL is optional - only set if you need direct browser-to-API access
+      # (bypassing the Next.js proxy). Leave unset for standard self-hosting.
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     depends_on:
       - api
     networks:

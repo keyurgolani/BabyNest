@@ -9,6 +9,8 @@
 # - Debug ports exposed
 # - Development environment settings
 
+name: babynest-dev
+
 services:
   # ===========================================================================
   # API Service - NestJS Development with Hot Reload
@@ -98,7 +100,10 @@ services:
       - "${WEB_PORT:-3001}:3001"
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/v1}
+      # API_BACKEND_URL is a server-side env var for Next.js rewrites (runtime configurable!)
+      API_BACKEND_URL: ${API_BACKEND_URL:-http://api:3000}
+      # NEXT_PUBLIC_API_URL is optional - only needed for direct browser-to-API access
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       NEXT_PUBLIC_BABY_ID: ${NEXT_PUBLIC_BABY_ID:-}
       NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY:-dev-api-key}
     depends_on:

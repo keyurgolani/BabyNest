@@ -134,15 +134,56 @@ See `.env.example` for all available configuration options.
 
 ### Key Variables
 
-| Variable            | Description         | Default               |
-| ------------------- | ------------------- | --------------------- |
-| `REGISTRY`          | Container registry  | `ghcr.io`             |
-| `REGISTRY_OWNER`    | GitHub username/org | Required for prod     |
-| `API_VERSION`       | API image tag       | `latest`              |
-| `WEB_VERSION`       | Web image tag       | `latest`              |
-| `POSTGRES_PASSWORD` | Database password   | `babynest`            |
-| `JWT_SECRET`        | JWT signing secret  | Change in production! |
-| `OLLAMA_MODEL`      | AI model to use     | `llama3.2:1b`         |
+| Variable            | Description                   | Default               |
+| ------------------- | ----------------------------- | --------------------- |
+| `REGISTRY`          | Container registry            | `ghcr.io`             |
+| `REGISTRY_OWNER`    | GitHub username/org           | Required for prod     |
+| `API_VERSION`       | API image tag                 | `latest`              |
+| `WEB_VERSION`       | Web image tag                 | `latest`              |
+| `POSTGRES_PASSWORD` | Database password             | `babynest`            |
+| `JWT_SECRET`        | JWT signing secret            | Change in production! |
+| `OLLAMA_MODEL`      | AI model to use               | `llama3.2:1b`         |
+| `API_BACKEND_URL`   | Backend URL for Next.js proxy | `http://api:3000`     |
+
+## Self-Hosting Guide
+
+BabyNest is designed for easy self-hosting. The frontend uses **relative API URLs** (`/api/v1/...`) which are proxied by Next.js to the backend. This means:
+
+- ✅ **No URL configuration needed** - Works on any domain automatically
+- ✅ **Runtime configurable** - Change `API_BACKEND_URL` without rebuilding
+- ✅ **No CORS issues** - Browser talks to same origin, Next.js proxies to backend
+
+### How It Works
+
+1. Browser makes request to `https://your-domain.com/api/v1/babies`
+2. Next.js server receives the request
+3. Next.js rewrites it to `${API_BACKEND_URL}/api/v1/babies` (e.g., `http://api:3000/api/v1/babies`)
+4. Response is returned to the browser
+
+### Configuration
+
+For most deployments, you only need to set `API_BACKEND_URL` to point to your API service:
+
+```bash
+# Docker Compose (internal network)
+API_BACKEND_URL=http://api:3000
+
+# Kubernetes (service DNS)
+API_BACKEND_URL=http://babynest-api.default.svc.cluster.local:3000
+
+# External API
+API_BACKEND_URL=https://api.your-domain.com
+```
+
+### Advanced: Direct API Access
+
+If you need the browser to call the API directly (bypassing the Next.js proxy), set `NEXT_PUBLIC_API_URL`:
+
+```bash
+NEXT_PUBLIC_API_URL=https://api.your-domain.com/api/v1
+```
+
+Note: This requires proper CORS configuration on the API.
 
 ## Troubleshooting
 
