@@ -1,0 +1,39 @@
+{
+  "name": "babynest",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "docker:dev": "docker compose -f infra/docker/docker-compose.dev.yml watch",
+    "docker:dev:up": "docker compose -f infra/docker/docker-compose.dev.yml up -d",
+    "docker:dev:down": "docker compose -f infra/docker/docker-compose.dev.yml down",
+    "docker:dev:logs": "docker compose -f infra/docker/docker-compose.dev.yml logs -f",
+    "docker:dev:build": "docker compose -f infra/docker/docker-compose.dev.yml build",
+    "docker:prod": "docker compose -f infra/docker/docker-compose.yml up -d",
+    "docker:prod:ai": "docker compose -f infra/docker/docker-compose.yml --profile ai up -d",
+    "docker:prod:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "docker:prod:logs": "docker compose -f infra/docker/docker-compose.yml logs -f",
+    "docker:prod:pull": "docker compose -f infra/docker/docker-compose.yml pull"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.5"
+  },
+  "packageManager": "npm@10.5.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.13.2"
+  }
+}

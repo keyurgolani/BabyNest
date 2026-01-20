@@ -1,0 +1,64 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+.turbo
+**/.turbo
+.next
+**/.next
+
+# Development files
+.git
+.gitignore
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files (use docker-compose env instead)
+.env
+.env.local
+.env.*.local
+apps/api/.env
+apps/mobile/.env
+apps/web/.env.local
+
+# Test files
+coverage
+**/*.spec.ts
+**/*.test.ts
+**/test
+**/__tests__
+**/e2e
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Prisma migrations (included separately)
+# apps/api/prisma/migrations
+
+# Mobile app (not needed for API/Web containers)
+apps/mobile
+
+# Playwright
+playwright-report
+test-results
+
+# Turbo cache
+.turbo
+
+# Kiro specs
+.kiro

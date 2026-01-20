@@ -1,0 +1,108 @@
+{{/*
+BabyNest API Deployment
+Requirements: 15.2 (Kubernetes deployment with Helm charts)
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "babynest.fullname" . }}-api
+  labels:
+    {{- include "babynest.api.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.api.autoscaling.enabled }}
+  replicas: {{ .Values.api.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "babynest.api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.api.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "babynest.api.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "babynest.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
+      containers:
+        - name: api
+          securityContext:
+            {{- toYaml .Values.api.securityContext | nindent 12 }}
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.config.port }}
+              protocol: TCP
+          {{- if .Values.api.healthCheck.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.api.healthCheck.livenessPath }}
+              port: http
+            initialDelaySeconds: {{ .Values.api.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.api.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.api.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.api.healthCheck.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.api.healthCheck.readinessPath }}
+              port: http
+            initialDelaySeconds: {{ .Values.api.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.api.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.api.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.api.healthCheck.failureThreshold }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "babynest.fullname" . }}-config
+          env:
+            # Database URL (constructed from components)
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "babynest.postgresql.secretName" . }}
+                  key: {{ include "babynest.postgresql.secretKey" . }}
+            - name: DATABASE_URL
+              value: "postgresql://{{ include "babynest.postgresql.username" . }}:$(POSTGRES_PASSWORD)@{{ include "babynest.postgresql.host" . }}:{{ include "babynest.postgresql.port" . }}/{{ include "babynest.postgresql.database" . }}?schema=public"
+            # Redis password (if auth enabled)
+            {{- if or (and .Values.redis.enabled .Values.redis.auth.enabled) (and (not .Values.redis.enabled) .Values.redis.external.existingSecret) }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "babynest.redis.secretName" . }}
+                  key: {{ .Values.redis.auth.existingSecretPasswordKey | default "redis-password" }}
+            {{- end }}
+            # JWT secrets
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "babynest.jwt.secretName" . }}
+                  key: {{ .Values.secrets.jwt.existingSecretKeys.jwtSecret | default "jwt-secret" }}
+            - name: JWT_REFRESH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "babynest.jwt.secretName" . }}
+                  key: {{ .Values.secrets.jwt.existingSecretKeys.jwtRefreshSecret | default "jwt-refresh-secret" }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+      {{- with .Values.api.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.api.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

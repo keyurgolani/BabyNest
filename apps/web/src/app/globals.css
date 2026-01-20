@@ -1,0 +1,801 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Activity type colors */
+  --color-feed: var(--color-feed);
+  --color-sleep: var(--color-sleep);
+  --color-diaper: var(--color-diaper);
+  --color-medicine: var(--color-medicine);
+  --color-bath: var(--color-bath);
+  --color-play: var(--color-play);
+  --color-outdoor: var(--color-outdoor);
+  --color-tummy: var(--color-tummy);
+  /* Status colors */
+  --color-sleep-dark: var(--color-sleep-dark);
+  --color-sleep-accent: var(--color-sleep-accent);
+  --color-sleep-light: var(--color-sleep-light);
+  --color-awake-light: var(--color-awake-light);
+  --color-awake-text: var(--color-awake-text);
+  --color-awake-muted: var(--color-awake-muted);
+  /* Chart colors */
+  --color-chart-feed: var(--color-chart-feed);
+  --color-chart-feed-bg: var(--color-chart-feed-bg);
+  --color-chart-sleep: var(--color-chart-sleep);
+  --color-chart-sleep-bg: var(--color-chart-sleep-bg);
+  --color-chart-diaper-bg: var(--color-chart-diaper-bg);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-heading: var(--font-outfit);
+  --font-sans: var(--font-plus-jakarta);
+}
+
+:root {
+  /* Warm & Cozy Light Mode - BabyNest Theme (matching mocks exactly) */
+  /* Creamy white background from mocks */
+  --background: #FFFBF5;
+  --foreground: #4A403A;
+
+  /* Pure white cards */
+  --card: #FFFFFF;
+  --card-foreground: #4A403A;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #4A403A;
+
+  /* Warm Orange/Peach Primary - from mocks */
+  --primary: #F4A261;
+  --primary-foreground: #FFFFFF;
+
+  /* Soft Yellow Secondary - from mocks */
+  --secondary: #E9C46A;
+  --secondary-foreground: #4A403A;
+
+  /* Light beige muted tones */
+  --muted: #F3EFEA;
+  --muted-foreground: #8D8179;
+
+  /* Very light peach accent */
+  --accent: #FFF5EB;
+  --accent-foreground: #F4A261;
+
+  /* Warm coral for destructive */
+  --destructive: #E76F51;
+  --destructive-foreground: #FFFFFF;
+
+  /* Warm light borders */
+  --border: #E8E2DC;
+  --input: #E8E2DC;
+  --ring: rgba(244, 162, 97, 0.3);
+
+  /* Chart colors matching the warm theme */
+  --chart-1: #F4A261;
+  --chart-2: #E9C46A;
+  --chart-3: #A8DADC;
+  --chart-4: #A7C957;
+  --chart-5: #F28482;
+
+  /* Unified radius - using 1.25rem (20px) for even rounder, more playful look */
+  --radius: 1.25rem;
+
+  /* Enhanced Visual Overhaul Variables */
+  --gradient-aurora: linear-gradient(135deg, #FFFBF5 0%, #FFF5EB 50%, #FDF6E3 100%);
+  --gradient-card-glow: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+  --shadow-warm: 0 8px 24px rgba(244, 162, 97, 0.25);
+  --shadow-warm-lg: 0 12px 32px rgba(244, 162, 97, 0.35);
+  --shadow-warm-xl: 0 16px 48px rgba(244, 162, 97, 0.4);
+  --glow-primary: 0 0 30px rgba(244, 162, 97, 0.4);
+  --glow-secondary: 0 0 25px rgba(233, 196, 106, 0.35);
+  --glow-accent: 0 0 20px rgba(168, 218, 220, 0.3);
+
+  --sidebar: #FFF8F2;
+  --sidebar-foreground: #4A403A;
+  --sidebar-primary: #F4A261;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FFF5EB;
+  --sidebar-accent-foreground: #4A403A;
+  --sidebar-border: #E8E2DC;
+  --sidebar-ring: rgba(244, 162, 97, 0.3);
+
+  /* Activity type colors (matching mocks exactly) */
+  --color-feed: #F4A261;
+  --color-sleep: #A8DADC;
+  --color-diaper: #A7C957;
+  --color-medicine: #D4C5E2;
+  --color-bath: #A8DADC;
+  --color-play: #E9C46A;
+  --color-outdoor: #A7C957;
+  --color-tummy: #F28482;
+
+  /* Status-specific colors for StatusCard and similar components */
+  --color-sleep-dark: #5A7B9A;
+  --color-sleep-dark-mid: #4A6B8A;
+  --color-sleep-dark-deep: #3A5B7A;
+  --color-sleep-accent: #7EB8DA;
+  --color-sleep-light: #C4E0ED;
+  --color-awake-light: #FFF5EB;
+  --color-awake-mid: #FFE8D6;
+  --color-awake-warm: #F4D4C4;
+  --color-awake-text: #3D3229;
+  --color-awake-muted: #8B7E74;
+  --color-awake-indicator: #A8D5BA;
+
+  /* Chart and visualization colors */
+  --color-chart-feed: #E07A5F;
+  --color-chart-feed-bg: #FFE8D6;
+  --color-chart-sleep: #90E0EF;
+  --color-chart-sleep-bg: #E0F4FF;
+  --color-chart-diaper-bg: #F2F7D9;
+}
+
+.dark {
+  /* Warm Dark Mode - BabyNest Theme */
+  --background: #1A1512;
+  --foreground: #F3EFEA;
+
+  --card: rgba(42, 35, 30, 0.9);
+  --card-foreground: #F3EFEA;
+
+  --popover: #2A231E;
+  --popover-foreground: #F3EFEA;
+
+  /* Warmer orange in dark mode */
+  --primary: #F4A261;
+  --primary-foreground: #1A1512;
+
+  /* Muted yellow */
+  --secondary: #D4B85A;
+  --secondary-foreground: #F3EFEA;
+
+  --muted: #3D3229;
+  --muted-foreground: #A89F96;
+
+  --accent: #4A3D30;
+  --accent-foreground: #F4A261;
+
+  --destructive: #CF6679;
+  --destructive-foreground: #F3EFEA;
+
+  --border: #4A403A;
+  --input: #4A403A;
+  --ring: rgba(244, 162, 97, 0.4);
+
+  --chart-1: #F4A261;
+  --chart-2: #D4B85A;
+  --chart-3: #7BBFC4;
+  --chart-4: #8BAF6E;
+  --chart-5: #D4736E;
+
+  --sidebar: #2A231E;
+  --sidebar-foreground: #F3EFEA;
+  --sidebar-primary: #F4A261;
+  --sidebar-primary-foreground: #1A1512;
+  --sidebar-accent: #3D3229;
+  --sidebar-accent-foreground: #F3EFEA;
+  --sidebar-border: #4A403A;
+  --sidebar-ring: rgba(244, 162, 97, 0.4);
+
+  /* Activity type colors (dark mode) */
+  --color-feed: #F4A261;
+  --color-sleep: #7BBFC4;
+  --color-diaper: #8BAF6E;
+  --color-medicine: #B8A5CC;
+  --color-bath: #7BBFC4;
+  --color-play: #D4B85A;
+  --color-outdoor: #8BAF6E;
+  --color-tummy: #D4736E;
+
+  /* Status-specific colors for StatusCard (dark mode) */
+  --color-sleep-dark: #5A7B9A;
+  --color-sleep-dark-mid: #4A6B8A;
+  --color-sleep-dark-deep: #3A5B7A;
+  --color-sleep-accent: #7EB8DA;
+  --color-sleep-light: #C4E0ED;
+  --color-awake-light: #FFF5EB;
+  --color-awake-mid: #FFE8D6;
+  --color-awake-warm: #F4D4C4;
+  --color-awake-text: #3D3229;
+  --color-awake-muted: #8B7E74;
+  --color-awake-indicator: #A8D5BA;
+
+  /* Chart colors (dark mode) */
+  --color-chart-feed: #E07A5F;
+  --color-chart-feed-bg: #3D2E26;
+  --color-chart-sleep: #7BBFC4;
+  --color-chart-sleep-bg: #263540;
+  --color-chart-diaper-bg: #263D2E;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), system-ui, sans-serif;
+    transition:
+      background-color var(--duration-normal, 0.3s) cubic-bezier(0.4, 0, 0.2, 1),
+      color var(--duration-normal, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading), system-ui, sans-serif;
+  }
+}
+
+/* Hide scrollbar globally */
+@layer base {
+  * {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  ::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/* Scrollbar utility - hides scrollbar but keeps scroll functionality */
+@layer utilities {
+  .scrollbar-thin {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+/* Animation Utilities */
+@layer utilities {
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+    background-size: 200% 100%;
+  }
+
+  /* Gradient text utility */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .dark .glass {
+    @apply bg-black/10 border-white/10;
+  }
+
+  /* Consistent focus ring styles */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-shadow duration-200;
+  }
+
+  /* Enhanced focus states for inputs */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Enhanced focus states for buttons */
+  button:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Enhanced focus states for links */
+  a:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background rounded-md;
+  }
+
+  /* Consistent card hover effect */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:border-primary/20;
+  }
+
+  /* Consistent interactive element styles */
+  .interactive {
+    @apply transition-colors duration-150 cursor-pointer;
+  }
+}
+
+/* Unified animation keyframes */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes aurora-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.01);
+  }
+}
+
+/* Animation utility classes */
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+/* ============================================
+   SOFT SHADOWS, GLOW & AURORA EFFECTS
+   ============================================ */
+
+/* Base Card Styles - Enhanced warm shadows and glow */
+.card,
+[data-slot='card'] {
+  border-radius: var(--radius, 1.25rem);
+  box-shadow:
+    0 4px 16px -2px rgba(244, 162, 97, 0.15),
+    0 8px 32px -4px rgba(74, 64, 58, 0.12),
+    0 0 0 1px rgba(244, 162, 97, 0.08),
+    0 0 20px rgba(244, 162, 97, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover,
+[data-slot='card']:hover {
+  box-shadow:
+    0 8px 24px -2px rgba(244, 162, 97, 0.25),
+    0 16px 48px -4px rgba(74, 64, 58, 0.18),
+    0 0 0 1px rgba(244, 162, 97, 0.15),
+    0 0 40px rgba(244, 162, 97, 0.15);
+  transform: translateY(-3px);
+}
+
+/* Enhanced glow effect for primary elements */
+.glow-primary {
+  box-shadow:
+    0 0 30px rgba(244, 162, 97, 0.3),
+    0 0 60px rgba(244, 162, 97, 0.15),
+    0 8px 24px rgba(244, 162, 97, 0.2);
+}
+
+.glow-primary:hover {
+  box-shadow:
+    0 0 45px rgba(244, 162, 97, 0.45),
+    0 0 90px rgba(244, 162, 97, 0.25),
+    0 12px 32px rgba(244, 162, 97, 0.3);
+}
+
+/* Enhanced glow for secondary/accent elements */
+.glow-soft {
+  box-shadow:
+    0 0 25px rgba(233, 196, 106, 0.25),
+    0 4px 16px rgba(74, 64, 58, 0.12),
+    0 0 40px rgba(233, 196, 106, 0.15);
+}
+
+/* Glow effect for buttons */
+button[data-variant="glow"],
+.btn-glow {
+  box-shadow:
+    0 0 0 1px rgba(244, 162, 97, 0.2),
+    0 2px 8px rgba(244, 162, 97, 0.2),
+    0 4px 16px rgba(244, 162, 97, 0.1);
+  transition: all 0.3s ease;
+}
+
+button[data-variant="glow"]:hover,
+.btn-glow:hover {
+  box-shadow:
+    0 0 0 1px rgba(244, 162, 97, 0.4),
+    0 4px 16px rgba(244, 162, 97, 0.3),
+    0 8px 32px rgba(244, 162, 97, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Aurora gradient backgrounds */
+.aurora {
+  position: relative;
+  overflow: hidden;
+}
+
+.aurora::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(244, 162, 97, 0.1) 0deg,
+    rgba(233, 196, 106, 0.08) 60deg,
+    rgba(168, 218, 220, 0.1) 120deg,
+    rgba(167, 201, 87, 0.08) 180deg,
+    rgba(242, 132, 130, 0.1) 240deg,
+    rgba(244, 162, 97, 0.08) 300deg,
+    rgba(244, 162, 97, 0.1) 360deg
+  );
+  animation: aurora-rotate 20s linear infinite;
+  opacity: 0.6;
+  filter: blur(40px);
+  z-index: -1;
+}
+
+/* Aurora with pulsing animation - use for dynamic/real-time contexts */
+.aurora-animated::before {
+  animation: aurora-rotate 15s linear infinite, aurora-pulse 4s ease-in-out infinite;
+}
+
+/* Aurora without animation - use for static form/data contexts */
+.aurora-static::before {
+  animation: none;
+}
+
+/* Subtle aurora for cards */
+.aurora-card {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 251, 245, 0.98) 50%,
+    rgba(255, 245, 235, 0.95) 100%
+  );
+}
+
+.dark .aurora-card {
+  background: linear-gradient(
+    135deg,
+    rgba(42, 35, 30, 0.95) 0%,
+    rgba(26, 21, 18, 0.98) 50%,
+    rgba(42, 35, 30, 0.95) 100%
+  );
+}
+
+/* Floating glow orbs for backgrounds */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.glow-orb-primary {
+  background: radial-gradient(circle, rgba(244, 162, 97, 0.4) 0%, transparent 70%);
+}
+
+.glow-orb-secondary {
+  background: radial-gradient(circle, rgba(233, 196, 106, 0.3) 0%, transparent 70%);
+}
+
+.glow-orb-accent {
+  background: radial-gradient(circle, rgba(168, 218, 220, 0.3) 0%, transparent 70%);
+}
+
+/* Soft inner shadow for inputs */
+input, textarea, select {
+  box-shadow: inset 0 1px 3px rgba(74, 64, 58, 0.05);
+  transition: all 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  box-shadow: 
+    inset 0 1px 3px rgba(74, 64, 58, 0.05),
+    0 0 0 3px rgba(244, 162, 97, 0.15),
+    0 0 20px rgba(244, 162, 97, 0.1);
+}
+
+/* Soft shadow for navigation/sidebar */
+.sidebar-shadow {
+  box-shadow:
+    4px 0 24px -8px rgba(74, 64, 58, 0.08),
+    1px 0 0 rgba(232, 226, 220, 0.5);
+}
+
+.dark .sidebar-shadow {
+  box-shadow:
+    4px 0 24px -8px rgba(0, 0, 0, 0.3),
+    1px 0 0 rgba(74, 64, 58, 0.5);
+}
+
+/* Elevated card with stronger shadow */
+.card-elevated {
+  box-shadow:
+    0 4px 16px -4px rgba(244, 162, 97, 0.1),
+    0 8px 32px -8px rgba(74, 64, 58, 0.12),
+    0 0 0 1px rgba(244, 162, 97, 0.05);
+}
+
+.card-elevated:hover {
+  box-shadow:
+    0 8px 24px -4px rgba(244, 162, 97, 0.15),
+    0 16px 48px -8px rgba(74, 64, 58, 0.15),
+    0 0 0 1px rgba(244, 162, 97, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Floating action button glow */
+.fab-glow {
+  box-shadow:
+    0 4px 16px rgba(244, 162, 97, 0.3),
+    0 8px 32px rgba(244, 162, 97, 0.2),
+    0 0 0 1px rgba(244, 162, 97, 0.1);
+}
+
+.fab-glow:hover {
+  box-shadow:
+    0 6px 24px rgba(244, 162, 97, 0.4),
+    0 12px 48px rgba(244, 162, 97, 0.25),
+    0 0 0 1px rgba(244, 162, 97, 0.2);
+}
+
+/* Status indicator glow */
+.status-glow-active {
+  box-shadow: 0 0 12px rgba(167, 201, 87, 0.5);
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.status-glow-warning {
+  box-shadow: 0 0 12px rgba(233, 196, 106, 0.5);
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.status-glow-error {
+  box-shadow: 0 0 12px rgba(231, 111, 81, 0.5);
+  animation: status-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes aurora-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Gradient border glow effect */
+.gradient-border {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(var(--radius) + 1px);
+  background: linear-gradient(
+    135deg,
+    rgba(244, 162, 97, 0.3),
+    rgba(233, 196, 106, 0.2),
+    rgba(168, 218, 220, 0.3),
+    rgba(244, 162, 97, 0.2)
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+}
+
+/* Soft text shadow for headings */
+.text-shadow-soft {
+  text-shadow: 0 2px 4px rgba(74, 64, 58, 0.1);
+}
+
+/* Icon glow on hover */
+.icon-glow:hover {
+  filter: drop-shadow(0 0 8px rgba(244, 162, 97, 0.4));
+}
+
+/* Modal/dialog backdrop with aurora */
+.modal-backdrop {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 251, 245, 0.95) 0%,
+    rgba(255, 248, 242, 0.98) 100%
+  );
+  backdrop-filter: blur(8px);
+}
+
+.dark .modal-backdrop {
+  background: linear-gradient(
+    135deg,
+    rgba(26, 21, 18, 0.95) 0%,
+    rgba(42, 35, 30, 0.98) 100%
+  );
+}
+
+
+/* Safe area padding for mobile devices with notches */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Improved touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Smooth page transitions */
+.page-transition {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Haptic feedback simulation - visual pulse on tap */
+.tap-feedback:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease-out;
+}
+
+/* Better scrolling on iOS */
+.scroll-smooth {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Loading skeleton animation */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    var(--muted-foreground) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Improved focus states for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: oklch(0.5 0 0);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,35 @@
+# BabyNest Helm Chart
+# Self-hosted baby tracking application
+# Requirements: 15.2 (Kubernetes deployment with Helm charts)
+
+apiVersion: v2
+name: babynest
+description: A self-hosted, privacy-focused baby tracking application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - baby
+  - tracking
+  - parenting
+  - self-hosted
+  - privacy
+
+home: https://github.com/babynest/babynest
+sources:
+  - https://github.com/babynest/babynest
+
+maintainers:
+  - name: BabyNest Team
+    email: team@babynest.app
+
+dependencies:
+  - name: postgresql
+    version: "14.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "18.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled

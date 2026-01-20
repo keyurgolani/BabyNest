@@ -1,0 +1,219 @@
+# BabyNest Docker Compose - Development Configuration
+# Uses local builds with Docker Compose Watch for hot-reloading
+#
+# Usage: docker compose -f docker-compose.dev.yml watch
+#
+# Features:
+# - Local builds from source code
+# - Docker Compose Watch for automatic sync and rebuild
+# - Debug ports exposed
+# - Development environment settings
+
+services:
+  # ===========================================================================
+  # API Service - NestJS Development with Hot Reload
+  # ===========================================================================
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/api/Dockerfile.dev
+    container_name: babynest-api-dev
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3000}:3000"
+      - "9229:9229"  # Node.js debug port
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      API_PREFIX: ${API_PREFIX:-api/v1}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-babynest}:${POSTGRES_PASSWORD:-babynest}@postgres:5432/${POSTGRES_DB:-babynest}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-jwt-refresh-secret-change-in-production}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:8081}
+      THROTTLE_TTL: ${THROTTLE_TTL:-60}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      SEED_DATABASE: ${SEED_DATABASE:-false}
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - babynest-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    develop:
+      watch:
+        # Sync API source code - triggers NestJS hot reload
+        - path: ../../apps/api/src
+          action: sync
+          target: /app/apps/api/src
+        # Sync Prisma schema - may need migration
+        - path: ../../apps/api/prisma
+          action: sync
+          target: /app/apps/api/prisma
+        # Sync shared types package
+        - path: ../../packages/types/src
+          action: sync
+          target: /app/packages/types/src
+        - path: ../../packages/types/dist
+          action: sync
+          target: /app/packages/types/dist
+        # Sync shared validators package
+        - path: ../../packages/validators/src
+          action: sync
+          target: /app/packages/validators/src
+        # Rebuild on package.json changes
+        - path: ../../apps/api/package.json
+          action: rebuild
+        - path: ../../package.json
+          action: rebuild
+        - path: ../../package-lock.json
+          action: rebuild
+
+  # ===========================================================================
+  # Web UI Service - Next.js Development with Hot Reload
+  # ===========================================================================
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/web/Dockerfile.dev
+    container_name: babynest-web-dev
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3001}:3001"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/api/v1}
+      NEXT_PUBLIC_BABY_ID: ${NEXT_PUBLIC_BABY_ID:-}
+      NEXT_PUBLIC_API_KEY: ${NEXT_PUBLIC_API_KEY:-dev-api-key}
+    depends_on:
+      - api
+    networks:
+      - babynest-network
+    develop:
+      watch:
+        # Sync Next.js source code - triggers hot reload
+        - path: ../../apps/web/src
+          action: sync
+          target: /app/apps/web/src
+        # Sync public assets
+        - path: ../../apps/web/public
+          action: sync
+          target: /app/apps/web/public
+        # Sync shared types package
+        - path: ../../packages/types/src
+          action: sync
+          target: /app/packages/types/src
+        - path: ../../packages/types/dist
+          action: sync
+          target: /app/packages/types/dist
+        # Rebuild on package.json changes
+        - path: ../../apps/web/package.json
+          action: rebuild
+        - path: ../../package.json
+          action: rebuild
+
+  # ===========================================================================
+  # PostgreSQL Database
+  # ===========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: babynest-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-babynest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-babynest}
+      POSTGRES_DB: ${POSTGRES_DB:-babynest}
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    networks:
+      - babynest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-babynest} -d ${POSTGRES_DB:-babynest}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ===========================================================================
+  # Redis Cache
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: babynest-redis-dev
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data-dev:/data
+    networks:
+      - babynest-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ===========================================================================
+  # Ollama - AI Service (enabled by default in dev)
+  # ===========================================================================
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    container_name: babynest-ollama-dev
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2:1b}
+    volumes:
+      - ollama-data-dev:/root/.ollama
+    networks:
+      - babynest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ===========================================================================
+# Networks
+# ===========================================================================
+networks:
+  babynest-network:
+    driver: bridge
+    name: babynest-network-dev
+
+# ===========================================================================
+# Volumes for Development Data Persistence
+# ===========================================================================
+volumes:
+  postgres-data-dev:
+    name: babynest-postgres-data-dev
+  redis-data-dev:
+    name: babynest-redis-data-dev
+  ollama-data-dev:
+    name: babynest-ollama-data-dev
+  uploads-data:
+    name: babynest-uploads-data-dev

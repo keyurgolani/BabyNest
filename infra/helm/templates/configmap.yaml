@@ -1,0 +1,43 @@
+{{/*
+BabyNest ConfigMap
+Requirements: 15.2, 15.5 (Kubernetes deployment, environment variable configuration)
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "babynest.fullname" . }}-config
+  labels:
+    {{- include "babynest.labels" . | nindent 4 }}
+data:
+  # Application configuration
+  NODE_ENV: {{ .Values.api.config.nodeEnv | quote }}
+  PORT: {{ .Values.api.config.port | quote }}
+  API_PREFIX: {{ .Values.api.config.apiPrefix | quote }}
+  
+  # Redis configuration
+  REDIS_HOST: {{ include "babynest.redis.host" . | quote }}
+  REDIS_PORT: {{ include "babynest.redis.port" . | quote }}
+  
+  # JWT token expiration
+  JWT_EXPIRES_IN: {{ .Values.secrets.jwtExpiresIn | quote }}
+  JWT_REFRESH_EXPIRES_IN: {{ .Values.secrets.jwtRefreshExpiresIn | quote }}
+  
+  # Ollama configuration (if enabled)
+  {{- if .Values.ollama.enabled }}
+  OLLAMA_BASE_URL: {{ include "babynest.ollama.url" . | quote }}
+  OLLAMA_MODEL: {{ .Values.ollama.model | quote }}
+  {{- end }}
+  
+  # CORS configuration
+  {{- if .Values.api.config.corsOrigins }}
+  CORS_ORIGINS: {{ .Values.api.config.corsOrigins | quote }}
+  {{- end }}
+  
+  # Rate limiting
+  THROTTLE_TTL: {{ .Values.api.config.throttleTtl | quote }}
+  THROTTLE_LIMIT: {{ .Values.api.config.throttleLimit | quote }}
+  
+  # Additional environment variables
+  {{- range $key, $value := .Values.configMap.extraEnvVars }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
