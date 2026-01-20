@@ -32,7 +32,7 @@
   "dependencies": {
     "@babynest/types": "*",
     "@nestjs/common": "^10.3.8",
-    "@nestjs/config": "^3.2.2",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^10.3.8",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
