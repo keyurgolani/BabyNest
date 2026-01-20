@@ -42,7 +42,7 @@
     "@babel/core": "^7.24.0",
     "@babynest/eslint-config": "*",
     "@babynest/tsconfig": "*",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^30.0.0",
     "@types/react": "~18.3.12",
     "@types/react-native": "~0.73.0",
     "eslint": "^8.57.0",
