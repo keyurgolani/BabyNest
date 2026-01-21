@@ -47,11 +47,11 @@ export function useAuth() {
 
 const PUBLIC_PATHS = ["/auth/login", "/auth/signup", "/auth/register", "/onboarding"];
 
-// Idle timeout: 30 minutes of inactivity before session expires
-const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+// Idle timeout: 1 hour of inactivity before session expires
+const IDLE_TIMEOUT_MS = 60 * 60 * 1000;
 
-// Refresh token 2 minutes before expiry
-const REFRESH_BUFFER_MS = 2 * 60 * 1000;
+// Refresh token 5 minutes before expiry (increased buffer for reliability)
+const REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(path => pathname === path || pathname.startsWith(path + "/"));
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let lastUpdate = 0;
     const throttledActivity = () => {
       const now = Date.now();
-      if (now - lastUpdate > 60000) { // Update at most once per minute
+      if (now - lastUpdate > 30000) { // Update at most once per 30 seconds
         lastUpdate = now;
         handleActivity();
       }

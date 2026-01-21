@@ -218,8 +218,11 @@ export default function TemperatureLogPage() {
           />
         </div>
 
+        {/* Spacer for fixed button */}
+        <div className="h-5" />
+
         {/* Save Button */}
-        <div className="fixed bottom-6 left-4 right-4 z-50">
+        <div className="fixed bottom-32 left-4 right-4 z-50">
           <Button
             onClick={handleSave}
             disabled={!temperature || isLoading}

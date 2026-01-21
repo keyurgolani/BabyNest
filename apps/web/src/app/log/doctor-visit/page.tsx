@@ -67,27 +67,7 @@ export default function DoctorVisitLogPage() {
           <h1 className="text-2xl font-heading font-bold text-foreground">Log Doctor Visit</h1>
         </div>
 
-        {/* Visit Type */}
-        <div className="space-y-2">
-          <span id="visit-type-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Visit Type</span>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {VISIT_TYPES.map((v) => (
-              <button
-                key={v.value}
-                onClick={() => setVisitType(v.value)}
-                className={cn(
-                  "flex items-center justify-center gap-2 p-4 rounded-2xl transition-all border-2",
-                  visitType === v.value
-                    ? "bg-teal-500 border-transparent text-white shadow-lg shadow-teal-500/25"
-                    : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-                )}
-              >
-                <span className="text-xl">{v.emoji}</span>
-                <span className="font-bold text-sm">{v.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+
 
         {/* Desktop: Side by Side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -142,6 +122,28 @@ export default function DoctorVisitLogPage() {
           </Card>
         </div>
 
+        {/* Visit Type */}
+        <div className="space-y-2">
+          <span id="visit-type-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Visit Type</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {VISIT_TYPES.map((v) => (
+              <button
+                key={v.value}
+                onClick={() => setVisitType(v.value)}
+                className={cn(
+                  "flex items-center justify-center gap-2 p-4 rounded-2xl transition-all border-2",
+                  visitType === v.value
+                    ? "bg-teal-500 border-transparent text-white shadow-lg shadow-teal-500/25"
+                    : "bg-card border-transparent text-muted-foreground hover:bg-muted"
+                )}
+              >
+                <span className="text-xl">{v.emoji}</span>
+                <span className="font-bold text-sm">{v.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Notes */}
         <div className="space-y-2">
           <label htmlFor="doctor-visit-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes & Recommendations</label>
@@ -156,8 +158,11 @@ export default function DoctorVisitLogPage() {
           />
         </div>
 
+        {/* Spacer for fixed button */}
+        <div className="h-5" />
+
         {/* Save Button */}
-        <div className="fixed bottom-6 left-4 right-4 z-50">
+        <div className="fixed bottom-32 left-4 right-4 z-50">
           <Button
             onClick={handleSave}
             disabled={!doctorName.trim() || isLoading}

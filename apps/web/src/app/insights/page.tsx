@@ -693,7 +693,7 @@ export default function InsightsPage() {
 
   return (
     <MobileContainer>
-      <div className="p-6 space-y-6 animate-slide-up">
+      <div className="p-6 space-y-6 animate-slide-up pb-32">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">

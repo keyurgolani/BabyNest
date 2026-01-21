@@ -79,9 +79,19 @@ export default function ProfilePage() {
           <Card className="border-0 bg-gradient-to-br from-pink-50/50 to-purple-50/50 dark:from-pink-950/20 dark:to-purple-950/20">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-pink-100 dark:bg-pink-950/50 flex items-center justify-center overflow-hidden ring-4 ring-pink-200/50 dark:ring-pink-800/30">
+                <div className="w-16 h-16 rounded-full bg-pink-100 dark:bg-pink-950/50 flex items-center justify-center overflow-hidden ring-4 ring-pink-200/50 dark:ring-pink-800/30 relative">
                   {baby.photoUrl ? (
-                    <Image src={baby.photoUrl} alt={baby.name} fill sizes="64px" className="object-cover" />
+                    <Image 
+                      src={baby.photoUrl} 
+                      alt={baby.name} 
+                      fill 
+                      sizes="64px" 
+                      className="object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
+                      }}
+                    />
                   ) : (
                     <Icons.Diaper className="w-8 h-8 text-pink-500 dark:text-pink-400" />
                   )}

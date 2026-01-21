@@ -80,7 +80,7 @@ export function MultiBabySelector() {
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Avatar */}
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 relative">
             {baby?.photoUrl ? (
               <Image 
                 src={baby.photoUrl} 
@@ -88,6 +88,10 @@ export function MultiBabySelector() {
                 fill
                 sizes="40px"
                 className="object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
+                }}
               />
             ) : (
               <Baby className="w-5 h-5 text-primary" />
@@ -257,7 +261,7 @@ export function MultiBabySummaryDashboard() {
                 className="p-3 rounded-lg bg-white/50 dark:bg-black/20 hover:bg-white/70 dark:hover:bg-black/30 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 relative">
                     {baby.photoUrl ? (
                       <Image 
                         src={baby.photoUrl} 
@@ -265,6 +269,10 @@ export function MultiBabySummaryDashboard() {
                         fill
                         sizes="32px"
                         className="object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
+                        }}
                       />
                     ) : (
                       <Baby className="w-4 h-4 text-primary" />

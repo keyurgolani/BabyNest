@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, PieChart, PlusCircle, Image as ImageIcon, Settings } from "lucide-react";
+import { Home, PieChart, PlusCircle, Image as ImageIcon, Grid } from "lucide-react";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/";
@@ -33,20 +36,20 @@ export function BottomNav() {
           </span>
         </Link>
 
-        <Link href="/tracking/timeline" className="flex flex-col items-center gap-1 min-w-[3.5rem] group">
+        <Link href="/tracking" className="flex flex-col items-center gap-1 min-w-[3.5rem] group">
           <div className={cn(
             "p-2 rounded-xl transition-all duration-300",
-            isActive("/tracking/timeline") 
+            isActive("/tracking") 
               ? "bg-secondary/10 text-secondary scale-110" 
               : "text-muted-foreground group-hover:text-foreground group-active:scale-95"
           )}>
-            <PieChart className="w-6 h-6" strokeWidth={isActive("/tracking/timeline") ? 2.5 : 2} />
+            <PieChart className="w-6 h-6" strokeWidth={isActive("/tracking") ? 2.5 : 2} />
           </div>
           <span className={cn(
             "text-[10px] font-medium transition-colors",
-            isActive("/tracking/timeline") ? "text-secondary" : "text-muted-foreground"
+            isActive("/tracking") ? "text-secondary" : "text-muted-foreground"
           )}>
-            Stats
+            Tracking
           </span>
         </Link>
 
@@ -84,23 +87,30 @@ export function BottomNav() {
           </span>
         </Link>
 
-        <Link href="/settings" className="flex flex-col items-center gap-1 min-w-[3.5rem] group">
+
+        <button 
+          onClick={() => setMenuOpen(true)} 
+          className="flex flex-col items-center gap-1 min-w-[3.5rem] group"
+        >
           <div className={cn(
             "p-2 rounded-xl transition-all duration-300",
-            isActive("/settings") 
-              ? "bg-slate-500/10 text-slate-500 scale-110" 
+            menuOpen
+              ? "bg-primary/10 text-primary scale-110" 
               : "text-muted-foreground group-hover:text-foreground group-active:scale-95"
           )}>
-            <Settings className="w-6 h-6" strokeWidth={isActive("/settings") ? 2.5 : 2} />
+            <Grid className="w-6 h-6" strokeWidth={menuOpen ? 2.5 : 2} />
           </div>
           <span className={cn(
             "text-[10px] font-medium transition-colors",
-            isActive("/settings") ? "text-slate-500" : "text-muted-foreground"
+            menuOpen ? "text-primary" : "text-muted-foreground"
           )}>
-            Settings
+            Menu
           </span>
-        </Link>
+        </button>
       </nav>
+
+      {/* Mobile Menu Drawer */}
+      <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
     </div>
   );
 }

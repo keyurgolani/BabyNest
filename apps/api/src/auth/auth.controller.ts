@@ -35,6 +35,8 @@ import {
   InvitationResponseDto,
   InvitationAcceptedResponseDto,
   InvitationListItemDto,
+  InvitationValidationResponseDto,
+  PendingInvitationDto,
   UpdateProfileDto,
   ChangePasswordDto,
 } from './dto';
@@ -347,6 +349,51 @@ export class AuthController {
     @Body() createInvitationDto: CreateInvitationDto,
   ): Promise<InvitationResponseDto> {
     return this.authService.createInvitation(user.id, createInvitationDto);
+  }
+
+  /**
+   * Validate an invitation token (public endpoint)
+   * GET /auth/invite/validate/:token
+   * Validates: Requirements 2.3
+   */
+  @Public()
+  @Get('invite/validate/:token')
+  @ApiOperation({
+    summary: 'Validate invitation',
+    description: 'Check if an invitation token is valid. This is a public endpoint that does not require authentication.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Invitation validation result',
+    type: InvitationValidationResponseDto,
+  })
+  async validateInvitation(
+    @Param('token') token: string,
+  ): Promise<InvitationValidationResponseDto> {
+    return this.authService.validateInvitation(token);
+  }
+
+  /**
+   * Get pending invitations for the current user
+   * GET /auth/invite/pending
+   * Returns invitations sent to the current user's email that are still pending
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('invite/pending')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get pending invitations',
+    description: 'Get all pending invitations for the current user. Used to show a banner when user has pending invitations.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of pending invitations',
+    type: [PendingInvitationDto],
+  })
+  async getPendingInvitations(
+    @CurrentUser() user: CaregiverResponseDto,
+  ): Promise<PendingInvitationDto[]> {
+    return this.authService.getPendingInvitationsForUser(user.email);
   }
 
   /**

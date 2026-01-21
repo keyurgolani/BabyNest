@@ -64,6 +64,11 @@ export function MemoryCard({ memory, onDelete, onView, index }: MemoryCardProps)
               }`}
               unoptimized={memory.photoUrl.startsWith("http")}
               onLoad={() => setImageLoaded(true)}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "https://api.dicebear.com/7.x/shapes/svg?seed=Memory&backgroundColor=f3f4f6";
+                setImageLoaded(true);
+              }}
             />
           </div>
         ) : (

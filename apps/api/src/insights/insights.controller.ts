@@ -6,6 +6,7 @@ import {
   Query,
   Body,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -51,6 +52,8 @@ import { CombinedAuthGuard } from '../auth/guards/combined-auth.guard';
 @UseGuards(CombinedAuthGuard)
 @Controller('babies/:babyId/insights')
 export class InsightsController {
+  private readonly logger = new Logger(InsightsController.name);
+
   constructor(
     private readonly insightsService: InsightsService,
     private readonly insightConfigService: InsightConfigService,
@@ -264,7 +267,43 @@ export class InsightsController {
     @Query() query: TrendInsightsQueryDto,
     @CurrentUser() user: CaregiverResponseDto,
   ): Promise<TrendInsightsResponseDto> {
-    return this.insightsService.getTrendInsights(babyId, user.id, 'daily', query);
+    try {
+      return await this.insightsService.getTrendInsights(babyId, user.id, 'daily', query);
+    } catch (error) {
+      // If there's insufficient data or any error, return an empty insights response
+      // This is expected for new users who haven't logged enough data yet
+      this.logger.debug(`Unable to generate daily insights for baby ${babyId}: ${(error as Error).message || 'Unknown error'}`);
+      
+      // Return a minimal valid response instead of throwing an error
+      const now = new Date();
+      const startOfDay = new Date(now);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      return {
+        babyId,
+        babyName: '',
+        babyAgeMonths: 0,
+        period: 'daily',
+        periodStart: startOfDay,
+        periodEnd: now,
+        periodDays: 1,
+        aggregatedData: {
+          sleep: { totalSleepMinutes: 0, averageDailySleepMinutes: 0, napCount: 0, averageNapDuration: null, averageNightSleepDuration: null, averageWakeWindow: null, consistencyScore: 0 },
+          feeding: { totalFeedings: 0, averageFeedingsPerDay: 0, breastfeedingCount: 0, bottleCount: 0, solidCount: 0, averageBottleAmount: null, totalBottleVolume: 0, consistencyScore: 0 },
+          diaper: { totalChanges: 0, averageChangesPerDay: 0, wetCount: 0, dirtyCount: 0, mixedCount: 0, wetToDirtyRatio: null },
+          growth: { hasMeasurements: false },
+          activity: { totalActivities: 0, tummyTimeMinutes: 0, averageDailyTummyTime: 0, bathCount: 0, outdoorMinutes: 0, playMinutes: 0 },
+        },
+        insights: [],
+        aiSummary: 'Start logging activities to unlock AI-powered insights about your baby\'s patterns and trends.',
+        aiSummaryGenerated: false,
+        aiError: null,
+        aiDurationMs: null,
+        highlights: [],
+        areasOfConcern: [],
+        generatedAt: now,
+      };
+    }
   }
 
   /**

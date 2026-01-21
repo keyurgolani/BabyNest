@@ -473,7 +473,7 @@ export class InsightsService {
     // Get baby details
     const baby = await this.prisma.baby.findUnique({
       where: { id: babyId },
-      select: { id: true, name: true, dateOfBirth: true },
+      select: { id: true, name: true, dateOfBirth: true, gender: true },
     });
 
     if (!baby) {
@@ -683,7 +683,7 @@ export class InsightsService {
     // Get baby details
     const baby = await this.prisma.baby.findUnique({
       where: { id: babyId },
-      select: { id: true, name: true, dateOfBirth: true },
+      select: { id: true, name: true, dateOfBirth: true, gender: true },
     });
 
     if (!baby) {
@@ -1458,7 +1458,7 @@ export class InsightsService {
     // Get baby details
     const baby = await this.prisma.baby.findUnique({
       where: { id: babyId },
-      select: { id: true, name: true, dateOfBirth: true },
+      select: { id: true, name: true, dateOfBirth: true, gender: true },
     });
 
     if (!baby) {
@@ -1553,7 +1553,7 @@ export class InsightsService {
     // Get baby details
     const baby = await this.prisma.baby.findUnique({
       where: { id: babyId },
-      select: { id: true, name: true, dateOfBirth: true },
+      select: { id: true, name: true, dateOfBirth: true, gender: true },
     });
 
     if (!baby) {
@@ -2696,7 +2696,7 @@ export class InsightsService {
     // Get baby details
     const baby = await this.prisma.baby.findUnique({
       where: { id: babyId },
-      select: { id: true, name: true, dateOfBirth: true },
+      select: { id: true, name: true, dateOfBirth: true, gender: true },
     });
 
     if (!baby) {
@@ -2828,6 +2828,7 @@ export class InsightsService {
     try {
       const promptData = {
         babyName: baby.name,
+        babyGender: baby.gender,
         babyAgeMonths,
         periodStart: this.formatDate(periodStart),
         periodEnd: this.formatDate(periodEnd),

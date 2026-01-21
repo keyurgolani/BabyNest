@@ -17,25 +17,33 @@ import {
 export default function TrackingPage() {
   return (
     <MobileContainer>
-      <div className="p-4 space-y-3 pb-6 overflow-y-auto">
+      <div className="p-4 space-y-4 pb-32 overflow-y-auto">
         {/* Header */}
         <div className="mb-2">
           <h1 className="text-2xl font-heading font-bold text-foreground">Tracking</h1>
           <p className="text-sm text-muted-foreground">Monitor your baby&apos;s progress</p>
         </div>
 
-        {/* Top row - Memories, Timeline, and Milestones (each 1/3 width) */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* Memories widget - Full width on mobile */}
+        <div className="grid grid-cols-1 gap-3">
           <MemoriesWidget />
-          <MiniTimelineWidget />
-          <MilestonesWidget />
         </div>
 
-        {/* Second row - Growth, Activities, Health (each 1/3 width) */}
-        <div className="grid grid-cols-3 gap-3">
+        {/* Timeline - Full width on mobile */}
+        <div className="grid grid-cols-1 gap-3">
+          <MiniTimelineWidget />
+        </div>
+
+        {/* Milestones and Health - 2 columns on mobile, 3 on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <MilestonesWidget />
+          <HealthWidget />
+        </div>
+
+        {/* Growth and Activities - Full width on mobile, 2 columns on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <GrowthWidget />
           <ActivityWidget />
-          <HealthWidget />
         </div>
       </div>
     </MobileContainer>
@@ -626,6 +634,10 @@ function MemoriesWidget() {
               src={currentMemory.photoUrl}
               alt={currentMemory.title || "Memory"}
               className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "https://api.dicebear.com/7.x/shapes/svg?seed=Memory&backgroundColor=f3f4f6";
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-3">

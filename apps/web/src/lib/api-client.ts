@@ -629,7 +629,9 @@ export const api = {
       return rootRequest<InvitationListItemDto[]>(`auth/invite/${id}`);
     },
     create: (data: CreateInvitationDto) => rootRequest<InvitationResponseDto>("auth/invite", "POST", data),
-    accept: (token: string) => rootRequest<{ baby: BabyResponseDto }>("auth/invite/accept", "POST", { token }),
+    validate: (token: string) => rootRequest<{ valid: boolean; babyName: string; inviterName: string; inviteeEmail: string; status: string; expiresAt: string; error?: string }>(`auth/invite/validate/${token}`),
+    getPending: () => rootRequest<{ token: string; babyName: string; inviterName: string; expiresAt: string }[]>("auth/invite/pending"),
+    accept: (token: string) => rootRequest<{ message: string; babyId: string; babyName: string; role: string }>("auth/invite/accept", "POST", { token }),
     revoke: (id: string) => rootRequest<void>(`auth/invite/${id}`, "DELETE"),
   },
   milestones: {

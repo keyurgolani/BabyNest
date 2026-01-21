@@ -189,3 +189,80 @@ export class InvitationListItemDto {
   })
   tokenHint: string;
 }
+
+/**
+ * Response DTO for validating an invitation (public endpoint)
+ * Validates: Requirements 2.3
+ */
+export class InvitationValidationResponseDto {
+  @ApiProperty({
+    description: 'Whether the invitation is valid and can be accepted',
+    example: true,
+  })
+  valid: boolean;
+
+  @ApiProperty({
+    description: 'Name of the baby the invitation is for',
+    example: 'Baby Emma',
+  })
+  babyName: string;
+
+  @ApiProperty({
+    description: 'Name of the person who sent the invitation',
+    example: 'John Doe',
+  })
+  inviterName: string;
+
+  @ApiProperty({
+    description: 'Email address the invitation was sent to',
+    example: 'grandparent@example.com',
+  })
+  inviteeEmail: string;
+
+  @ApiProperty({
+    description: 'Current status of the invitation',
+    enum: InvitationStatus,
+    example: InvitationStatus.PENDING,
+  })
+  status: InvitationStatus;
+
+  @ApiProperty({
+    description: 'When the invitation expires',
+  })
+  expiresAt: Date;
+
+  @ApiPropertyOptional({
+    description: 'Error message if the invitation is not valid',
+    example: 'Invitation has expired',
+  })
+  error?: string;
+}
+
+/**
+ * Response DTO for pending invitations for the current user
+ * Used to show a banner when user has pending invitations
+ */
+export class PendingInvitationDto {
+  @ApiProperty({
+    description: 'The invitation token to accept',
+    example: 'inv_abc123def456...',
+  })
+  token: string;
+
+  @ApiProperty({
+    description: 'Name of the baby the invitation is for',
+    example: 'Baby Emma',
+  })
+  babyName: string;
+
+  @ApiProperty({
+    description: 'Name of the person who sent the invitation',
+    example: 'John Doe',
+  })
+  inviterName: string;
+
+  @ApiProperty({
+    description: 'When the invitation expires',
+  })
+  expiresAt: Date;
+}

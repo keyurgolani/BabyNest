@@ -61,9 +61,9 @@ export default function FamilyDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-aurora p-6">
+    <div className="min-h-screen w-full bg-aurora p-4">
       <motion.div 
-        className="max-w-6xl mx-auto space-y-8"
+        className="mx-auto space-y-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

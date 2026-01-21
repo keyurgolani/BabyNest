@@ -230,7 +230,7 @@ export function MemoriesGallery() {
 
   if (isLoading) {
     return (
-      <main className="flex flex-col gap-6 p-6 pt-12 pb-24">
+      <main className="flex flex-col gap-6 p-6 pt-12 pb-32">
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
             <h1 className="text-3xl font-bold text-foreground text-shadow-soft">Memories</h1>
@@ -248,7 +248,7 @@ export function MemoriesGallery() {
   }
 
   return (
-    <main className="flex flex-col gap-6 p-6 pt-12 pb-24 relative">
+    <main className="flex flex-col gap-6 p-6 pt-12 pb-32 relative">
       {/* Aurora background effect */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="glow-orb glow-orb-primary w-96 h-96 absolute -top-48 -right-48 animate-aurora-pulse" />
@@ -436,7 +436,7 @@ export function MemoriesGallery() {
         {/* Floating Action Button for mobile */}
         <button
           onClick={() => setShowAddModal(true)}
-          className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground fab-glow flex items-center justify-center hover:scale-110 transition-transform md:hidden z-40"
+          className="fixed bottom-32 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground fab-glow flex items-center justify-center hover:scale-110 transition-transform md:hidden z-40"
           aria-label="Add memory"
         >
           <Icons.Plus className="w-6 h-6" />

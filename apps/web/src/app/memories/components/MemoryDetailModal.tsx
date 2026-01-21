@@ -102,6 +102,10 @@ export function MemoryDetailModal({ memory, onClose, onDelete }: MemoryDetailMod
                 imageZoomed ? "scale-150" : "scale-100"
               }`}
               unoptimized={memory.photoUrl.startsWith("http")}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = "https://api.dicebear.com/7.x/shapes/svg?seed=Memory&backgroundColor=f3f4f6";
+              }}
             />
             {/* Close button */}
             <button

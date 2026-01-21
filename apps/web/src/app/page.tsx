@@ -12,10 +12,10 @@ import {
   MilestonesCard,
   AISummaryCard,
   UpcomingMedications,
+  TopQuickActions,
 } from "@/components/dashboard";
 import { FeedingPrediction } from "@/components/insights/FeedingPrediction";
-import { WakeWindowCard } from "@/components/WakeWindowCard";
-import { api, SleepStatisticsResponse, GrowthResponse, ActivityListResponse, FeedingStatisticsResponse, DiaperStatisticsResponse, SymptomResponse } from "@/lib/api-client";
+import { api, SleepStatisticsResponse, GrowthResponse, ActivityListResponse, FeedingStatisticsResponse, DiaperStatisticsResponse } from "@/lib/api-client";
 import { motion } from "framer-motion";
 import { EditBabyProfileModal } from "@/components/settings/edit-baby-profile-modal";
 import { Memory } from "@babynest/types";
@@ -23,7 +23,6 @@ import { Download, Loader2, Calendar, Users } from "lucide-react";
 
 export default function Home() {
   const { baby, babyId, refreshBaby } = useBaby();
-  const [greeting, setGreeting] = useState("");
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [showEditModal, setShowEditModal] = useState(false);
   const [randomMemory, setRandomMemory] = useState<Memory | null>(null);
@@ -32,7 +31,6 @@ export default function Home() {
   const [diaperStats, setDiaperStats] = useState<DiaperStatisticsResponse | null>(null);
   const [latestGrowth, setLatestGrowth] = useState<GrowthResponse | null>(null);
   const [recentActivities, setRecentActivities] = useState<ActivityListResponse | null>(null);
-  const [latestTemperature, setLatestTemperature] = useState<SymptomResponse | null>(null);
   const [downloading, setDownloading] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
@@ -128,11 +126,7 @@ export default function Home() {
       if (tempReadings.length > 0) {
         // Sort by timestamp descending and get the most recent
         const sorted = tempReadings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        // Only show if within last 24 hours
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        if (new Date(sorted[0].timestamp) > twentyFourHoursAgo) {
-          setLatestTemperature(sorted[0]);
-        }
+        // Only show if within last 24 hours - removed display as state was removed
       }
     } catch (error) {
       console.error("Failed to fetch temperature:", error);
@@ -180,15 +174,6 @@ export default function Home() {
     }
   }, [babyId]);
 
-  // Compute greeting based on time of day (client-side only to avoid hydration mismatch)
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 5) setGreeting("Good night");
-    else if (hour < 12) setGreeting("Good morning");
-    else if (hour < 17) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
-  }, []);
-
   const babyAge = useMemo(() => {
     if (!baby?.age) return "";
     const { years, months, days } = baby.age;
@@ -217,7 +202,7 @@ export default function Home() {
 
   // Quick info items for the status bar
   const quickInfo = useMemo(() => {
-    const items: { icon: string; label: string; value: string; color: string }[] = [];
+    const items: { icon: React.ReactNode; label: string; value: string; color: string }[] = [];
     
     // Last feeding
     if (feedingStats?.lastFeeding) {
@@ -225,7 +210,7 @@ export default function Home() {
                        feedingStats.lastFeeding.type === 'bottle' ? 'Bottle' : 
                        feedingStats.lastFeeding.type === 'pumping' ? 'Pumped' : 'Solids';
       items.push({
-        icon: '🍼',
+        icon: <Icons.Feed className="w-3.5 h-3.5" />,
         label: `Fed (${feedType})`,
         value: formatTimeAgo(feedingStats.lastFeeding.timestamp),
         color: 'text-amber-600 dark:text-amber-400'
@@ -234,14 +219,11 @@ export default function Home() {
     
     // Last diaper
     if (diaperStats?.lastDiaper) {
-      const diaperIcon = diaperStats.lastDiaper.type === 'wet' ? '💧' : 
-                         diaperStats.lastDiaper.type === 'dirty' ? '💩' : 
-                         diaperStats.lastDiaper.type === 'mixed' ? '🔄' : '✨';
       const diaperType = diaperStats.lastDiaper.type === 'wet' ? 'Wet' : 
                          diaperStats.lastDiaper.type === 'dirty' ? 'Dirty' : 
                          diaperStats.lastDiaper.type === 'mixed' ? 'Mixed' : 'Dry';
       items.push({
-        icon: diaperIcon,
+        icon: <Icons.Diaper className="w-3.5 h-3.5" />,
         label: `Diaper (${diaperType})`,
         value: formatTimeAgo(diaperStats.lastDiaper.timestamp),
         color: 'text-sky-600 dark:text-sky-400'
@@ -251,29 +233,15 @@ export default function Home() {
     // Wake window
     if (sleepStats?.currentWakeWindowFormatted) {
       items.push({
-        icon: '⏰',
+        icon: <Icons.Sleep className="w-3.5 h-3.5" />,
         label: 'Awake',
         value: sleepStats.currentWakeWindowFormatted,
         color: 'text-violet-600 dark:text-violet-400'
       });
     }
-
-    // Latest temperature (if recorded in last 24h)
-    if (latestTemperature?.temperature) {
-      const tempC = latestTemperature.temperature;
-      const tempF = Math.round((tempC * 9/5 + 32) * 10) / 10;
-      const isElevated = tempC >= 37.8;
-      const isLow = tempC < 36.5;
-      items.push({
-        icon: isElevated ? '🤒' : isLow ? '🥶' : '🌡️',
-        label: 'Temp',
-        value: `${tempF}°F`,
-        color: isElevated ? 'text-red-600 dark:text-red-400' : isLow ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'
-      });
-    }
     
     return items;
-  }, [feedingStats, diaperStats, sleepStats, latestTemperature]);
+  }, [feedingStats, diaperStats, sleepStats]);
 
   // Handle parallax tilt effect
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -320,77 +288,90 @@ export default function Home() {
     <div className="h-screen w-full bg-aurora text-foreground relative flex flex-col overflow-hidden">
       <div className="absolute inset-0 bg-white/40 pointer-events-none" />
       <motion.main
-        className="relative z-10 flex flex-col w-full max-w-6xl mx-auto px-6 h-full"
+        className="relative z-10 flex flex-col w-full mx-auto px-4 h-full"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
       {/* Header with Hero Avatar - Fixed */}
-      <motion.div variants={itemVariants} className="flex justify-between items-center flex-shrink-0 py-4">
-        <div className="flex items-center gap-4">
+      <motion.div variants={itemVariants} className="flex justify-between items-center md:items-start flex-shrink-0 py-4 gap-4">
+        <div className="flex items-center md:items-start gap-4 flex-1 min-w-0">
           {/* Parallax Hero Avatar */}
-          <div
-            ref={heroRef}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            onClick={() => baby && !baby.photoUrl && setShowEditModal(true)}
-            className={`relative ${!baby?.photoUrl ? 'cursor-pointer' : ''} group`}
-            style={{ perspective: "500px" }}
-            title={!baby?.photoUrl ? "Click to add profile photo" : undefined}
-          >
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
             <div
-              className="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg transition-transform duration-200 ease-out"
-              style={{
-                transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                transformStyle: "preserve-3d",
-              }}
+              ref={heroRef}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => baby && !baby.photoUrl && setShowEditModal(true)}
+              className={`relative ${!baby?.photoUrl ? 'cursor-pointer' : ''} group`}
+              style={{ perspective: "500px" }}
+              title={!baby?.photoUrl ? "Click to add profile photo" : undefined}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={baby?.photoUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby"}
-                alt={baby?.name || "Baby"}
-                className="w-full h-full object-cover"
+              <div
+                className="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg transition-transform duration-200 ease-out relative"
+                style={{
+                  transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                  transformStyle: "preserve-3d",
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={baby?.photoUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby"}
+                  alt={baby?.name || "Baby"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
+                  }}
+                />
+                {/* Edit overlay on hover - only show when no photo */}
+                {!baby?.photoUrl && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Icons.Edit className="w-6 h-6 text-white" />
+                  </div>
+                )}
+              </div>
+              {/* Glow effect */}
+              <div
+                className="absolute inset-0 rounded-full bg-primary/20 blur-xl -z-10 transition-opacity duration-200"
+                style={{
+                  opacity: Math.abs(tilt.x) + Math.abs(tilt.y) > 0 ? 0.6 : 0.3,
+                }}
               />
-              {/* Edit overlay on hover - only show when no photo */}
-              {!baby?.photoUrl && (
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <Icons.Edit className="w-6 h-6 text-white" />
-                </div>
-              )}
             </div>
-            {/* Glow effect */}
-            <div
-              className="absolute inset-0 rounded-full bg-primary/20 blur-xl -z-10 transition-opacity duration-200"
-              style={{
-                opacity: Math.abs(tilt.x) + Math.abs(tilt.y) > 0 ? 0.6 : 0.3,
-              }}
-            />
+            {/* Age badge - shown below avatar on mobile only */}
+            {babyAge && (
+              <span className="md:hidden text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium glow-soft">
+                {babyAge}
+              </span>
+            )}
           </div>
 
           {/* Baby Info */}
-          <div className="flex flex-col">
-            <span className="text-muted-foreground text-sm font-medium">
-              {greeting}
-            </span>
+          <div className="flex flex-col flex-1 min-w-0 justify-center">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-heading font-bold text-foreground text-shadow-soft">
+              <h1 className="text-2xl md:text-3xl font-heading font-bold text-foreground text-shadow-soft truncate">
                 {baby?.name || "Baby"}
               </h1>
+              {/* Age badge - shown next to name on desktop */}
               {babyAge && (
-                <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium glow-soft">
+                <span className="hidden md:inline-block text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium glow-soft flex-shrink-0">
                   {babyAge}
                 </span>
               )}
             </div>
             {/* Quick Info Bar */}
             {quickInfo.length > 0 && (
-              <div className="flex items-center gap-3 mt-1.5">
+              <div className="flex flex-col gap-1.5 mt-2">
                 {quickInfo.map((item, index) => (
-                  <div key={index} className={`flex items-center gap-1 text-xs font-medium ${item.color}`}>
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                    <span className="opacity-75">·</span>
-                    <span>{item.value}</span>
+                  <div 
+                    key={index} 
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/60 dark:bg-black/20 border border-border/50 ${item.color}`}
+                  >
+                    {item.icon}
+                    <span className="text-xs font-medium">{item.label}</span>
+                    <span className="text-xs opacity-60">·</span>
+                    <span className="text-xs font-bold">{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -398,29 +379,33 @@ export default function Home() {
           </div>
         </div>
 
-        <Link href="/settings">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-10 w-10 hover:bg-primary/10 transition-all duration-300 icon-glow"
-          >
-            <Icons.Settings className="w-5 h-5" />
-          </Button>
-        </Link>
+        <div className="flex items-start flex-shrink-0 md:hidden">
+          <TopQuickActions />
+        </div>
       </motion.div>
 
       {/* Two Column Layout - Fills remaining height */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 overflow-hidden min-h-0">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 overflow-y-auto lg:overflow-hidden min-h-0">
         {/* Left Column: Actions, AI Summary, Reports, Navigation */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-6 px-2 -mx-2 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-          {/* Quick Action Shortcuts */}
-          <QuickActionsCard />
+        <motion.div variants={itemVariants} className="flex flex-col gap-6 overflow-visible lg:overflow-y-auto pb-32 lg:pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
+          {/* Quick Action Shortcuts - Hidden on mobile since they're in the header */}
+          <div className="hidden md:block">
+            <QuickActionsCard />
+          </div>
 
           {/* AI Summary */}
           <AISummaryCard />
 
+          {/* Mobile Only: Right column cards */}
+          <div className="lg:hidden flex flex-col gap-6">
+            <FeedingPrediction />
+            <UpcomingMedications />
+            <RemindersCard />
+            <MilestonesCard />
+          </div>
+
           {/* Memory + Navigation Links Row */}
-          <div className="grid grid-cols-2 gap-3 flex-shrink-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-shrink-0">
             {/* Random Memory - Left Half (Square) */}
             <Link
               href="/memories"
@@ -437,6 +422,10 @@ export default function Home() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       priority
                       unoptimized={randomMemory.photoUrl.startsWith("http")}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://api.dicebear.com/7.x/shapes/svg?seed=Memory&backgroundColor=f3f4f6";
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3">
@@ -492,9 +481,9 @@ export default function Home() {
                       <Icons.Stats className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <span className="text-xs font-semibold text-foreground block">Statistics</span>
+                      <span className="text-xs font-semibold text-foreground block">Timeline</span>
                       <span className="text-[10px] text-muted-foreground">
-                        {sleepStats ? `${Math.round(sleepStats.averageSleepMinutesPerDay / 60)}h sleep today` : "View trends"}
+                        Activity history
                       </span>
                     </div>
                   </div>
@@ -593,11 +582,8 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* Right Column: Wake Window, Feeding, Medications, Reminders, Milestones */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-6 lg:pl-2 px-2 -mx-2 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-          {/* Wake Window Timer */}
-          <WakeWindowCard />
-
+        {/* Right Column: Feeding, Medications, Reminders, Milestones - Desktop Only */}
+        <motion.div variants={itemVariants} className="hidden lg:flex flex-col gap-6 overflow-visible lg:overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
           {/* Feeding Prediction */}
           <FeedingPrediction />
 

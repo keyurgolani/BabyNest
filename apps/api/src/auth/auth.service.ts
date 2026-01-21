@@ -29,6 +29,8 @@ import {
   InvitationAcceptedResponseDto,
   InvitationListItemDto,
   InvitationStatus,
+  InvitationValidationResponseDto,
+  PendingInvitationDto,
   UpdateProfileDto,
   ChangePasswordDto,
 } from './dto';
@@ -863,5 +865,120 @@ export class AuthService {
       where: { id: invitationId },
       data: { status: 'revoked' },
     });
+  }
+
+  /**
+   * Validate an invitation token (public endpoint - no auth required)
+   * Returns invitation details and validity status
+   * Validates: Requirements 2.3
+   */
+  async validateInvitation(token: string): Promise<InvitationValidationResponseDto> {
+    // Find the invitation
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { token },
+      include: {
+        baby: {
+          select: {
+            name: true,
+          },
+        },
+        inviter: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!invitation) {
+      return {
+        valid: false,
+        babyName: '',
+        inviterName: '',
+        inviteeEmail: '',
+        status: InvitationStatus.EXPIRED,
+        expiresAt: new Date(),
+        error: 'Invitation not found',
+      };
+    }
+
+    const now = new Date();
+    const isExpired = now > invitation.expiresAt;
+
+    // If invitation is pending but expired, update its status
+    if (invitation.status === 'pending' && isExpired) {
+      await this.prisma.invitation.update({
+        where: { id: invitation.id },
+        data: { status: 'expired' },
+      });
+    }
+
+    // Determine the effective status
+    let effectiveStatus = invitation.status as InvitationStatus;
+    if (invitation.status === 'pending' && isExpired) {
+      effectiveStatus = InvitationStatus.EXPIRED;
+    }
+
+    // Determine validity and error message
+    let valid = false;
+    let error: string | undefined;
+
+    if (effectiveStatus === InvitationStatus.PENDING) {
+      valid = true;
+    } else if (effectiveStatus === InvitationStatus.EXPIRED) {
+      error = 'This invitation has expired';
+    } else if (effectiveStatus === InvitationStatus.ACCEPTED) {
+      error = 'This invitation has already been accepted';
+    } else if (effectiveStatus === InvitationStatus.REVOKED) {
+      error = 'This invitation has been revoked';
+    }
+
+    return {
+      valid,
+      babyName: invitation.baby.name,
+      inviterName: invitation.inviter.name,
+      inviteeEmail: invitation.inviteeEmail,
+      status: effectiveStatus,
+      expiresAt: invitation.expiresAt,
+      error,
+    };
+  }
+
+  /**
+   * Get pending invitations for the current user by their email
+   * Used to show a banner when user has pending invitations
+   */
+  async getPendingInvitationsForUser(userEmail: string): Promise<PendingInvitationDto[]> {
+    const normalizedEmail = userEmail.toLowerCase();
+    const now = new Date();
+
+    // Find all pending invitations for this email that haven't expired
+    const invitations = await this.prisma.invitation.findMany({
+      where: {
+        inviteeEmail: normalizedEmail,
+        status: 'pending',
+        expiresAt: { gt: now },
+      },
+      include: {
+        baby: {
+          select: {
+            name: true,
+          },
+        },
+        inviter: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return invitations.map((invitation) => ({
+      token: invitation.token,
+      babyName: invitation.baby.name,
+      inviterName: invitation.inviter.name,
+      expiresAt: invitation.expiresAt,
+    }));
   }
 }

@@ -18,7 +18,7 @@ import {
 export default function QuickLogPage() {
   return (
     <MobileContainer>
-      <div className="p-4 space-y-3 pb-6 overflow-y-auto">
+      <div className="p-4 space-y-3 pb-32 overflow-y-auto">
         {/* Header */}
         <div className="mb-2">
           <h1 className="text-2xl font-heading font-bold text-foreground">Quick Log</h1>

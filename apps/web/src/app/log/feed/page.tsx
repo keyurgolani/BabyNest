@@ -14,6 +14,7 @@ import { api, FeedingType, BottleType, PumpSide, FeedingSuggestionResponse } fro
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
 import { NumberStepper } from "@/components/ui/number-stepper";
 import { useLogs } from "@/context/log-context";
+import { AgeWarning } from "@/components/common/AgeWarning";
 
 type Unit = "ml" | "oz";
 
@@ -327,6 +328,14 @@ function FeedLogPageContent() {
 
         {/* Feeding Type Tabs */}
         {renderTabs()}
+
+        {/* Age Warnings */}
+        {selectedType === "solid" && (
+          <AgeWarning minAgeMonths={6} activityName="Solid Foods" />
+        )}
+        {selectedType === "bottle" && bottleType === "water" && (
+          <AgeWarning minAgeMonths={6} activityName="Water" />
+        )}
 
         {/* Breastfeeding UI */}
         {selectedType === "breastfeeding" && (
@@ -840,8 +849,11 @@ function FeedLogPageContent() {
             />
         </div>
 
+        {/* Spacer for fixed button */}
+        <div className="h-5" />
+
         {/* Save Button */}
-        <div className="fixed bottom-6 left-4 right-4 z-50">
+        <div className="fixed bottom-32 left-4 right-4 z-50">
           <Button 
             onClick={handleSave}
             disabled={isLoading}

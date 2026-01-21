@@ -147,7 +147,7 @@ export default function MilestonesPage() {
   if (loading) {
     return (
       <MobileContainer>
-        <div className="p-6 flex items-center justify-center min-h-[50vh]">
+        <div className="p-4 flex items-center justify-center min-h-[50vh]">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             <p className="text-muted-foreground">Loading milestones...</p>
@@ -160,7 +160,7 @@ export default function MilestonesPage() {
   if (error) {
     return (
       <MobileContainer>
-        <div className="p-6 flex items-center justify-center min-h-[50vh]">
+        <div className="p-4 flex items-center justify-center min-h-[50vh]">
           <div className="flex flex-col items-center gap-4 text-center">
             <Icons.Close className="w-12 h-12 text-red-500" />
             <p className="text-red-500 font-medium">{error}</p>
@@ -177,7 +177,7 @@ export default function MilestonesPage() {
 
   return (
     <MobileContainer>
-      <div className="p-6 space-y-6 animate-slide-up">
+      <div className="p-4 space-y-6 animate-slide-up pb-32">
         {/* Page Header */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">

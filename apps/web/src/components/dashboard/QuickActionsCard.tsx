@@ -2,29 +2,9 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Baby, Moon, Utensils, Droplets, Pill, Syringe, Apple, Stethoscope, Users } from "lucide-react";
+import { Pill, Syringe, Apple, Stethoscope, Moon, Baby, Droplets } from "lucide-react";
 
 const actions = [
-  {
-    href: "/log/feed?type=bottle",
-    label: "Bottle",
-    icon: Utensils,
-    color: "text-[#D4896A] dark:text-[#E8A87C]",
-    bg: "bg-gradient-to-br from-[#FFF5ED] to-[#FFE8D6] dark:from-[#3D2E26] dark:to-[#2D1E16]",
-    borderColor: "border-[#F4D4C4]/50 dark:border-[#5A4035]",
-    glow: "shadow-[0_4px_16px_rgba(212,137,106,0.2),0_0_25px_rgba(212,137,106,0.15)]",
-    hoverGlow: "hover:shadow-[0_8px_24px_rgba(212,137,106,0.3),0_0_40px_rgba(212,137,106,0.25)]",
-  },
-  {
-    href: "/log/feed",
-    label: "Breast",
-    icon: Droplets,
-    color: "text-[#C97B8B] dark:text-[#E8959A]",
-    bg: "bg-gradient-to-br from-[#FFF5F7] to-[#FFE8EC] dark:from-[#3D2A2E] dark:to-[#2D1A1E]",
-    borderColor: "border-[#F4D4D8]/50 dark:border-[#5A3540]",
-    glow: "shadow-[0_4px_16px_rgba(201,123,139,0.2),0_0_25px_rgba(201,123,139,0.15)]",
-    hoverGlow: "hover:shadow-[0_8px_24px_rgba(201,123,139,0.3),0_0_40px_rgba(201,123,139,0.25)]",
-  },
   {
     href: "/log/sleep",
     label: "Sleep",
@@ -44,6 +24,16 @@ const actions = [
     borderColor: "border-[#C4E4CE]/50 dark:border-[#3A5A45]",
     glow: "shadow-[0_4px_16px_rgba(107,168,122,0.2),0_0_25px_rgba(107,168,122,0.15)]",
     hoverGlow: "hover:shadow-[0_8px_24px_rgba(107,168,122,0.3),0_0_40px_rgba(107,168,122,0.25)]",
+  },
+  {
+    href: "/log/feed",
+    label: "Feed",
+    icon: Droplets,
+    color: "text-[#C97B8B] dark:text-[#E8959A]",
+    bg: "bg-gradient-to-br from-[#FFF5F7] to-[#FFE8EC] dark:from-[#3D2A2E] dark:to-[#2D1A1E]",
+    borderColor: "border-[#F4D4D8]/50 dark:border-[#5A3540]",
+    glow: "shadow-[0_4px_16px_rgba(201,123,139,0.2),0_0_25px_rgba(201,123,139,0.15)]",
+    hoverGlow: "hover:shadow-[0_8px_24px_rgba(201,123,139,0.3),0_0_40px_rgba(201,123,139,0.25)]",
   },
   {
     href: "/log/medication",
@@ -85,16 +75,6 @@ const actions = [
     glow: "shadow-[0_4px_16px_rgba(155,123,176,0.2),0_0_25px_rgba(155,123,176,0.15)]",
     hoverGlow: "hover:shadow-[0_8px_24px_rgba(155,123,176,0.3),0_0_40px_rgba(155,123,176,0.25)]",
   },
-  {
-    href: "/family",
-    label: "Family",
-    icon: Users,
-    color: "text-[#6366F1] dark:text-[#818CF8]",
-    bg: "bg-gradient-to-br from-[#EEF2FF] to-[#E0E7FF] dark:from-[#312E81] dark:to-[#1E1B4B]",
-    borderColor: "border-[#C7D2FE]/50 dark:border-[#4338CA]",
-    glow: "shadow-[0_4px_16px_rgba(99,102,241,0.2),0_0_25px_rgba(99,102,241,0.15)]",
-    hoverGlow: "hover:shadow-[0_8px_24px_rgba(99,102,241,0.3),0_0_40px_rgba(99,102,241,0.25)]",
-  },
 ];
 
 export function QuickActionsCard() {
@@ -103,12 +83,12 @@ export function QuickActionsCard() {
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-1">
         Quick Log
       </h2>
-      <div className="grid grid-cols-4 gap-3 p-1 -m-1">
+      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 md:gap-3 p-1 -m-1">
         {actions.map((action) => (
           <Link key={action.label} href={action.href} className="group">
             <div
               className={cn(
-                "flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-300",
+                "flex flex-col items-center justify-center gap-1 md:gap-1.5 p-2 md:p-3 rounded-xl border-2 transition-all duration-300",
                 action.bg,
                 action.borderColor,
                 action.glow,
@@ -118,14 +98,14 @@ export function QuickActionsCard() {
             >
               <div
                 className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center bg-white/80 dark:bg-black/30 backdrop-blur-sm transition-all duration-300",
+                  "w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center bg-white/80 dark:bg-black/30 backdrop-blur-sm transition-all duration-300",
                   action.color,
                   "group-hover:scale-110 group-hover:bg-white dark:group-hover:bg-black/40"
                 )}
               >
-                <action.icon className="w-5 h-5" strokeWidth={2.5} />
+                <action.icon className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.5} />
               </div>
-              <span className={cn("font-semibold text-xs", action.color)}>
+              <span className={cn("font-semibold text-[10px] md:text-xs", action.color)}>
                 {action.label}
               </span>
             </div>

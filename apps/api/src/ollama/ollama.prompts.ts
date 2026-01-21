@@ -230,6 +230,7 @@ export const DAILY_TREND_PROMPT = `Analyze the following daily tracking data for
 
 Baby Name: {{babyName}}
 Baby Age: {{babyAgeMonths}} months
+Baby Gender: {{babyGender}}
 Date: {{periodStart}}
 
 Sleep Data:
@@ -249,6 +250,7 @@ IMPORTANT CONSTRAINTS:
 - Be direct and specific - no filler words
 - Focus on the most important observation or actionable insight
 - Write in a warm, supportive tone for tired parents
+- Use the correct pronouns (he/him for male, she/her for female) based on the baby's gender
 - Do NOT use bullet points, numbered lists, or markdown formatting
 - Do NOT include greetings or sign-offs
 
@@ -262,6 +264,7 @@ export const WEEKLY_TREND_PROMPT = `Analyze the following weekly tracking data f
 
 Baby Name: {{babyName}}
 Baby Age: {{babyAgeMonths}} months
+Baby Gender: {{babyGender}}
 Week: {{periodStart}} to {{periodEnd}} ({{periodDays}} days)
 
 Sleep Summary:

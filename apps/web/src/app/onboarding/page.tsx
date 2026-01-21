@@ -183,7 +183,7 @@ export default function OnboardingPage() {
 
   return (
     <MobileContainer>
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 animate-slide-up">
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-slide-up">
         {/* Welcome Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">

@@ -25,7 +25,15 @@ import {
   Scale,
   Camera,
   Star,
+  Edit2,
+  Trash2,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Icons } from "@/components/icons";
 
 // Types for calendar entries
 type EntryType = 'feeding' | 'sleep' | 'diaper' | 'activity' | 'growth' | 'symptom' | 'medication' | 'vaccination' | 'doctor_visit' | 'memory' | 'milestone';
@@ -69,6 +77,16 @@ export default function CalendarPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<CalendarEntry | null>(null);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  
+  // Edit modal state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<CalendarEntry | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Delete confirmation state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingEntry, setDeletingEntry] = useState<CalendarEntry | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch all data for the current month
   useEffect(() => {
@@ -274,9 +292,11 @@ export default function CalendarPage() {
               type: 'memory',
               timestamp: date,
               title: m.title || 'Memory',
-              subtitle: m.entryType,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              details: m as any,
+              subtitle: 'Photo Memory',
+              details: { 
+                ...m,
+                photoUrl: m.photoUrl 
+              } as unknown as Record<string, unknown>,
             });
           }
         });
@@ -414,9 +434,358 @@ export default function CalendarPage() {
     return ENTRY_TYPES.find(t => t.type === type) || ENTRY_TYPES[0];
   };
 
+  // Refetch calendar data
+  const refetchData = async () => {
+    setIsLoading(true);
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    try {
+      const allEntries: CalendarEntry[] = [];
+
+      const [
+        feedingsRes,
+        sleepRes,
+        diapersRes,
+        activitiesRes,
+        growthRes,
+        symptomsRes,
+        medicationsRes,
+        vaccinationsRes,
+        doctorVisitsRes,
+        memoriesRes,
+        milestonesRes,
+      ] = await Promise.all([
+        api.feedings.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.sleep.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.diapers.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.activities.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.growth.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.health.symptoms.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.health.medications.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.health.vaccinations.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.health.doctorVisits.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.memories.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+        api.milestones.list({ pageSize: 100 }).catch(() => ({ data: [] })),
+      ]);
+
+      // Process all entries (same logic as in useEffect)
+      feedingsRes.data.forEach(f => {
+        const date = new Date(f.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          let title = 'Feeding';
+          let subtitle = '';
+          if (f.type === 'bottle') {
+            title = 'Bottle';
+            subtitle = f.amount ? `${f.amount}ml` : '';
+          } else if (f.type === 'breastfeeding') {
+            title = 'Nursing';
+            const duration = (f.leftDuration || 0) + (f.rightDuration || 0);
+            subtitle = duration > 0 ? `${duration} min` : '';
+          } else if (f.type === 'solid') {
+            title = 'Solids';
+            subtitle = f.foodType || '';
+          } else if (f.type === 'pumping') {
+            title = 'Pumping';
+            subtitle = f.pumpedAmount ? `${f.pumpedAmount}ml` : '';
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          allEntries.push({ id: f.id, type: 'feeding', timestamp: date, title, subtitle, details: f as any });
+        }
+      });
+
+      sleepRes.data.forEach(s => {
+        const date = new Date(s.startTime);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          const duration = s.duration ? `${Math.floor(s.duration / 60)}h ${s.duration % 60}m` : '';
+          allEntries.push({
+            id: s.id,
+            type: 'sleep',
+            timestamp: date,
+            title: s.sleepType === 'nap' ? 'Nap' : 'Night Sleep',
+            subtitle: duration,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: s as any,
+          });
+        }
+      });
+
+      diapersRes.data.forEach(d => {
+        const date = new Date(d.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: d.id,
+            type: 'diaper',
+            timestamp: date,
+            title: 'Diaper',
+            subtitle: d.type.charAt(0).toUpperCase() + d.type.slice(1),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: d as any,
+          });
+        }
+      });
+
+      activitiesRes.data.forEach(a => {
+        const date = new Date(a.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          const typeLabel = a.activityType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+          allEntries.push({
+            id: a.id,
+            type: 'activity',
+            timestamp: date,
+            title: typeLabel,
+            subtitle: a.duration ? `${a.duration} min` : '',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: a as any,
+          });
+        }
+      });
+
+      growthRes.data.forEach(g => {
+        const date = new Date(g.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          const parts = [];
+          if (g.weight) parts.push(`${(g.weight / 1000).toFixed(1)}kg`);
+          if (g.height) parts.push(`${(g.height / 10).toFixed(1)}cm`);
+          allEntries.push({
+            id: g.id,
+            type: 'growth',
+            timestamp: date,
+            title: 'Growth',
+            subtitle: parts.join(', '),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: g as any,
+          });
+        }
+      });
+
+      symptomsRes.data.forEach(s => {
+        const date = new Date(s.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: s.id,
+            type: 'symptom',
+            timestamp: date,
+            title: s.symptomType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            subtitle: s.severity,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: s as any,
+          });
+        }
+      });
+
+      medicationsRes.data.forEach(m => {
+        const date = new Date(m.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: m.id,
+            type: 'medication',
+            timestamp: date,
+            title: m.name,
+            subtitle: `${m.dosage}${m.unit}`,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: m as any,
+          });
+        }
+      });
+
+      vaccinationsRes.data.forEach(v => {
+        const date = new Date(v.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: v.id,
+            type: 'vaccination',
+            timestamp: date,
+            title: v.vaccineName,
+            subtitle: v.provider || '',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: v as any,
+          });
+        }
+      });
+
+      doctorVisitsRes.data.forEach(d => {
+        const date = new Date(d.timestamp);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: d.id,
+            type: 'doctor_visit',
+            timestamp: date,
+            title: 'Doctor Visit',
+            subtitle: d.visitType.replace(/\b\w/g, l => l.toUpperCase()),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: d as any,
+          });
+        }
+      });
+
+      memoriesRes.data.forEach(m => {
+        const date = new Date(m.takenAt);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: m.id,
+            type: 'memory',
+            timestamp: date,
+            title: m.title || 'Memory',
+            subtitle: 'Photo Memory',
+            details: { 
+              ...m,
+              photoUrl: m.photoUrl 
+            } as unknown as Record<string, unknown>,
+          });
+        }
+      });
+
+      milestonesRes.data.forEach(m => {
+        const date = new Date(m.achievedDate);
+        if (date >= startOfMonth && date <= endOfMonth) {
+          allEntries.push({
+            id: m.id,
+            type: 'milestone',
+            timestamp: date,
+            title: m.milestone?.name || 'Milestone',
+            subtitle: m.milestone?.category || '',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            details: m as any,
+          });
+        }
+      });
+
+      setEntries(allEntries);
+    } catch (err) {
+      console.error("Failed to fetch calendar data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle edit button click
+  const handleEdit = (entry: CalendarEntry) => {
+    setEditingEntry(entry);
+    setEditModalOpen(true);
+    setSelectedEntry(null);
+    setSelectedDay(null);
+  };
+
+  // Handle delete button click
+  const handleDeleteClick = (entry: CalendarEntry) => {
+    setDeletingEntry(entry);
+    setDeleteDialogOpen(true);
+  };
+
+  // Handle delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!deletingEntry) return;
+
+    setIsDeleting(true);
+    try {
+      // Call the appropriate delete API based on type
+      switch (deletingEntry.type) {
+        case "feeding":
+          await api.feedings.delete(deletingEntry.id);
+          break;
+        case "sleep":
+          await api.sleep.delete(deletingEntry.id);
+          break;
+        case "diaper":
+          await api.diapers.delete(deletingEntry.id);
+          break;
+        case "activity":
+          await api.activities.delete(deletingEntry.id);
+          break;
+        case "growth":
+          await api.growth.delete(deletingEntry.id);
+          break;
+        case "medication":
+          await api.health.medications.delete(deletingEntry.id);
+          break;
+        case "symptom":
+          await api.health.symptoms.delete(deletingEntry.id);
+          break;
+        case "vaccination":
+          await api.health.vaccinations.delete(deletingEntry.id);
+          break;
+        case "doctor_visit":
+          await api.health.doctorVisits.delete(deletingEntry.id);
+          break;
+        case "memory":
+          await api.memories.delete(deletingEntry.id);
+          break;
+        case "milestone":
+          await api.milestones.delete(deletingEntry.id);
+          break;
+      }
+
+      toast.success("Entry deleted successfully");
+      setDeleteDialogOpen(false);
+      setDeletingEntry(null);
+      setSelectedEntry(null);
+      setSelectedDay(null);
+      
+      // Refresh the calendar
+      await refetchData();
+    } catch (error) {
+      console.error("Failed to delete entry:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete entry");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Handle edit form submission
+  const handleEditSubmit = async (formData: Record<string, unknown>) => {
+    if (!editingEntry) return;
+
+    setIsSubmitting(true);
+    try {
+      // Call the appropriate update API based on type
+      switch (editingEntry.type) {
+        case "feeding":
+          await api.feedings.update(editingEntry.id, formData);
+          break;
+        case "sleep":
+          await api.sleep.update(editingEntry.id, formData);
+          break;
+        case "diaper":
+          await api.diapers.update(editingEntry.id, formData);
+          break;
+        case "activity":
+          await api.activities.update(editingEntry.id, formData);
+          break;
+        case "growth":
+          await api.growth.update(editingEntry.id, formData);
+          break;
+        case "medication":
+          await api.health.medications.update(editingEntry.id, formData);
+          break;
+        case "symptom":
+          await api.health.symptoms.update(editingEntry.id, formData);
+          break;
+        case "vaccination":
+          await api.health.vaccinations.update(editingEntry.id, formData);
+          break;
+        case "doctor_visit":
+          await api.health.doctorVisits.update(editingEntry.id, formData);
+          break;
+      }
+
+      toast.success("Entry updated successfully");
+      setEditModalOpen(false);
+      setEditingEntry(null);
+      
+      // Refresh the calendar
+      await refetchData();
+    } catch (error) {
+      console.error("Failed to update entry:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update entry");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <MobileContainer>
-      <div className="p-4 space-y-4 pb-6 h-full flex flex-col">
+      <div className="p-4 space-y-4 pb-32 h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -545,7 +914,7 @@ export default function CalendarPage() {
                   >
                     {/* Memory Photo Background */}
                     {hasMemories && (
-                      <div className="absolute inset-0 -z-10">
+                      <div className="absolute inset-0 z-0 overflow-hidden rounded-lg">
                         {memoryEntries.length === 1 ? (
                           // Single memory - full background
                           <div className="w-full h-full relative">
@@ -554,9 +923,10 @@ export default function CalendarPage() {
                               alt=""
                               fill
                               sizes="(max-width: 768px) 15vw, 100px"
-                              className="object-cover opacity-40"
+                              className="object-cover"
+                              unoptimized
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                            <div className="absolute inset-0 bg-black/40" />
                           </div>
                         ) : memoryEntries.length === 2 ? (
                           // Two memories - split vertically
@@ -693,6 +1063,8 @@ export default function CalendarPage() {
           })}
           onClose={() => setSelectedDay(null)}
           onSelectEntry={setSelectedEntry}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
           getEntryConfig={getEntryConfig}
           formatTime={formatTime}
         />
@@ -703,8 +1075,86 @@ export default function CalendarPage() {
         <EntryDetailModal
           entry={selectedEntry}
           onClose={() => setSelectedEntry(null)}
+          onEdit={handleEdit}
+          onDelete={handleDeleteClick}
           getEntryConfig={getEntryConfig}
           formatTime={formatTime}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <DialogTitle>Delete Entry</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete this entry?
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {deletingEntry && (
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm font-medium text-foreground">{deletingEntry.title}</p>
+              {deletingEntry.subtitle && (
+                <p className="text-xs text-muted-foreground">{deletingEntry.subtitle}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">
+                {deletingEntry.timestamp.toLocaleString()}
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={isDeleting}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="flex-1"
+            >
+              {isDeleting ? (
+                <>
+                  <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      {editingEntry && (
+        <EditEntryModal
+          entry={editingEntry}
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditingEntry(null);
+          }}
+          onSubmit={handleEditSubmit}
+          isSubmitting={isSubmitting}
         />
       )}
     </MobileContainer>
@@ -718,6 +1168,8 @@ function DayDetailModal({
   entries,
   onClose,
   onSelectEntry,
+  onEdit,
+  onDelete,
   getEntryConfig,
   formatTime,
 }: {
@@ -725,6 +1177,8 @@ function DayDetailModal({
   entries: CalendarEntry[];
   onClose: () => void;
   onSelectEntry: (entry: CalendarEntry) => void;
+  onEdit: (entry: CalendarEntry) => void;
+  onDelete: (entry: CalendarEntry) => void;
   getEntryConfig: (type: EntryType) => { type: EntryType; label: string; color: string; icon: typeof Moon };
   formatTime: (date: Date) => string;
 }) {
@@ -754,24 +1208,54 @@ function DayDetailModal({
             const config = getEntryConfig(entry.type);
             const Icon = config.icon;
             return (
-              <button
+              <div
                 key={entry.id}
-                onClick={() => onSelectEntry(entry)}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-left"
+                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
               >
-                <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", config.color)}>
-                  <Icon className="w-5 h-5 text-white" />
+                <button
+                  onClick={() => onSelectEntry(entry)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", config.color)}>
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{entry.title}</p>
+                    {entry.subtitle && (
+                      <p className="text-xs text-muted-foreground truncate">{entry.subtitle}</p>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatTime(entry.timestamp)}
+                  </span>
+                </button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(entry);
+                    }}
+                    className="h-8 w-8 p-0 hover:bg-muted"
+                    title="Edit entry"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(entry);
+                    }}
+                    className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    title="Delete entry"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
+                  </Button>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{entry.title}</p>
-                  {entry.subtitle && (
-                    <p className="text-xs text-muted-foreground truncate">{entry.subtitle}</p>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {formatTime(entry.timestamp)}
-                </span>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -784,11 +1268,15 @@ function DayDetailModal({
 function EntryDetailModal({
   entry,
   onClose,
+  onEdit,
+  onDelete,
   getEntryConfig,
   formatTime,
 }: {
   entry: CalendarEntry;
   onClose: () => void;
+  onEdit: (entry: CalendarEntry) => void;
+  onDelete: (entry: CalendarEntry) => void;
   getEntryConfig: (type: EntryType) => { type: EntryType; label: string; color: string; icon: typeof Moon };
   formatTime: (date: Date) => string;
 }) {
@@ -871,12 +1359,627 @@ function EntryDetailModal({
           </div>
         </div>
         
-        <div className="p-4 border-t">
-          <Button variant="outline" className="w-full" onClick={onClose}>
-            Close
+        <div className="p-4 border-t flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => onEdit(entry)}
+          >
+            <Edit2 className="w-4 h-4 mr-2" />
+            Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+            onClick={() => onDelete(entry)}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete
           </Button>
         </div>
       </Card>
     </div>
+  );
+}
+
+
+// Edit Entry Modal Component
+interface EditEntryModalProps {
+  entry: CalendarEntry;
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: Record<string, unknown>) => void;
+  isSubmitting: boolean;
+}
+
+function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEntryModalProps) {
+  // Initialize form data directly from entry.details, will reset when entry.id changes
+  const [formData, setFormData] = useState<Record<string, unknown>>(() => entry.details || {});
+
+  // Use a key on the Dialog component instead of useEffect to reset state
+  // This is handled by the parent component passing entry.id as key
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const updateField = (field: string, value: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Helper to safely get string values from formData
+  const getString = (key: string): string | undefined => {
+    const value = formData[key];
+    return typeof value === 'string' ? value : undefined;
+  };
+
+  // Helper to safely get values for inputs (handles string, number, or empty)
+  const getValue = (key: string): string | number => {
+    const value = formData[key];
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string' || typeof value === 'number') return value;
+    return '';
+  };
+
+  const renderFormFields = () => {
+    switch (entry.type) {
+      case "feeding":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="breastfeeding">Breastfeeding</SelectItem>
+                  <SelectItem value="bottle">Bottle</SelectItem>
+                  <SelectItem value="pumping">Pumping</SelectItem>
+                  <SelectItem value="solid">Solid Food</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formData.type === "breastfeeding" && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="leftDuration">Left Duration (min)</Label>
+                    <Input
+                      id="leftDuration"
+                      type="number"
+                      value={getValue("leftDuration")}
+                      onChange={(e) => updateField("leftDuration", e.target.value ? parseInt(e.target.value) : null)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rightDuration">Right Duration (min)</Label>
+                    <Input
+                      id="rightDuration"
+                      type="number"
+                      value={getValue("rightDuration")}
+                      onChange={(e) => updateField("rightDuration", e.target.value ? parseInt(e.target.value) : null)}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {formData.type === "bottle" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (ml)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={getValue("amount")}
+                    onChange={(e) => updateField("amount", e.target.value ? parseInt(e.target.value) : null)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bottleType">Bottle Type</Label>
+                  <Select value={getString("bottleType")} onValueChange={(value) => updateField("bottleType", value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="formula">Formula</SelectItem>
+                      <SelectItem value="breastMilk">Breast Milk</SelectItem>
+                      <SelectItem value="water">Water</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "sleep":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="sleepType">Type</Label>
+              <Select value={getString("sleepType")} onValueChange={(value) => updateField("sleepType", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nap">Nap</SelectItem>
+                  <SelectItem value="night">Night Sleep</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="startTime">Start Time</Label>
+              <Input
+                id="startTime"
+                type="datetime-local"
+                value={formData.startTime ? new Date(String(formData.startTime)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("startTime", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="endTime">End Time</Label>
+              <Input
+                id="endTime"
+                type="datetime-local"
+                value={formData.endTime ? new Date(String(formData.endTime)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("endTime", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quality">Quality</Label>
+              <Select value={getString("quality")} onValueChange={(value) => updateField("quality", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select quality" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="fair">Fair</SelectItem>
+                  <SelectItem value="poor">Poor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "diaper":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="wet">Wet</SelectItem>
+                  <SelectItem value="dirty">Dirty</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                  <SelectItem value="dry">Dry</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timestamp">Time</Label>
+              <Input
+                id="timestamp"
+                type="datetime-local"
+                value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("timestamp", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "activity":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="activityType">Type</Label>
+              <Select value={getString("activityType")} onValueChange={(value) => updateField("activityType", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tummy_time">Tummy Time</SelectItem>
+                  <SelectItem value="bath">Bath</SelectItem>
+                  <SelectItem value="outdoor">Outdoor</SelectItem>
+                  <SelectItem value="play">Play</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Input
+                id="duration"
+                type="number"
+                value={getValue("duration")}
+                onChange={(e) => updateField("duration", e.target.value ? parseInt(e.target.value) : null)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "growth":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="weight">Weight (kg)</Label>
+              <Input
+                id="weight"
+                type="number"
+                step="0.01"
+                value={formData.weight ? (Number(formData.weight) / 1000).toFixed(2) : ""}
+                onChange={(e) => updateField("weight", e.target.value ? Math.round(parseFloat(e.target.value) * 1000) : null)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="height">Height (cm)</Label>
+              <Input
+                id="height"
+                type="number"
+                step="0.1"
+                value={formData.height ? (Number(formData.height) / 10).toFixed(1) : ""}
+                onChange={(e) => updateField("height", e.target.value ? Math.round(parseFloat(e.target.value) * 10) : null)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="headCircumference">Head Circumference (cm)</Label>
+              <Input
+                id="headCircumference"
+                type="number"
+                step="0.1"
+                value={formData.headCircumference ? (Number(formData.headCircumference) / 10).toFixed(1) : ""}
+                onChange={(e) => updateField("headCircumference", e.target.value ? Math.round(parseFloat(e.target.value) * 10) : null)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timestamp">Date</Label>
+              <Input
+                id="timestamp"
+                type="datetime-local"
+                value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("timestamp", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "medication":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="name">Medication Name</Label>
+              <Input
+                id="name"
+                value={getValue("name")}
+                onChange={(e) => updateField("name", e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="dosage">Dosage</Label>
+                <Input
+                  id="dosage"
+                  value={getValue("dosage")}
+                  onChange={(e) => updateField("dosage", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unit">Unit</Label>
+                <Input
+                  id="unit"
+                  value={getValue("unit")}
+                  onChange={(e) => updateField("unit", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timestamp">Time</Label>
+              <Input
+                id="timestamp"
+                type="datetime-local"
+                value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("timestamp", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "symptom":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="symptomType">Symptom Type</Label>
+              <Input
+                id="symptomType"
+                value={getValue("symptomType")}
+                onChange={(e) => updateField("symptomType", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="severity">Severity</Label>
+              <Select value={getString("severity")} onValueChange={(value) => updateField("severity", value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mild">Mild</SelectItem>
+                  <SelectItem value="moderate">Moderate</SelectItem>
+                  <SelectItem value="severe">Severe</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="temperature">Temperature (°C)</Label>
+              <Input
+                id="temperature"
+                type="number"
+                step="0.1"
+                value={getValue("temperature")}
+                onChange={(e) => updateField("temperature", e.target.value ? parseFloat(e.target.value) : null)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timestamp">Time</Label>
+              <Input
+                id="timestamp"
+                type="datetime-local"
+                value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("timestamp", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "vaccination":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="vaccineName">Vaccine Name</Label>
+              <Input
+                id="vaccineName"
+                value={getValue("vaccineName")}
+                onChange={(e) => updateField("vaccineName", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="provider">Provider</Label>
+              <Input
+                id="provider"
+                value={getValue("provider")}
+                onChange={(e) => updateField("provider", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={getValue("location")}
+                onChange={(e) => updateField("location", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timestamp">Date</Label>
+              <Input
+                id="timestamp"
+                type="datetime-local"
+                value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("timestamp", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      case "doctor_visit":
+        return (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="visitType">Visit Type</Label>
+              <Input
+                id="visitType"
+                value={getValue("visitType")}
+                onChange={(e) => updateField("visitType", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="provider">Provider</Label>
+              <Input
+                id="provider"
+                value={getValue("provider")}
+                onChange={(e) => updateField("provider", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={getValue("location")}
+                onChange={(e) => updateField("location", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="timestamp">Date</Label>
+              <Input
+                id="timestamp"
+                type="datetime-local"
+                value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
+                onChange={(e) => updateField("timestamp", e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={getValue("notes")}
+                onChange={(e) => updateField("notes", e.target.value)}
+                rows={3}
+              />
+            </div>
+          </>
+        );
+
+      default:
+        return <p className="text-sm text-muted-foreground">Editing is not available for this entry type.</p>;
+    }
+  };
+
+  const config = ENTRY_TYPES.find(t => t.type === entry.type) || ENTRY_TYPES[0];
+  const Icon = config.icon;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", config.color)}>
+              <Icon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <DialogTitle>Edit {entry.title}</DialogTitle>
+              <DialogDescription>
+                Update the details for this entry
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {renderFormFields()}
+
+          <DialogFooter className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? (
+                <>
+                  <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

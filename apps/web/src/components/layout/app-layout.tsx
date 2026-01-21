@@ -7,12 +7,13 @@ import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ChevronDown, Settings, LogOut, User, HelpCircle, FileText } from "lucide-react";
+import { ChevronDown, Settings, LogOut, User, FileText } from "lucide-react";
 
 import { LogProvider } from "@/context/log-context";
 import { ActiveTimerBanner } from "@/components/ActiveTimerBanner";
 import { NursingTimerBanner } from "@/components/NursingTimerBanner";
 import { ActivityTimerBanner } from "@/components/ActivityTimerBanner";
+import { PendingInvitationsBanner } from "@/components/PendingInvitationsBanner";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { useAuth } from "@/components/auth-provider";
 
@@ -102,6 +103,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Main Content Area - Fixed height, internal scroll */}
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Pending Invitations Banner - Shows when user has pending invitations */}
+          <PendingInvitationsBanner />
+          
           {/* Active Sleep Timer Banner - Always visible when sleeping */}
           <ActiveTimerBanner />
           
@@ -116,8 +120,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </div>
           
-          {/* Mobile Bottom Nav - Fixed at bottom */}
-          <div className="md:hidden flex-shrink-0">
+          {/* Mobile/Tablet Bottom Nav - Fixed at bottom */}
+          <div className="lg:hidden flex-shrink-0">
             <BottomNav />
           </div>
         </div>
@@ -170,12 +174,13 @@ function SideNav() {
     { href: "/tracking/activities", label: "Activities", icon: Icons.Activity },
     { href: "/tracking/health", label: "Health", icon: Icons.Symptom },
     { href: "/tracking/timeline", label: "Timeline", icon: Icons.Calendar },
+    { href: "/tracking/activity-log", label: "Activity Log", icon: Icons.Log },
     { href: "/milestones", label: "Milestones", icon: Icons.Milestone },
     { href: "/memories", label: "Memories", icon: Icons.Memories },
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-72 bg-sidebar border-r border-sidebar-border p-6 gap-6 h-screen flex-shrink-0 shadow-xl shadow-sidebar-border/10">
+    <aside className="hidden lg:flex flex-col w-72 bg-sidebar border-r border-sidebar-border p-6 gap-6 h-screen flex-shrink-0 shadow-xl shadow-sidebar-border/10">
        <div className="flex items-center gap-3 px-2 py-2 flex-shrink-0">
             <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
                 <Icons.Diaper className="w-6 h-6 text-primary-foreground" />
@@ -316,14 +321,6 @@ function SideNav() {
                  >
                    <User className="w-4 h-4 text-muted-foreground" />
                    Profile
-                 </Link>
-                 <Link
-                   href="/help"
-                   onClick={() => setUserMenuOpen(false)}
-                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                 >
-                   <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                   Help & Support
                  </Link>
                  <Separator className="my-1" />
                  <Button

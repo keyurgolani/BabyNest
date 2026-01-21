@@ -56,6 +56,10 @@ export function TimelineMemoryCard({ memory, isLast, onDelete, onView }: Timelin
                 sizes="96px"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
                 unoptimized={memory.photoUrl.startsWith("http")}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://api.dicebear.com/7.x/shapes/svg?seed=Memory&backgroundColor=f3f4f6";
+                }}
               />
             </div>
           </div>

@@ -407,7 +407,7 @@ export default function ReportsPage() {
 
   return (
     <MobileContainer>
-      <div className="p-6 space-y-6 animate-slide-up">
+      <div className="p-4 space-y-6 animate-slide-up">
         {/* Page Header */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">

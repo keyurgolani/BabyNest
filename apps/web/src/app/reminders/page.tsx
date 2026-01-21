@@ -506,7 +506,7 @@ export default function RemindersPage() {
 
   if (loading) {
     return (
-      <main className="flex flex-col gap-6 p-6 pt-12 pb-24">
+      <main className="flex flex-col gap-6 p-4 pt-12 pb-32">
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
             <h1 className="text-2xl font-bold text-foreground">Reminders</h1>
@@ -525,7 +525,7 @@ export default function RemindersPage() {
   return (
     <main 
       ref={scrollContainerRef}
-      className="flex flex-col gap-6 p-6 pt-12 pb-24 scroll-smooth"
+      className="flex flex-col gap-6 p-4 pt-12 pb-32 scroll-smooth"
       onTouchStart={(e) => {
         const touch = e.touches[0];
         const startY = touch.clientY;

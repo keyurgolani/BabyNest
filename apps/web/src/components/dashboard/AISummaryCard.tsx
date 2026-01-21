@@ -14,6 +14,7 @@ export function AISummaryCard() {
   const [insights, setInsights] = useState<TrendInsightsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const fetchInsights = async () => {
     if (!babyId) {
@@ -24,11 +25,12 @@ export function AISummaryCard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.dashboard.getDailyInsights();
+      const res = await api.insights.getDailyTrends();
       setInsights(res);
     } catch (err) {
-      // Don't show error for new users - show a friendly message instead
-      console.error("Failed to fetch AI insights:", err);
+      // Handle insufficient data gracefully - this is expected for new users
+      // Don't set error state, just show empty state
+      console.debug("Insights not available yet:", err);
       setInsights(null);
     } finally {
       setLoading(false);
@@ -150,19 +152,33 @@ export function AISummaryCard() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* AI Summary Text */}
-        {insights?.aiSummary && insights.aiSummaryGenerated && (
-          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">
-            {insights.aiSummary}
+        {/* AI Summary Text - Collapsible on Mobile */}
+        {insights?.aiSummary && (
+          <div className="relative">
+            <div className={cn(
+              "text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap transition-all duration-300",
+              !isExpanded && "line-clamp-1 md:line-clamp-none max-h-[1.5em] md:max-h-32 overflow-hidden"
+            )}>
+              {insights.aiSummary}
+            </div>
+            
+            {/* Show toggle on mobile only if content is long enough (implied by design for now) */}
+             <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="md:hidden w-full mt-1 h-6 text-xs text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+            >
+              {isExpanded ? (
+                <span className="flex items-center gap-1">Show Less <ChevronRight className="w-3 h-3 rotate-270" /></span>
+              ) : (
+                <span className="flex items-center gap-1">Read More <ChevronRight className="w-3 h-3 rotate-90" /></span>
+              )}
+            </Button>
           </div>
         )}
 
-        {/* Fallback if AI not available - show formatted fallback summary */}
-        {insights?.aiSummary && !insights.aiSummaryGenerated && (
-          <div className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">
-            {insights.aiSummary}
-          </div>
-        )}
+        {/* Note: Fallback summary is already handled in the first aiSummary block above */}
 
         {/* No summary available at all */}
         {!insights?.aiSummary && (
@@ -212,15 +228,15 @@ export function AISummaryCard() {
               {insights.insights.slice(0, 4).map((insight, i) => (
                 <div
                   key={i}
-                  className="p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-violet-200/50 dark:border-violet-800/20"
+                  className="p-2 md:p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-violet-200/50 dark:border-violet-800/20"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
                     {getTrendIcon(insight.trend)}
-                    <span className="text-xs font-medium truncate">
+                    <span className="text-[10px] md:text-xs font-medium truncate">
                       {insight.category}
                     </span>
                   </div>
-                  <p className={cn("text-xs", getTrendColor(insight.trend))}>
+                  <p className={cn("text-[10px] md:text-xs", getTrendColor(insight.trend))}>
                     {insight.title}
                   </p>
                 </div>
