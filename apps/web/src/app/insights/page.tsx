@@ -23,8 +23,6 @@ import {
   GrowthMeasurement,
   FeedingPrediction,
   FeedingPredictionData,
-  InsightConfigCard,
-  InsightHistoryCard,
   GrowthPercentilesChart,
   GrowthVelocityCard,
   TrendAnalysisCard,
@@ -36,9 +34,9 @@ import { cn } from "@/lib/utils";
 import { api, TrendInsightsResponse } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
 import Link from "next/link";
-import { Moon, Utensils, Baby, Activity, RefreshCw, Sparkles, Settings } from "lucide-react";
+import { Moon, Utensils, Baby, Activity, RefreshCw, Sparkles } from "lucide-react";
 
-type InsightTab = "overview" | "patterns" | "growth" | "alerts" | "milestones" | "settings";
+type InsightTab = "overview" | "patterns" | "growth" | "alerts" | "milestones";
 
 // Cache configuration with different cadences for different insight types
 const CACHE_KEYS = {
@@ -688,7 +686,6 @@ export default function InsightsPage() {
     { id: "growth", label: "Growth", icon: <Icons.Growth className="w-4 h-4" /> },
     { id: "alerts", label: "Alerts", icon: <Icons.AlertCircle className="w-4 h-4" /> },
     { id: "milestones", label: "Milestones", icon: <Icons.Milestone className="w-4 h-4" /> },
-    { id: "settings", label: "Settings", icon: <Settings className="w-4 h-4" /> },
   ];
 
   return (
@@ -737,13 +734,6 @@ export default function InsightsPage() {
             </Button>
           ))}
         </div>
-
-        {activeTab === "settings" && (
-          <div className="space-y-6">
-            <InsightConfigCard />
-            <InsightHistoryCard />
-          </div>
-        )}
 
         {activeTab === "overview" && (
           loading ? (

@@ -6,6 +6,8 @@ set -e
 
 # Default model if not specified
 MODEL=${OLLAMA_MODEL:-llama3.2:1b}
+# Vision model for photo import feature
+VISION_MODEL=${OLLAMA_VISION_MODEL:-gemma3}
 
 echo "🤖 Starting Ollama server..."
 
@@ -30,7 +32,7 @@ done
 
 echo "✅ Ollama server is ready!"
 
-# Check if model is already downloaded
+# Check if text model is already downloaded
 echo "🔍 Checking for model: $MODEL"
 if ollama list | grep -q "^$MODEL"; then
     echo "✅ Model $MODEL is already available"
@@ -40,11 +42,21 @@ else
     echo "✅ Model $MODEL downloaded successfully!"
 fi
 
+# Check if vision model is already downloaded (for photo import feature)
+echo "🔍 Checking for vision model: $VISION_MODEL"
+if ollama list | grep -q "^$VISION_MODEL"; then
+    echo "✅ Vision model $VISION_MODEL is already available"
+else
+    echo "📥 Downloading vision model: $VISION_MODEL (this may take a while on first run)..."
+    ollama pull "$VISION_MODEL"
+    echo "✅ Vision model $VISION_MODEL downloaded successfully!"
+fi
+
 # Show available models
 echo "📋 Available models:"
 ollama list
 
-echo "🚀 BabyNest AI is ready! Using model: $MODEL"
+echo "🚀 BabyNest AI is ready! Using model: $MODEL and vision model: $VISION_MODEL"
 
 # Keep the container running by waiting for the Ollama process
 wait $OLLAMA_PID

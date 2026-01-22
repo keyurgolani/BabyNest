@@ -39,8 +39,8 @@ import {
   TrendInsightsQueryDto,
   TrendInsightsResponseDto,
 } from './dto';
+import { AiProviderService } from '../ai-provider/ai-provider.service';
 import { BabyService } from '../baby/baby.service';
-import { OllamaService } from '../ollama/ollama.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 
@@ -48,6 +48,10 @@ import { RedisService } from '../redis/redis.service';
  * Insights Service
  * Aggregates tracking data and generates AI-powered insights
  * Validates: Requirements 10.5 - Weekly summary generation with AI insights
+ * 
+ * Now supports multiple AI providers through AiProviderService:
+ * - Default: Ollama (local)
+ * - User configurable: OpenAI, Anthropic, Gemini, OpenRouter
  */
 @Injectable()
 export class InsightsService {
@@ -64,7 +68,7 @@ export class InsightsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly babyService: BabyService,
-    private readonly ollamaService: OllamaService,
+    private readonly aiProviderService: AiProviderService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -532,14 +536,14 @@ export class InsightsService {
       endDate,
     );
 
-    // Generate AI summary using Ollama
+    // Generate AI summary using configured provider (with Ollama fallback)
     let aiSummary = '';
     let aiSummaryGenerated = false;
     let aiError: string | null = null;
     let aiDurationMs: number | null = null;
 
     try {
-      const result = await this.ollamaService.generateWeeklySummary({
+      const result = await this.aiProviderService.generateWeeklySummary({
         babyName: aggregatedData.babyName,
         babyAgeMonths: aggregatedData.babyAgeMonths,
         weekStart: this.formatDate(startDate),
@@ -549,7 +553,7 @@ export class InsightsService {
         diaperSummary: this.formatDiaperSummaryForPrompt(aggregatedData.diaperSummary),
         growthData: this.formatGrowthDataForPrompt(aggregatedData.growthData),
         activitiesSummary: this.formatActivitiesSummaryForPrompt(aggregatedData.activitiesSummary),
-      });
+      }, caregiverId);
 
       if (result.success && result.response) {
         aiSummary = result.response;
@@ -970,7 +974,7 @@ export class InsightsService {
 
     const now = new Date();
 
-    // Try to get AI-powered analysis
+    // Try to get AI-powered analysis using configured provider
     let aiAnalysisGenerated = false;
     let aiError: string | null = null;
     let aiDurationMs: number | null = null;
@@ -982,9 +986,10 @@ export class InsightsService {
     try {
       const sleepDataForPrompt = this.formatSleepPatternDataForPrompt(patternData);
       
-      const result = await this.ollamaService.analyzeSleepPatterns(
+      const result = await this.aiProviderService.analyzeSleepPatterns(
         patternData.babyAgeMonths,
         sleepDataForPrompt,
+        caregiverId,
       );
 
       if (result.success && result.response) {
@@ -1493,18 +1498,19 @@ export class InsightsService {
     // Detect anomalies from aggregated data
     const anomalies = this.detectAnomaliesFromData(analysisData);
 
-    // Try to get AI-powered analysis
+    // Try to get AI-powered analysis using configured provider
     let aiAnalysisGenerated = false;
     let aiError: string | null = null;
     let aiDurationMs: number | null = null;
     let aiAnalysis: string;
 
     try {
-      const result = await this.ollamaService.detectAnomalies(
+      const result = await this.aiProviderService.detectAnomalies(
         babyAgeMonths,
         this.formatSleepAnomalyDataForPrompt(sleepData),
         this.formatFeedingAnomalyDataForPrompt(feedingData),
         this.formatDiaperAnomalyDataForPrompt(diaperData),
+        caregiverId,
       );
 
       if (result.success && result.response) {
@@ -2819,7 +2825,7 @@ export class InsightsService {
     const highlights = this.generateHighlights(insights, aggregatedData);
     const areasOfConcern = this.generateAreasOfConcern(insights);
 
-    // Try to get AI-powered summary
+    // Try to get AI-powered summary using configured provider
     let aiSummary = '';
     let aiSummaryGenerated = false;
     let aiError: string | null = null;
@@ -2842,7 +2848,7 @@ export class InsightsService {
         startAgeMonths: period === 'yearly' ? Math.max(0, babyAgeMonths - 12) : babyAgeMonths,
       };
 
-      const result = await this.ollamaService.generateTrendInsights(period, promptData);
+      const result = await this.aiProviderService.generateTrendInsights(period, promptData, caregiverId);
 
       if (result.success && result.response) {
         aiSummary = result.response;

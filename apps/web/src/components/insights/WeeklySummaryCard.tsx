@@ -4,10 +4,7 @@ import { WeeklySummaryResponseDto } from "@/types/insights";
 import { InsightCard } from "./InsightCard";
 import { api } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
-
-// Since we might not have a markdown renderer installed, we'll just render text with newlines.
-// If the user wants specific markdown rendering, we'd add `react-markdown`.
-// For now, let's just do a simple whitespace pre-wrap.
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 export function WeeklySummaryCard() {
   const { babyId } = useBaby();
@@ -72,10 +69,8 @@ export function WeeklySummaryCard() {
       variant="neumorphic"
       iconClassName="bg-purple-100 text-purple-500 dark:bg-purple-950/50 dark:text-purple-400"
     >
-      <div className="prose prose-purple prose-sm max-w-none text-muted-foreground bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/30 dark:to-card p-4 rounded-xl border border-purple-100/60 dark:border-purple-900/30 transition-colors">
-        <div className="whitespace-pre-wrap leading-relaxed font-medium text-foreground/80">
-          {summary.aiSummary}
-        </div>
+      <div className="bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/30 dark:to-card p-4 rounded-xl border border-purple-100/60 dark:border-purple-900/30 transition-colors">
+        <MarkdownRenderer content={summary.aiSummary} className="prose-purple" />
         <div className="mt-4 pt-4 border-t border-muted/50 flex justify-between items-center text-xs text-muted-foreground">
           <span>Generated using {summary.aiSummaryGenerated ? 'Ollama AI' : 'Rule-based Fallback'}</span>
           {summary.aiDurationMs && <span>{Math.round(summary.aiDurationMs / 1000)}s generation time</span>}

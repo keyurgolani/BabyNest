@@ -5,6 +5,28 @@ import { BabyService } from '../baby/baby.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**
+ * JSON Export format structure
+ */
+export interface JsonExportData {
+  exportVersion: string;
+  exportedAt: string;
+  babyId: string;
+  dateRange?: { startDate?: string; endDate?: string };
+  data: {
+    feedings: unknown[];
+    sleepEntries: unknown[];
+    diaperEntries: unknown[];
+    growthEntries: unknown[];
+    milestoneEntries: unknown[];
+    activityEntries: unknown[];
+    medicationEntries: unknown[];
+    vaccinationEntries: unknown[];
+    symptomEntries: unknown[];
+    doctorVisitEntries: unknown[];
+  };
+}
+
+/**
  * Export Service
  * Handles CSV export for all tracking categories
  * Validates: Requirements 13.3
@@ -1014,5 +1036,113 @@ export class ExportService {
     ];
 
     return this.toCSV(headers, allRows);
+  }
+
+  /**
+   * Export all data to JSON format
+   * Returns structured JSON that can be re-imported
+   */
+  async exportAllDataToJSON(
+    babyId: string,
+    caregiverId: string,
+    query: ExportQueryDto,
+  ): Promise<JsonExportData> {
+    await this.verifyAccess(babyId, caregiverId);
+
+    const dateFilter = this.buildDateFilter(query);
+
+    // Fetch all data types
+    const [
+      feedings,
+      sleepEntries,
+      diaperEntries,
+      growthEntries,
+      milestoneEntries,
+      activityEntries,
+      medicationEntries,
+      vaccinationEntries,
+      symptomEntries,
+      doctorVisitEntries,
+    ] = await Promise.all([
+      this.prisma.feedingEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.sleepEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { startTime: dateFilter }) },
+        orderBy: { startTime: 'desc' },
+      }),
+      this.prisma.diaperEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.growthEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.milestoneEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { achievedDate: dateFilter }) },
+        include: { milestone: true },
+        orderBy: { achievedDate: 'desc' },
+      }),
+      this.prisma.activityEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.medicationEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.vaccinationEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.symptomEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+      this.prisma.doctorVisitEntry.findMany({
+        where: { babyId, isDeleted: false, ...(dateFilter && { timestamp: dateFilter }) },
+        orderBy: { timestamp: 'desc' },
+      }),
+    ]);
+
+    return {
+      exportVersion: '1.0',
+      exportedAt: new Date().toISOString(),
+      babyId,
+      dateRange: query.startDate || query.endDate ? { startDate: query.startDate, endDate: query.endDate } : undefined,
+      data: {
+        feedings: feedings.map(e => this.stripInternalFields(e)),
+        sleepEntries: sleepEntries.map(e => this.stripInternalFields(e)),
+        diaperEntries: diaperEntries.map(e => this.stripInternalFields(e)),
+        growthEntries: growthEntries.map(e => this.stripInternalFields(e)),
+        milestoneEntries: milestoneEntries.map(e => ({
+          ...this.stripInternalFields(e),
+          milestone: e.milestone ? { name: e.milestone.name, category: e.milestone.category } : null,
+        })),
+        activityEntries: activityEntries.map(e => this.stripInternalFields(e)),
+        medicationEntries: medicationEntries.map(e => this.stripInternalFields(e)),
+        vaccinationEntries: vaccinationEntries.map(e => this.stripInternalFields(e)),
+        symptomEntries: symptomEntries.map(e => this.stripInternalFields(e)),
+        doctorVisitEntries: doctorVisitEntries.map(e => this.stripInternalFields(e)),
+      },
+    };
+  }
+
+  /**
+   * Strip internal fields from entries for export
+   */
+  private stripInternalFields(entry: Record<string, unknown>): Record<string, unknown> {
+    const { id: _id, babyId: _babyId, caregiverId: _caregiverId, isDeleted: _isDeleted, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = entry;
+    return rest;
+  }
+
+  /**
+   * Get filename for JSON export
+   */
+  getJsonExportFilename(babyId: string): string {
+    const timestamp = new Date().toISOString().split('T')[0];
+    return `baby-${babyId}-export-${timestamp}.json`;
   }
 }

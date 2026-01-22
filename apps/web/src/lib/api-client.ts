@@ -61,6 +61,9 @@ import {
   
   // Caregiver Management
   // CaregiverListResponseDto, UpdateCaregiverRoleDto <--- Removed unused
+  
+  // Photo Import
+  PhotoAnalysisResponse, ConfirmImportRequest, ImportResultResponse,
 } from "@babynest/types";
 
 // Local DTO definitions for types missing in @babynest/types
@@ -144,6 +147,83 @@ export interface CaregiverListResponseDto {
   }[];
   total: number;
 }
+
+// AI Provider Configuration Types
+export type AiProviderType = 'ollama' | 'openai' | 'anthropic' | 'gemini' | 'openrouter';
+
+export interface AiProviderCapabilities {
+  supportsChat: boolean;
+  supportsVision: boolean;
+  supportsStreaming: boolean;
+  maxContextTokens: number;
+  defaultTextModel: string;
+  defaultVisionModel: string;
+  availableModels: string[];
+}
+
+export interface AiProviderInfo {
+  id: AiProviderType;
+  name: string;
+  description: string;
+  requiresApiKey: boolean;
+  capabilities: AiProviderCapabilities;
+  documentationUrl: string;
+}
+
+export interface AiConfigResponse {
+  textProvider?: AiProviderType;
+  textModel?: string;
+  textEndpoint?: string;
+  hasTextApiKey: boolean;
+  visionProvider?: AiProviderType;
+  visionModel?: string;
+  visionEndpoint?: string;
+  hasVisionApiKey: boolean;
+  isEnabled: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UpdateAiConfigRequest {
+  textProvider?: AiProviderType;
+  textApiKey?: string;
+  textModel?: string;
+  textEndpoint?: string;
+  visionProvider?: AiProviderType;
+  visionApiKey?: string;
+  visionModel?: string;
+  visionEndpoint?: string;
+  isEnabled?: boolean;
+}
+
+export interface TestProviderRequest {
+  provider: AiProviderType;
+  apiKey?: string;
+  model: string;
+  endpoint?: string;
+  isVision?: boolean;
+}
+
+export interface TestProviderResult {
+  success: boolean;
+  provider: string;
+  model: string;
+  responseTime?: number;
+  error?: string;
+}
+
+export interface ModelInfo {
+  id: string;
+  name: string;
+  description?: string;
+  contextLength?: number;
+  supportsVision?: boolean;
+}
+
+export interface ListModelsResponse {
+  models: ModelInfo[];
+  fromApi: boolean;
+}
 // Re-export all types so this file acts as a central entry point if needed,
 // and to satisfy legacy consumers of this file's exports.
 export * from "@babynest/types";
@@ -183,7 +263,7 @@ function getActiveBabyId(): string | null {
   return localStorage.getItem(ACTIVE_BABY_KEY);
 }
 
-type RequestMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type RequestMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 async function request<T>(endpoint: string, method: RequestMethod = "GET", body?: unknown): Promise<T> {
   const babyId = getActiveBabyId();
@@ -523,6 +603,47 @@ export const api = {
       
       return response.blob();
     },
+
+    /**
+     * Download JSON export with all data (can be re-imported)
+     */
+    downloadAllDataJSON: async (params?: { startDate?: string; endDate?: string }): Promise<Blob> => {
+      const babyId = getActiveBabyId();
+      if (!babyId) {
+        throw new Error("No active baby selected. Please create or select a baby profile.");
+      }
+
+      const queryParams = new URLSearchParams();
+      if (params?.startDate) {
+        queryParams.append('startDate', params.startDate);
+      }
+      if (params?.endDate) {
+        queryParams.append('endDate', params.endDate);
+      }
+      
+      const queryString = queryParams.toString();
+      const endpoint = `export/all/json${queryString ? `?${queryString}` : ''}`;
+      
+      const headers: HeadersInit = {};
+      
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      }
+      
+      const response = await fetch(`${API_URL}/babies/${babyId}/${endpoint}`, {
+        method: 'GET',
+        headers,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.statusText}`);
+      }
+      
+      return response.blob();
+    },
   },
   scheduledReports: {
     list: () => request<ScheduledReport[]>("reports/schedule"),
@@ -755,5 +876,71 @@ export const api = {
     /** Get trend insights for a specific period */
     getTrends: (period: 'daily' | 'weekly' | 'monthly' | 'yearly') => 
       request<TrendInsightsResponse>(`insights/trends/${period}`),
+  },
+  aiConfig: {
+    /** Get available AI providers */
+    getProviders: () => rootRequest<AiProviderInfo[]>('ai-config/providers'),
+    /** Get current user's AI configuration */
+    getConfig: () => rootRequest<AiConfigResponse>('ai-config'),
+    /** Update user's AI configuration */
+    updateConfig: (data: UpdateAiConfigRequest) => rootRequest<AiConfigResponse>('ai-config', 'PUT', data),
+    /** Delete user's AI configuration (revert to defaults) */
+    deleteConfig: () => rootRequest<void>('ai-config', 'DELETE'),
+    /** Test a provider configuration */
+    testProvider: (data: TestProviderRequest) => rootRequest<TestProviderResult>('ai-config/test', 'POST', data),
+    /** List available models for a provider (optionally with API key for dynamic listing) */
+    listModels: (provider: AiProviderType, apiKey?: string) => {
+      const params = new URLSearchParams({ provider });
+      if (apiKey) params.append('apiKey', apiKey);
+      return rootRequest<ListModelsResponse>(`ai-config/models?${params.toString()}`);
+    },
+  },
+  photoImport: {
+    /** Analyze a photo of handwritten logs */
+    analyze: async (file: File): Promise<PhotoAnalysisResponse> => {
+      const babyId = getActiveBabyId();
+      if (!babyId) {
+        throw new Error("No active baby selected. Please create or select a baby profile.");
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const headers: HeadersInit = {};
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+      }
+
+      // Use custom API route with extended timeout for vision model processing
+      const response = await fetch(`/api/photo-import/analyze?babyId=${babyId}`, {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        let errorMessage = response.statusText;
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.message || errorBody.error || errorMessage;
+        } catch {
+          // Failed to parse error body
+        }
+        throw new ApiError(errorMessage, response.status, response.statusText);
+      }
+
+      return response.json();
+    },
+    /** Confirm and import extracted entries */
+    confirm: async (data: ConfirmImportRequest): Promise<ImportResultResponse> => {
+      const babyId = getActiveBabyId();
+      if (!babyId) {
+        throw new Error("No active baby selected. Please create or select a baby profile.");
+      }
+      return request<ImportResultResponse>(`babies/${babyId}/photo-import/confirm`, "POST", data);
+    },
   },
 };

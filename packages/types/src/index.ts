@@ -41,4 +41,5 @@ export * from './diaper';
 export * from './activity';
 export * from './milestone';
 export * from './dashboard';
+export * from './photo-import';
 

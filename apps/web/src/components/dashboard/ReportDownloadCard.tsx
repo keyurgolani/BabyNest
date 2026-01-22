@@ -80,7 +80,7 @@ export function ReportDownloadCard() {
             Custom date range
           </Link>
           <Link
-            href="/scheduled-reports"
+            href="/report?tab=scheduled"
             className="text-xs text-muted-foreground hover:text-foreground"
           >
             Schedule reports →

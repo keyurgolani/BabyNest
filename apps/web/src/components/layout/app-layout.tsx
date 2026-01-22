@@ -7,7 +7,7 @@ import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ChevronDown, Settings, LogOut, User, FileText } from "lucide-react";
+import { ChevronDown, Settings, LogOut, FileText } from "lucide-react";
 
 import { LogProvider } from "@/context/log-context";
 import { ActiveTimerBanner } from "@/components/ActiveTimerBanner";
@@ -313,14 +313,6 @@ function SideNav() {
                  >
                    <Settings className="w-4 h-4 text-muted-foreground" />
                    Settings
-                 </Link>
-                 <Link
-                   href="/profile"
-                   onClick={() => setUserMenuOpen(false)}
-                   className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted transition-colors"
-                 >
-                   <User className="w-4 h-4 text-muted-foreground" />
-                   Profile
                  </Link>
                  <Separator className="my-1" />
                  <Button

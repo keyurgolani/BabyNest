@@ -12,7 +12,7 @@ interface DataManagementModalProps {
 
 export function DataManagementModal({ onClose }: DataManagementModalProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const [exportFormat, setExportFormat] = useState<'json' | 'csv' | 'pdf'>('pdf');
+  const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearConfirmText, setClearConfirmText] = useState('');
   const [isClearing, setIsClearing] = useState(false);
@@ -20,22 +20,26 @@ export function DataManagementModal({ onClose }: DataManagementModalProps) {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      if (exportFormat === 'pdf') {
-        // Use existing PDF export
-        const blob = await api.export.downloadPDFReport();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `babynest-report-${new Date().toISOString().split('T')[0]}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+      let blob: Blob;
+      let filename: string;
+      const dateStr = new Date().toISOString().split('T')[0];
+      
+      if (exportFormat === 'json') {
+        blob = await api.export.downloadAllDataJSON();
+        filename = `babynest-export-${dateStr}.json`;
       } else {
-        // For JSON/CSV, we'd need to implement these endpoints
-        // For now, show a message
-        alert(`${exportFormat.toUpperCase()} export coming soon!`);
+        blob = await api.export.downloadAllDataCSV();
+        filename = `babynest-export-${dateStr}.csv`;
       }
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Export failed:', error);
       alert('Failed to export data. Please try again.');
@@ -75,7 +79,7 @@ export function DataManagementModal({ onClose }: DataManagementModalProps) {
               </div>
               <div>
                 <CardTitle className="text-xl">Data Management</CardTitle>
-                <CardDescription>Export, import, or manage your data</CardDescription>
+                <CardDescription>Export or import your tracking data</CardDescription>
               </div>
             </div>
             <button
@@ -92,11 +96,11 @@ export function DataManagementModal({ onClose }: DataManagementModalProps) {
           <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
             <h3 className="font-medium text-foreground mb-2">Export Data</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Download all your baby tracking data
+              Download all your baby tracking data for backup or transfer
             </p>
             
             <div className="flex gap-2 mb-4">
-              {(['pdf', 'json', 'csv'] as const).map((format) => (
+              {(['json', 'csv'] as const).map((format) => (
                 <button
                   key={format}
                   onClick={() => setExportFormat(format)}
@@ -110,6 +114,12 @@ export function DataManagementModal({ onClose }: DataManagementModalProps) {
                 </button>
               ))}
             </div>
+            
+            <p className="text-xs text-muted-foreground mb-3">
+              {exportFormat === 'json' 
+                ? 'JSON format can be re-imported to restore your data'
+                : 'CSV format is compatible with spreadsheet applications'}
+            </p>
             
             <Button 
               onClick={handleExport}
@@ -135,28 +145,31 @@ export function DataManagementModal({ onClose }: DataManagementModalProps) {
           <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
             <h3 className="font-medium text-foreground mb-2">Import Data</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Import data from a backup file
+              Import data from a JSON backup file
             </p>
             
             <label className="block">
               <input
                 type="file"
-                accept=".json,.csv"
+                accept=".json"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    alert('Import feature coming soon!');
+                    alert('Import feature coming soon! Export your data first to create a backup.');
                   }
                 }}
               />
               <Button variant="outline" className="w-full" asChild>
                 <span>
                   <Icons.Plus className="w-4 h-4 mr-2" />
-                  Select File to Import
+                  Select JSON File to Import
                 </span>
               </Button>
             </label>
+            <p className="text-xs text-muted-foreground mt-2">
+              Only JSON files exported from this app can be imported
+            </p>
           </div>
 
           {/* Clear Data */}

@@ -4,6 +4,7 @@ import { SleepPredictionResponseDto } from "@/types/insights";
 import { InsightCard } from "./InsightCard";
 import { api } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 export function SleepPredictionCard() {
   const { babyId } = useBaby();
@@ -86,9 +87,9 @@ export function SleepPredictionCard() {
         <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 transition-colors">
           <div className="flex items-start gap-2">
             <Brain size={16} className="text-blue-600 dark:text-blue-400 mt-1 shrink-0" />
-            <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-              {prediction.reasoning}
-            </p>
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <MarkdownRenderer content={prediction.reasoning} className="prose-blue" />
+            </div>
           </div>
         </div>
 

@@ -125,7 +125,7 @@ export default function Home() {
       const tempReadings = response.data.filter(s => s.symptomType === 'fever' && s.temperature !== null);
       if (tempReadings.length > 0) {
         // Sort by timestamp descending and get the most recent
-        const sorted = tempReadings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        tempReadings.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         // Only show if within last 24 hours - removed display as state was removed
       }
     } catch (error) {
@@ -571,7 +571,7 @@ export default function Home() {
                     Custom range
                   </Link>
                   <Link
-                    href="/scheduled-reports"
+                    href="/report?tab=scheduled"
                     className="text-[10px] text-muted-foreground hover:text-foreground"
                   >
                     Schedule →

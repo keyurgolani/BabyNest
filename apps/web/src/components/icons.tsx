@@ -10,6 +10,7 @@ import {
   FileText,
   ChevronRight,
   ChevronDown,
+  ChevronLeft,
   Sparkles,
   Camera,
   Bell,
@@ -38,6 +39,8 @@ import {
   Thermometer,
   Stethoscope,
   AlertCircle,
+  AlertTriangle,
+  Info,
   MoreVertical,
   User,
   Users,
@@ -48,6 +51,8 @@ import {
   Mail,
   Pencil,
   Heart,
+  Upload,
+  FileUp,
 } from 'lucide-react';
 
 export const Icons = {
@@ -65,6 +70,7 @@ export const Icons = {
   Insights: Sparkles,
   Sparkles,
   Memories: Camera,
+  Camera,
   Reminders: Bell,
   Clock,
   Calendar,
@@ -95,6 +101,8 @@ export const Icons = {
   DoctorVisit: Stethoscope,
   // Utility icons
   AlertCircle,
+  AlertTriangle,
+  Info,
   MoreVertical,
   Loader: Loader2,
   User,
@@ -106,5 +114,8 @@ export const Icons = {
   Mail,
   Edit: Pencil,
   Health: Heart,
+  Upload,
+  PhotoImport: FileUp,
+  ArrowLeft: ChevronLeft,
 };
 

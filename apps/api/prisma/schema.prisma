@@ -29,6 +29,7 @@ model Caregiver {
   invitationsSent     Invitation[]      @relation("InvitationsSent")
   invitationsAccepted Invitation[]      @relation("InvitationsAccepted")
   scheduledReports    ScheduledReport[]
+  aiProviderConfig    AiProviderConfig?
 
   @@map("caregivers")
 }
@@ -508,4 +509,34 @@ model GeneratedInsight {
   @@index([babyId, generatedAt])
   @@index([babyId, type])
   @@map("generated_insights")
+}
+
+// ============================================================================
+// AI Provider Configuration
+// ============================================================================
+
+model AiProviderConfig {
+  id          String   @id @default(uuid())
+  caregiverId String   @unique @map("caregiver_id")
+  
+  // Text inference provider configuration
+  textProvider     String?  @map("text_provider") // ollama, openai, anthropic, gemini, openrouter
+  textApiKey       String?  @map("text_api_key") // encrypted API key
+  textModel        String?  @map("text_model") // model identifier
+  textEndpoint     String?  @map("text_endpoint") // custom endpoint URL (optional)
+  
+  // Vision inference provider configuration
+  visionProvider   String?  @map("vision_provider") // ollama, openai, anthropic, gemini, openrouter
+  visionApiKey     String?  @map("vision_api_key") // encrypted API key
+  visionModel      String?  @map("vision_model") // model identifier
+  visionEndpoint   String?  @map("vision_endpoint") // custom endpoint URL (optional)
+  
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  caregiver Caregiver @relation(fields: [caregiverId], references: [id], onDelete: Cascade)
+
+  @@map("ai_provider_configs")
 }

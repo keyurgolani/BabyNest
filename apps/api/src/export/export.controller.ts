@@ -405,6 +405,37 @@ export class ExportController {
   }
 
   /**
+   * Export all data to JSON
+   * GET /babies/:babyId/export/all/json
+   */
+  @Get('all/json')
+  @ApiOperation({
+    summary: 'Export all data to JSON',
+    description: 'Export all tracking data for a baby as a JSON file that can be re-imported.',
+  })
+  @ApiParam({ name: 'babyId', description: 'Baby ID' })
+  @ApiProduces('application/json')
+  @ApiResponse({
+    status: 200,
+    description: 'JSON file with all tracking data',
+    content: { 'application/json': {} },
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden - no access to baby' })
+  async exportAllDataJSON(
+    @Param('babyId') babyId: string,
+    @CurrentUser('id') caregiverId: string,
+    @Query() query: ExportQueryDto,
+    @Res() res: Response,
+  ): Promise<void> {
+    const data = await this.exportService.exportAllDataToJSON(babyId, caregiverId, query);
+    const filename = this.exportService.getJsonExportFilename(babyId);
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(JSON.stringify(data, null, 2));
+  }
+
+  /**
    * Generate PDF report
    * Validates: Requirements 13.1, 13.2
    */

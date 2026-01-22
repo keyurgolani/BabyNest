@@ -99,11 +99,13 @@ export class OllamaService implements OnModuleInit {
   private readonly logger = new Logger(OllamaService.name);
   private baseUrl: string;
   private model: string;
+  private visionModel: string;
   private isAvailable = false;
 
   constructor(private readonly configService: ConfigService) {
     this.baseUrl = this.configService.get<string>('ollama.baseUrl') || 'http://localhost:11434';
     this.model = this.configService.get<string>('ollama.model') || 'llama3';
+    this.visionModel = this.configService.get<string>('ollama.visionModel') || 'llava';
   }
 
   async onModuleInit(): Promise<void> {
@@ -183,6 +185,13 @@ export class OllamaService implements OnModuleInit {
    */
   getModel(): string {
     return this.model;
+  }
+
+  /**
+   * Get the configured vision model name
+   */
+  getVisionModel(): string {
+    return this.visionModel;
   }
 
   /**

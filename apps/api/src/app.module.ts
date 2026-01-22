@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { ActivityModule } from './activity/activity.module';
+import { AiProviderModule } from './ai-provider/ai-provider.module';
 import { AuthModule } from './auth/auth.module';
 import { BabyModule } from './baby/baby.module';
 import { BabyHealthModule } from './baby-health/baby-health.module';
@@ -16,6 +17,7 @@ import { InsightsModule } from './insights/insights.module';
 import { MemoryModule } from './memory/memory.module';
 import { MilestoneModule } from './milestone/milestone.module';
 import { OllamaModule } from './ollama/ollama.module';
+import { PhotoImportModule } from './photo-import/photo-import.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { ReminderModule } from './reminder/reminder.module';
@@ -73,8 +75,11 @@ import { UploadModule } from './upload/upload.module';
     // Export module for CSV export of all tracking categories
     ExportModule,
 
-    // Ollama AI module for local AI-powered insights
+    // Ollama AI module for local AI-powered insights (legacy, kept for backward compatibility)
     OllamaModule,
+
+    // AI Provider module - multi-provider AI with user configuration
+    AiProviderModule,
 
     // Insights module for AI-powered weekly summaries and analysis
     InsightsModule,
@@ -87,6 +92,9 @@ import { UploadModule } from './upload/upload.module';
 
     // File upload module for images
     UploadModule,
+
+    // Photo import module for OCR-based import of handwritten logs
+    PhotoImportModule,
 
     // Feature modules will be added here as they are implemented:
     // SleepModule,
