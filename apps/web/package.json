@@ -33,7 +33,7 @@
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.30",
+    "@types/node": "^25.0.10",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
