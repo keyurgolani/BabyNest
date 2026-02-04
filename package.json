@@ -25,7 +25,7 @@
     "docker:prod:pull": "docker compose -f infra/docker/docker-compose.yml pull"
   },
   "devDependencies": {
-    "prettier": "^3.2.5",
+    "prettier": "^3.8.1",
     "turbo": "^2.0.0",
     "typescript": "^5.4.5"
   },
