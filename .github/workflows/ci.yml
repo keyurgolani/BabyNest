@@ -80,10 +80,10 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
-        run: npx prisma generate --schema=apps/api/prisma/schema.prisma
+        run: npx prisma generate --schema=apps/api/prisma/schema.prisma --config=apps/api/prisma.config.ts
 
       - name: Run database migrations
-        run: npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+        run: npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma --config=apps/api/prisma.config.ts
         env:
           DATABASE_URL: postgresql://babynest:babynest_test@localhost:5432/babynest_test
 
@@ -132,7 +132,7 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
-        run: npx prisma generate --schema=apps/api/prisma/schema.prisma
+        run: npx prisma generate --schema=apps/api/prisma/schema.prisma --config=apps/api/prisma.config.ts
 
       - name: Build shared packages
         run: npm run build --workspace=@babynest/types

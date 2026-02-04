@@ -1,6 +1,6 @@
 {
   "name": "@babynest/api",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "description": "BabyNest API - NestJS Backend",
   "license": "MIT",

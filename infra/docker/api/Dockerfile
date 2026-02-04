@@ -18,7 +18,7 @@ COPY . .
 RUN npm ci
 
 # Generate Prisma client
-RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
+RUN npx prisma generate --schema=apps/api/prisma/schema.prisma --config=apps/api/prisma.config.ts
 
 # Build shared packages first
 RUN npm run build -w @babynest/types
