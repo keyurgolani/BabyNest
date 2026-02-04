@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Icons } from "@/components/icons";
 import { ExternalLink, Mail, Star, FileText, Shield, Heart } from "lucide-react";
 
@@ -19,8 +20,8 @@ export function AboutSupportContent() {
   return (
     <div className="space-y-4">
       {/* App Info */}
-      <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center shadow-lg">
+      <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-purple-500/10 backdrop-blur-sm border border-white/10">
+        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
           <Icons.Diaper className="w-7 h-7 text-white" />
         </div>
         <div>
@@ -31,14 +32,14 @@ export function AboutSupportContent() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="outline" size="sm" className="h-auto py-3" onClick={handleRateApp}>
+        <GlassButton variant="default" size="sm" className="h-auto py-3" onClick={handleRateApp}>
           <Star className="w-4 h-4 mr-2 text-amber-500" />
           Rate App
-        </Button>
-        <Button variant="outline" size="sm" className="h-auto py-3" onClick={handleContactSupport}>
+        </GlassButton>
+        <GlassButton variant="default" size="sm" className="h-auto py-3" onClick={handleContactSupport}>
           <Mail className="w-4 h-4 mr-2 text-violet-500" />
           Contact Us
-        </Button>
+        </GlassButton>
       </div>
 
       {/* Links */}
@@ -46,7 +47,7 @@ export function AboutSupportContent() {
         <a 
           href="/privacy-policy" 
           target="_blank"
-          className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+          className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all"
         >
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-muted-foreground" />
@@ -57,7 +58,7 @@ export function AboutSupportContent() {
         <a 
           href="/terms-of-service" 
           target="_blank"
-          className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+          className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all"
         >
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-muted-foreground" />

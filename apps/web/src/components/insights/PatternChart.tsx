@@ -1,6 +1,6 @@
 import React from "react";
 import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { cn } from "@/lib/utils";
 
 export interface ChartDataPoint {
@@ -41,7 +41,7 @@ export function PatternChart({
   const TrendIcon = trend === "up" ? TrendingUp : TrendingDown;
 
   return (
-    <Card className="p-4 border-0 bg-muted/30">
+    <GlassCard className="border-0">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -56,10 +56,10 @@ export function PatternChart({
         {trend && trendValue && (
           <div
             className={cn(
-              "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
+              "flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm",
               trend === "up"
-                ? "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300"
-                : "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+                ? "bg-green-100/80 text-green-700 dark:bg-green-950/50 dark:text-green-300"
+                : "bg-red-100/80 text-red-700 dark:bg-red-950/50 dark:text-red-300"
             )}
           >
             <TrendIcon className="w-3 h-3" />
@@ -85,7 +85,7 @@ export function PatternChart({
                   {unit}
                 </span>
               </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-2 bg-white/20 dark:bg-white/10 rounded-full overflow-hidden backdrop-blur-sm">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-500 ease-out",
@@ -101,7 +101,7 @@ export function PatternChart({
 
       {/* Average Line */}
       {data.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-muted flex items-center justify-between text-xs">
+        <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/10 flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Average</span>
           <span className="font-semibold text-foreground">
             {(data.reduce((sum, d) => sum + d.value, 0) / data.length).toFixed(1)}
@@ -109,6 +109,6 @@ export function PatternChart({
           </span>
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }

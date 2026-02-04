@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { ChevronLeft, Moon, Save, Sun, Clock, Play, Square } from "lucide-react";
+import { Moon, Save, Sun, Clock, Play, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLogs } from "@/context/log-context";
 import { useRouter } from "next/navigation";
@@ -12,6 +10,21 @@ import { toast } from "sonner";
 import { api, SleepType, SleepQuality } from "@/lib/api-client";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
+import { LogFormWrapper } from "@/components/log/log-form-wrapper";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+
+/**
+ * Sleep Log Page - Glassmorphism Redesign
+ * 
+ * @requirements 14.1 - PageHeader with title and back navigation (via LogFormWrapper)
+ * @requirements 14.2 - GlassCard as form container (via LogFormWrapper)
+ * @requirements 14.3 - GlassInput/GlassTextarea for form fields
+ * @requirements 14.4 - GlassButton for submit/cancel actions
+ * @requirements 14.5 - 48px minimum touch targets
+ * @requirements 14.6 - Maintain existing form functionality
+ */
 
 const SLEEP_TYPES: { key: SleepType; label: string; icon: typeof Sun }[] = [
   { key: "nap", label: "Nap", icon: Sun },
@@ -167,41 +180,48 @@ export default function SleepLogPage() {
 
   return (
     <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up pb-32">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Log Sleep</h1>
-        </div>
+      <LogFormWrapper
+        title="Log Sleep"
+        backHref="/"
+        showCard={false}
+        className="p-4 pb-32"
+      >
+        {/* Timer/Manual Toggle - Mobile Only */}
+        <GlassCard size="sm" className="p-1.5 md:hidden">
+          <div className="flex">
+            <button
+              onClick={() => setShowManualEntry(false)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all min-h-[48px]",
+                !showManualEntry 
+                  ? "bg-[var(--color-sleep)] text-white shadow-lg" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Play className="w-4 h-4" />
+              Timer
+            </button>
+            <button
+              onClick={() => setShowManualEntry(true)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all min-h-[48px]",
+                showManualEntry 
+                  ? "bg-[var(--color-sleep)] text-white shadow-lg" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Clock className="w-4 h-4" />
+              Manual
+            </button>
+          </div>
+        </GlassCard>
 
-        <div className="flex bg-muted/50 rounded-2xl p-1.5 md:hidden">
-          <button
-            onClick={() => setShowManualEntry(false)}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all",
-              !showManualEntry ? "bg-indigo-500 text-white shadow-lg" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Play className="w-4 h-4" />
-            Timer
-          </button>
-          <button
-            onClick={() => setShowManualEntry(true)}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all",
-              showManualEntry ? "bg-indigo-500 text-white shadow-lg" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Clock className="w-4 h-4" />
-            Manual
-          </button>
-        </div>
-
+        {/* Desktop: Side-by-side Timer and Manual Entry */}
         <div className="hidden md:grid md:grid-cols-2 md:gap-6">
-          <Card className="p-6 border-0 bg-gradient-to-br from-card to-muted/20">
+          {/* Live Timer Card */}
+          <GlassCard size="lg">
             <h3 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
-              <Play className="w-4 h-4 text-indigo-500" />
+              <Play className="w-4 h-4 text-[var(--color-sleep)]" />
               Live Timer
             </h3>
             <div className="space-y-4">
@@ -210,7 +230,7 @@ export default function SleepLogPage() {
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                     <circle className="text-muted/20" strokeWidth="6" stroke="currentColor" fill="transparent" r="44" cx="50" cy="50" />
                     <circle 
-                      className="text-indigo-500 transition-all duration-1000 ease-linear" 
+                      className="text-[var(--color-sleep)] transition-all duration-1000 ease-linear" 
                       strokeWidth="6" 
                       strokeDasharray={276}
                       strokeDashoffset={276 - (276 * (displayTimer % 60) / 60)}
@@ -224,28 +244,43 @@ export default function SleepLogPage() {
                     <span className="text-3xl font-heading font-black text-foreground tabular-nums">
                       {formatTimeShort(displayTimer)}
                     </span>
-                    <span className={cn("text-xs font-bold uppercase tracking-widest", isSleeping ? "text-indigo-500 animate-pulse" : hasStoppedData ? "text-green-500" : "text-muted-foreground")}>
+                    <span className={cn(
+                      "text-xs font-bold uppercase tracking-widest",
+                      isSleeping ? "text-[var(--color-sleep)] animate-pulse" : hasStoppedData ? "text-green-500" : "text-muted-foreground"
+                    )}>
                       {isSleeping ? "Sleeping" : hasStoppedData ? "Stopped" : "Ready"}
                     </span>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <Button onClick={startSleep} size="sm" disabled={isSleeping} className="h-10 font-bold rounded-xl bg-indigo-500 text-white hover:bg-indigo-600">
+                <GlassButton 
+                  onClick={startSleep} 
+                  size="sm" 
+                  disabled={isSleeping} 
+                  variant="primary"
+                  className="bg-[var(--color-sleep)] hover:bg-[var(--color-sleep)]/90"
+                >
                   <Play className="w-4 h-4 mr-1" />
                   Start
-                </Button>
-                <Button variant="outline" size="sm" onClick={stopSleep} disabled={!isSleeping} className="h-10 font-bold rounded-xl text-red-500 border-red-500/50 hover:bg-red-50 dark:hover:bg-red-950">
+                </GlassButton>
+                <GlassButton 
+                  variant="danger" 
+                  size="sm" 
+                  onClick={stopSleep} 
+                  disabled={!isSleeping}
+                >
                   <Square className="w-4 h-4 mr-1" />
                   Stop
-                </Button>
+                </GlassButton>
               </div>
             </div>
-          </Card>
+          </GlassCard>
 
-          <Card className="p-6 border-0 bg-gradient-to-br from-card to-muted/20">
+          {/* Manual Entry Card */}
+          <GlassCard size="lg">
             <h3 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-500" />
+              <Clock className="w-4 h-4 text-[var(--color-sleep)]" />
               Manual Entry
             </h3>
             <div className="space-y-4">
@@ -257,20 +292,25 @@ export default function SleepLogPage() {
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ended</label>
                 <TimeAgoPicker value={manualEndTime} onChange={setManualEndTime} />
               </div>
-              <div className="p-3 bg-indigo-500/10 rounded-xl flex justify-between items-center">
-                <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">Duration</span>
-                <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{manualDuration()}</span>
-              </div>
+              <GlassCard variant="featured" size="sm" className="flex justify-between items-center">
+                <span className="text-sm font-medium text-[var(--color-sleep)]">Duration</span>
+                <span className="text-lg font-bold text-[var(--color-sleep)]">{manualDuration()}</span>
+              </GlassCard>
             </div>
-          </Card>
+          </GlassCard>
         </div>
 
+        {/* Mobile: Timer View */}
         {!showManualEntry && (
           <div className="space-y-6 md:hidden">
             <div className="flex flex-col items-center justify-center py-4">
               <div className={cn(
                 "relative w-56 h-56 rounded-full flex flex-col items-center justify-center transition-all duration-500 shadow-2xl",
-                isSleeping ? "bg-indigo-600 shadow-indigo-500/40 scale-105" : hasStoppedData ? "bg-green-600 shadow-green-500/40" : "bg-card border-4 border-dashed border-muted-foreground/20"
+                isSleeping 
+                  ? "bg-[var(--color-sleep)] shadow-[var(--color-sleep)]/40 scale-105" 
+                  : hasStoppedData 
+                    ? "bg-green-600 shadow-green-500/40" 
+                    : "bg-[var(--glass-bg)] backdrop-blur-xl border-4 border-dashed border-muted-foreground/20"
               )}>
                 {isSleeping ? (
                   <>
@@ -300,20 +340,32 @@ export default function SleepLogPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Button onClick={startSleep} disabled={isSleeping} className="h-14 font-bold rounded-2xl bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg">
+              <GlassButton 
+                onClick={startSleep} 
+                disabled={isSleeping} 
+                size="lg"
+                variant="primary"
+                className="bg-[var(--color-sleep)] hover:bg-[var(--color-sleep)]/90"
+              >
                 <Play className="w-5 h-5 mr-2" />
                 Start
-              </Button>
-              <Button variant="outline" onClick={stopSleep} disabled={!isSleeping} className="h-14 font-bold rounded-2xl text-red-500 border-2 border-red-500/50 hover:bg-red-50 dark:hover:bg-red-950">
+              </GlassButton>
+              <GlassButton 
+                variant="danger" 
+                onClick={stopSleep} 
+                disabled={!isSleeping}
+                size="lg"
+              >
                 <Square className="w-5 h-5 mr-2" />
                 Stop
-              </Button>
+              </GlassButton>
             </div>
           </div>
         )}
 
+        {/* Mobile: Manual Entry View */}
         {showManualEntry && (
-          <Card className="p-6 space-y-5 border-0 bg-gradient-to-br from-card to-muted/20 animate-fade-in md:hidden">
+          <GlassCard size="lg" className="space-y-5 animate-fade-in md:hidden">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Started</label>
               <TimeAgoPicker value={manualStartTime} onChange={setManualStartTime} />
@@ -322,76 +374,93 @@ export default function SleepLogPage() {
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ended</label>
               <TimeAgoPicker value={manualEndTime} onChange={setManualEndTime} />
             </div>
-            <div className="p-3 bg-indigo-500/10 rounded-xl flex justify-between items-center">
-              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">Total Duration</span>
-              <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">{manualDuration()}</span>
-            </div>
-          </Card>
+            <GlassCard variant="featured" size="sm" className="flex justify-between items-center">
+              <span className="text-sm font-medium text-[var(--color-sleep)]">Total Duration</span>
+              <span className="text-xl font-bold text-[var(--color-sleep)]">{manualDuration()}</span>
+            </GlassCard>
+          </GlassCard>
         )}
 
-        <div className="space-y-2">
+        {/* Sleep Type Selection */}
+        <GlassCard size="lg" className="space-y-3">
           <label htmlFor="sleep-type-select" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Type</label>
           <div className="grid grid-cols-2 gap-3" role="group" aria-labelledby="sleep-type-select">
             {SLEEP_TYPES.map((type) => {
               const Icon = type.icon;
               return (
-                <button key={type.key} onClick={() => setSleepType(type.key)} className={cn(
-                  "flex items-center justify-center gap-2 p-4 rounded-2xl transition-all duration-200 border-2",
-                  sleepType === type.key ? "bg-indigo-500 border-transparent text-white shadow-lg shadow-indigo-500/25" : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-                )}>
+                <GlassButton
+                  key={type.key}
+                  onClick={() => setSleepType(type.key)}
+                  variant={sleepType === type.key ? "primary" : "default"}
+                  size="lg"
+                  className={cn(
+                    "flex items-center justify-center gap-2",
+                    sleepType === type.key && "bg-[var(--color-sleep)] hover:bg-[var(--color-sleep)]/90"
+                  )}
+                >
                   <Icon className="w-5 h-5" />
                   <span className="font-bold">{type.label}</span>
-                </button>
+                </GlassButton>
               );
             })}
           </div>
-        </div>
+        </GlassCard>
 
-        <div className="space-y-2">
+        {/* Sleep Quality Selection */}
+        <GlassCard size="lg" className="space-y-3">
           <label htmlFor="sleep-quality-select" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quality</label>
           <div className="flex justify-between gap-2" role="group" aria-labelledby="sleep-quality-select">
             {SLEEP_QUALITIES.map((q) => (
-              <button key={q.key} onClick={() => setQuality(q.key)} className={cn(
-                "flex-1 flex flex-col items-center gap-1 p-3 rounded-xl transition-all",
-                quality === q.key ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-500" : "bg-muted/50 hover:bg-muted text-muted-foreground"
-              )}>
+              <GlassButton
+                key={q.key}
+                onClick={() => setQuality(q.key)}
+                variant={quality === q.key ? "primary" : "default"}
+                className={cn(
+                  "flex-1 flex flex-col items-center gap-1 py-3",
+                  quality === q.key && "bg-[var(--color-sleep)]/15 text-[var(--color-sleep)] ring-2 ring-[var(--color-sleep)]"
+                )}
+              >
                 <span className="text-2xl">{q.emoji}</span>
                 <span className="text-xs font-bold uppercase">{q.label}</span>
-              </button>
+              </GlassButton>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
-        <div className="space-y-2">
+        {/* Notes Section */}
+        <GlassCard size="lg" className="space-y-3">
           <label htmlFor="sleep-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
-          <textarea
+          <GlassTextarea
             id="sleep-notes"
             name="sleep-notes"
             placeholder="How was the sleep?"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full rounded-2xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 p-4 text-sm resize-none outline-none transition-all placeholder:text-muted-foreground/50"
+            className="min-h-[80px]"
           />
-        </div>
+        </GlassCard>
 
         {/* Spacer for fixed button */}
         <div className="h-5" />
 
+        {/* Fixed Save Button */}
         <div className="fixed bottom-32 left-4 right-4 z-50">
-          <Button
+          <GlassButton
             onClick={showManualEntry ? saveManualEntry : saveSleepFromTimer}
             disabled={isLoading}
-            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-indigo-500/25 bg-indigo-500 hover:bg-indigo-600 text-white transition-all hover:scale-[1.02] active:scale-95"
+            variant="primary"
+            size="lg"
+            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-[var(--color-sleep)]/25 bg-[var(--color-sleep)] hover:bg-[var(--color-sleep)]/90"
           >
             {isLoading ? "Saving..." : isSleeping ? (
               <><Sun className="w-6 h-6 mr-2" strokeWidth={2.5} /> Wake Up & Save</>
             ) : (
               <><Save className="w-5 h-5 mr-2" /> Save Sleep</>
             )}
-          </Button>
+          </GlassButton>
         </div>
-      </div>
+      </LogFormWrapper>
     </MobileContainer>
   );
 }

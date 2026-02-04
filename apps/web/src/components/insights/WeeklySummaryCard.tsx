@@ -35,13 +35,13 @@ export function WeeklySummaryCard() {
       <InsightCard 
         title="Weekly AI Summary" 
         icon={Sparkles} 
-        variant="neumorphic"
-        iconClassName="bg-purple-100 text-purple-500 dark:bg-purple-950/50 dark:text-purple-400"
+        variant="featured"
+        iconColor="nursing"
       >
         <div className="space-y-3 animate-pulse">
-          <div className="h-4 bg-muted rounded w-3/4"></div>
-          <div className="h-4 bg-muted rounded w-full"></div>
-          <div className="h-4 bg-muted rounded w-5/6"></div>
+          <div className="h-4 bg-white/20 dark:bg-white/10 rounded w-3/4"></div>
+          <div className="h-4 bg-white/20 dark:bg-white/10 rounded w-full"></div>
+          <div className="h-4 bg-white/20 dark:bg-white/10 rounded w-5/6"></div>
         </div>
       </InsightCard>
     );
@@ -52,8 +52,8 @@ export function WeeklySummaryCard() {
       <InsightCard 
         title="Weekly AI Summary" 
         icon={Sparkles}
-        variant="neumorphic"
-        iconClassName="bg-purple-100 text-purple-500 dark:bg-purple-950/50 dark:text-purple-400"
+        variant="featured"
+        iconColor="nursing"
       >
         <div className="text-muted-foreground text-sm italic">
           Gathering data for your first weekly summary...
@@ -66,12 +66,12 @@ export function WeeklySummaryCard() {
     <InsightCard 
       title="Weekly AI Summary" 
       icon={Sparkles}
-      variant="neumorphic"
-      iconClassName="bg-purple-100 text-purple-500 dark:bg-purple-950/50 dark:text-purple-400"
+      variant="featured"
+      iconColor="nursing"
     >
-      <div className="bg-gradient-to-br from-purple-50/50 to-white dark:from-purple-950/30 dark:to-card p-4 rounded-xl border border-purple-100/60 dark:border-purple-900/30 transition-colors">
-        <MarkdownRenderer content={summary.aiSummary} className="prose-purple" />
-        <div className="mt-4 pt-4 border-t border-muted/50 flex justify-between items-center text-xs text-muted-foreground">
+      <div className="bg-gradient-to-br from-[var(--color-nursing)]/10 to-white/50 dark:from-[var(--color-nursing)]/20 dark:to-white/5 p-4 rounded-xl border border-[var(--color-nursing)]/20 backdrop-blur-sm transition-colors">
+        <MarkdownRenderer content={summary.aiSummary} className="prose-pink" />
+        <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/10 flex justify-between items-center text-xs text-muted-foreground">
           <span>Generated using {summary.aiSummaryGenerated ? 'Ollama AI' : 'Rule-based Fallback'}</span>
           {summary.aiDurationMs && <span>{Math.round(summary.aiDurationMs / 1000)}s generation time</span>}
         </div>

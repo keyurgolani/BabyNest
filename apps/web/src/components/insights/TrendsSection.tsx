@@ -1,6 +1,7 @@
 import React from "react";
 import { TrendingUp, TrendingDown, Minus, BarChart3, ArrowRight } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 
 export interface TrendData {
@@ -31,9 +32,7 @@ export function TrendsSection({ trends, period }: TrendsSectionProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
-          <BarChart3 className="w-5 h-5" />
-        </div>
+        <IconBadge color="activity" icon={BarChart3} size="default" gradient />
         <div>
           <h3 className="font-semibold text-foreground">Trend Analysis</h3>
           <p className="text-xs text-muted-foreground">
@@ -52,13 +51,13 @@ export function TrendsSection({ trends, period }: TrendsSectionProps) {
             ? "text-gray-500 dark:text-gray-400"
             : "text-red-600 dark:text-red-400";
           const bgColor = trend.isPositive
-            ? "bg-green-50 dark:bg-green-950/30"
+            ? "bg-green-50/80 dark:bg-green-950/30"
             : trend.direction === "stable"
-            ? "bg-gray-50 dark:bg-gray-950/30"
-            : "bg-red-50 dark:bg-red-950/30";
+            ? "bg-gray-50/80 dark:bg-gray-950/30"
+            : "bg-red-50/80 dark:bg-red-950/30";
 
           return (
-            <Card key={idx} className="p-4 border-0 bg-muted/30">
+            <GlassCard key={idx} size="sm" className="border-0">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -73,7 +72,7 @@ export function TrendsSection({ trends, period }: TrendsSectionProps) {
                     <span className="text-sm font-semibold text-foreground">{trend.currentValue}</span>
                   </div>
                 </div>
-                <div className={cn("flex flex-col items-center p-3 rounded-xl", bgColor)}>
+                <div className={cn("flex flex-col items-center p-3 rounded-xl backdrop-blur-sm", bgColor)}>
                   <TrendIcon className={cn("w-5 h-5 mb-1", trendColor)} />
                   <span className={cn("text-sm font-bold", trendColor)}>
                     {trend.change > 0 ? "+" : ""}{trend.change}%
@@ -82,11 +81,11 @@ export function TrendsSection({ trends, period }: TrendsSectionProps) {
                 </div>
               </div>
               {trend.insight && (
-                <p className="mt-3 pt-3 border-t border-muted text-xs text-muted-foreground leading-relaxed">
+                <p className="mt-3 pt-3 border-t border-white/20 dark:border-white/10 text-xs text-muted-foreground leading-relaxed">
                   💡 {trend.insight}
                 </p>
               )}
-            </Card>
+            </GlassCard>
           );
         })}
       </div>

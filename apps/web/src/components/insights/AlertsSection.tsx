@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { AlertTriangle, AlertCircle, Info, X, CheckCircle, ChevronRight, Shield } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 
 export type AlertSeverity = "info" | "warning" | "critical";
@@ -69,7 +70,7 @@ export function AlertsSection({ alerts, onDismiss, onMarkAddressed }: AlertsSect
 
   if (visibleAlerts.length === 0) {
     return (
-      <Card className="p-6 border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+      <GlassCard className="border-0 bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30">
         <div className="flex flex-col items-center justify-center text-center py-4">
           <div className="w-14 h-14 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-4">
             <Shield className="w-7 h-7 text-green-600 dark:text-green-400" />
@@ -79,7 +80,7 @@ export function AlertsSection({ alerts, onDismiss, onMarkAddressed }: AlertsSect
             No health concerns detected. Your baby&apos;s patterns look healthy and consistent.
           </p>
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -88,9 +89,7 @@ export function AlertsSection({ alerts, onDismiss, onMarkAddressed }: AlertsSect
       {/* Summary Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-red-500/30">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
+          <IconBadge color="health" icon={AlertTriangle} size="default" gradient />
           <div>
             <h3 className="font-semibold text-foreground">Health Alerts</h3>
             <p className="text-xs text-muted-foreground">
@@ -110,10 +109,11 @@ export function AlertsSection({ alerts, onDismiss, onMarkAddressed }: AlertsSect
           const Icon = config.icon;
 
           return (
-            <Card
+            <GlassCard
               key={alert.id}
+              size="sm"
               className={cn(
-                "p-4 border transition-all duration-200",
+                "border-l-4 transition-all duration-200",
                 config.bg,
                 config.border
               )}
@@ -139,14 +139,14 @@ export function AlertsSection({ alerts, onDismiss, onMarkAddressed }: AlertsSect
                     </div>
                     <button
                       onClick={() => handleDismiss(alert.id)}
-                      className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                      className="text-muted-foreground hover:text-foreground transition-colors p-1 min-h-[48px] min-w-[48px] flex items-center justify-center"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
                   {alert.recommendation && (
-                    <div className="mt-3 p-3 bg-white/50 dark:bg-black/20 rounded-lg">
+                    <div className="mt-3 p-3 bg-white/30 dark:bg-black/20 rounded-xl backdrop-blur-sm">
                       <div className="flex items-start gap-2">
                         <ChevronRight className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                         <p className="text-xs text-muted-foreground leading-relaxed">
@@ -158,22 +158,21 @@ export function AlertsSection({ alerts, onDismiss, onMarkAddressed }: AlertsSect
                   )}
 
                   <div className="flex items-center gap-2 mt-3">
-                    <Button
+                    <GlassButton
                       size="sm"
-                      variant="outline"
-                      className="h-8 text-xs"
+                      variant="default"
                       onClick={() => handleMarkAddressed(alert.id)}
                     >
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Mark as Addressed
-                    </Button>
+                    </GlassButton>
                     <span className="text-xs text-muted-foreground">
                       {new Date(alert.timestamp).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
               </div>
-            </Card>
+            </GlassCard>
           );
         })}
       </div>

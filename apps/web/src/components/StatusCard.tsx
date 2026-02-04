@@ -19,17 +19,17 @@ export function StatusCard({ status, duration, lastActivityTime, lastActivityLab
     <div className={cn(
       "relative overflow-hidden rounded-2xl p-6 transition-all duration-500",
       isSleeping 
-        ? "bg-gradient-to-br from-[#5A7B9A] via-[#4A6B8A] to-[#3A5B7A] text-white shadow-[0_8px_32px_-8px_rgba(90,123,154,0.4),0_0_0_1px_rgba(126,184,218,0.1)]" 
-        : "bg-gradient-to-br from-[#FFF5EB] via-[#FFE8D6] to-[#F4D4C4] text-[#3D3229] shadow-[0_8px_32px_-8px_rgba(244,162,97,0.25),0_0_0_1px_rgba(244,162,97,0.1)]"
+        ? "bg-gradient-to-br from-[var(--color-sleep-dark)] via-[var(--color-sleep-dark-mid)] to-[var(--color-sleep-dark-deep)] text-white shadow-[0_8px_32px_-8px_rgba(90,123,154,0.4),0_0_0_1px_rgba(126,184,218,0.1)]" 
+        : "bg-gradient-to-br from-[var(--color-awake-light)] via-[var(--color-awake-mid)] to-[var(--color-awake-warm)] text-[var(--color-awake-text)] shadow-[0_8px_32px_-8px_rgba(244,162,97,0.25),0_0_0_1px_rgba(244,162,97,0.1)]"
     )}>
       {/* Aurora glow orbs */}
       <div className={cn(
         "absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60",
-        isSleeping ? "bg-[#7EB8DA]/30" : "bg-[#F4A261]/20"
+        isSleeping ? "bg-[var(--color-sleep-accent)]/30" : "bg-[var(--color-feed)]/20"
       )} />
       <div className={cn(
         "absolute bottom-0 left-0 w-48 h-48 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 opacity-50",
-        isSleeping ? "bg-[#A8DADC]/20" : "bg-[#E9C46A]/20"
+        isSleeping ? "bg-[var(--color-sleep)]/20" : "bg-[var(--color-play)]/20"
       )} />
       <div className={cn(
         "absolute top-1/2 left-1/2 w-32 h-32 rounded-full blur-xl -translate-x-1/2 -translate-y-1/2 opacity-40",
@@ -41,8 +41,8 @@ export function StatusCard({ status, duration, lastActivityTime, lastActivityLab
         <Badge variant="secondary" className={cn(
           "px-4 py-1.5 text-sm font-medium rounded-full backdrop-blur-md border-0",
           isSleeping 
-            ? "bg-[#7EB8DA]/30 text-white shadow-[0_0_20px_rgba(126,184,218,0.3)]" 
-            : "bg-white/60 text-[#8B7E74] shadow-[0_0_20px_rgba(244,162,97,0.2)]"
+            ? "bg-[var(--color-sleep-accent)]/30 text-white shadow-[0_0_20px_rgba(126,184,218,0.3)]" 
+            : "bg-white/60 text-[var(--color-awake-muted)] shadow-[0_0_20px_rgba(244,162,97,0.2)]"
         )}>
           {isSleeping ? <Moon className="w-4 h-4 mr-2" /> : <Sun className="w-4 h-4 mr-2" />}
           {isSleeping ? "Sweet Dreams" : "Wide Awake"}
@@ -54,13 +54,13 @@ export function StatusCard({ status, duration, lastActivityTime, lastActivityLab
                 "text-6xl font-black tracking-tight tabular-nums",
                 isSleeping 
                   ? "text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]" 
-                  : "text-[#3D3229] drop-shadow-[0_2px_10px_rgba(244,162,97,0.2)]"
+                  : "text-[var(--color-awake-text)] drop-shadow-[0_2px_10px_rgba(244,162,97,0.2)]"
             )}>
                 {duration}
             </span>
             <span className={cn(
                 "text-sm font-medium opacity-80 mt-1",
-                 isSleeping ? "text-[#C4E0ED]" : "text-[#8B7E74]"
+                 isSleeping ? "text-[var(--color-sleep-light)]" : "text-[var(--color-awake-muted)]"
             )}>
                 Current Session
             </span>
@@ -85,8 +85,8 @@ export function StatusCard({ status, duration, lastActivityTime, lastActivityLab
              <div className={cn(
                  "absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-white",
                  isSleeping 
-                   ? "bg-[#7EB8DA] shadow-[0_0_12px_rgba(126,184,218,0.6)]" 
-                   : "bg-[#A8D5BA] shadow-[0_0_12px_rgba(168,213,186,0.6)]"
+                   ? "bg-[var(--color-sleep-accent)] shadow-[0_0_12px_rgba(126,184,218,0.6)]" 
+                   : "bg-[var(--color-awake-indicator)] shadow-[0_0_12px_rgba(168,213,186,0.6)]"
              )} />
         </div>
 
@@ -95,8 +95,8 @@ export function StatusCard({ status, duration, lastActivityTime, lastActivityLab
             <div className={cn(
                 "mt-2 text-xs font-medium px-4 py-2 rounded-xl backdrop-blur-sm",
                  isSleeping 
-                   ? "bg-white/10 text-[#C4E0ED] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" 
-                   : "bg-white/40 text-[#8B7E74] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
+                   ? "bg-white/10 text-[var(--color-sleep-light)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" 
+                   : "bg-white/40 text-[var(--color-awake-muted)] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
             )}>
                 Last: {lastActivityLabel} @ {lastActivityTime}
             </div>

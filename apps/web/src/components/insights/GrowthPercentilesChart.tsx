@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, PercentileChartResponse } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
@@ -53,33 +54,31 @@ export function GrowthPercentilesChart({ className }: GrowthPercentilesChartProp
 
   if (loading) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
+      <GlassCard className={cn("border-0 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
         <div className="space-y-4">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-48 w-full" />
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   if (error) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30", className)}>
+      <GlassCard variant="danger" className={cn("border-0", className)}>
         <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
           <AlertTriangle className="w-5 h-5" />
           <span className="text-sm">{error}</span>
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   if (!data || !data.data || data.data.length === 0) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
+      <GlassCard className={cn("border-0 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+          <IconBadge color="growth" icon={TrendingUp} size="default" gradient />
           <div>
             <h3 className="font-semibold text-foreground">WHO Growth Percentiles</h3>
             <p className="text-xs text-muted-foreground">No data available yet</p>
@@ -90,23 +89,23 @@ export function GrowthPercentilesChart({ className }: GrowthPercentilesChartProp
             const config = metricConfig[metric];
             const Icon = config.icon;
             return (
-              <Button
+              <GlassButton
                 key={metric}
-                variant={activeMetric === metric ? "default" : "ghost"}
+                variant={activeMetric === metric ? "primary" : "ghost"}
                 size="sm"
                 onClick={() => setActiveMetric(metric)}
                 className="gap-1.5"
               >
                 <Icon className="w-4 h-4" />
                 {config.label}
-              </Button>
+              </GlassButton>
             );
           })}
         </div>
         <p className="text-sm text-muted-foreground text-center py-8">
           Add growth measurements to see percentile charts
         </p>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -158,13 +157,11 @@ export function GrowthPercentilesChart({ className }: GrowthPercentilesChartProp
   const latestMeasurement = measurements.length > 0 ? measurements[measurements.length - 1] : null;
 
   return (
-    <Card className={cn("p-4 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
+    <GlassCard className={cn("border-0 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+          <IconBadge color="growth" icon={TrendingUp} size="default" gradient />
           <div>
             <h3 className="font-semibold text-foreground">WHO Growth Percentiles</h3>
             <p className="text-xs text-muted-foreground">
@@ -180,23 +177,23 @@ export function GrowthPercentilesChart({ className }: GrowthPercentilesChartProp
           const config = metricConfig[metric];
           const Icon = config.icon;
           return (
-            <Button
+            <GlassButton
               key={metric}
-              variant={activeMetric === metric ? "default" : "ghost"}
+              variant={activeMetric === metric ? "primary" : "ghost"}
               size="sm"
               onClick={() => setActiveMetric(metric)}
               className="gap-1.5"
             >
               <Icon className="w-4 h-4" />
               {config.label}
-            </Button>
+            </GlassButton>
           );
         })}
       </div>
 
       {/* Current Value Display */}
       {latestMeasurement && (
-        <div className="flex items-center justify-between mb-4 p-3 rounded-xl bg-white/50 dark:bg-black/20">
+        <div className="flex items-center justify-between mb-4 p-3 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
           <div>
             <p className="text-xs text-muted-foreground">Latest {currentMetric.label}</p>
             <p className="text-2xl font-bold text-foreground">
@@ -306,6 +303,6 @@ export function GrowthPercentilesChart({ className }: GrowthPercentilesChartProp
           </div>
         )}
       </div>
-    </Card>
+    </GlassCard>
   );
 }

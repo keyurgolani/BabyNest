@@ -2,56 +2,50 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/auth-provider";
-import { 
-  Settings, 
-  LogOut, 
-  User, 
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import {
   X,
-  ChevronRight
+  FileText,
+  Calendar,
+  Users,
+  Heart,
+  Star,
+  Settings,
+  LogOut,
+  User,
 } from "lucide-react";
 
-// Reusing the same navigation items from SideNav for consistency
-// Ideally these should be in a shared config file
-const LOG_ITEMS = [
-  { href: "/log/feed", label: "Feeding", icon: Icons.Feed },
-  { href: "/log/sleep", label: "Sleep", icon: Icons.Sleep },
-  { href: "/log/diaper", label: "Diaper", icon: Icons.Diaper },
-  { href: "/log/growth", label: "Growth", icon: Icons.Growth },
-  { href: "/log/temperature", label: "Temperature", icon: Icons.Temperature },
-  { href: "/log/activity", label: "Activity", icon: Icons.Activity },
-  { href: "/log/medication", label: "Medicine", icon: Icons.Medication },
-  { href: "/log/symptom", label: "Symptom", icon: Icons.Symptom },
-  { href: "/log/vaccination", label: "Vaccine", icon: Icons.Vaccination },
-  { href: "/log/doctor-visit", label: "Doctor Visit", icon: Icons.DoctorVisit },
-];
+/**
+ * MobileMenu Component
+ *
+ * A drawer component that opens from the bottom when the "More" button is tapped
+ * in the MobileNav. Displays secondary navigation items not shown in the main
+ * bottom navigation bar.
+ *
+ * Features:
+ * - Glassmorphism styling (backdrop-blur-xl, bg-white/10, border-white/20)
+ * - Secondary navigation items: Reports, Calendar, Family, Health, Milestones, Settings
+ * - Slide-up animation with spring physics
+ * - Backdrop blur overlay
+ * - User profile section
+ * - Sign out functionality
+ *
+ * @requirements 11.5
+ */
 
-const TRACKING_ITEMS = [
-  { href: "/tracking/growth", label: "Growth", icon: Icons.Growth },
-  { href: "/tracking/activities", label: "Activities", icon: Icons.Activity },
-  { href: "/tracking/health", label: "Health", icon: Icons.Symptom },
-  { href: "/tracking/timeline", label: "Timeline", icon: Icons.Calendar },
-  { href: "/tracking/activity-log", label: "Activity Log", icon: Icons.Log },
-];
-
-const NAV_ITEMS = [
-  { href: "/", label: "Home", icon: Icons.Home },
-  { href: "/log", label: "Quick Log", icon: Icons.Log, hasSubmenu: true },
-  { href: "/tracking", label: "Tracking", icon: Icons.Stats, hasSubmenu: true },
-  { href: "/milestones", label: "Milestones", icon: Icons.Milestone },
-  { href: "/calendar", label: "Calendar", icon: Icons.Calendar },
-  { href: "/insights", label: "Insights", icon: Icons.Insights },
-  { href: "/reminders", label: "Reminders", icon: Icons.Reminders },
-];
-
-const ACCOUNT_ITEMS = [
-  { href: "/profile", label: "Profile", icon: User },
+// Secondary navigation items not in MobileNav
+// MobileNav has: Home, Log, Activity, Memories, More
+// This menu shows: Reports, Calendar, Family, Health, Milestones, Settings
+const SECONDARY_NAV_ITEMS = [
+  { href: "/report", label: "Reports", icon: FileText },
+  { href: "/calendar", label: "Calendar", icon: Calendar },
+  { href: "/family", label: "Family", icon: Users },
+  { href: "/health", label: "Health", icon: Heart },
+  { href: "/milestones", label: "Milestones", icon: Star },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -63,24 +57,6 @@ interface MobileMenuProps {
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [logExpanded, setLogExpanded] = useState(pathname.startsWith("/log"));
-  const [trackingExpanded, setTrackingExpanded] = useState(pathname.startsWith("/tracking"));
-
-  // Close menu when route changes
-  // We can add this logic if we want auto-close on navigation
-  // useEffect(() => {
-  //   onClose();
-  // }, [pathname, onClose]);
-
-  const handleNavClick = (href: string) => {
-    if (href === "/log") {
-      setLogExpanded(!logExpanded);
-    } else if (href === "/tracking") {
-      setTrackingExpanded(!trackingExpanded);
-    } else {
-      onClose();
-    }
-  };
 
   const backdropVariants = {
     hidden: { opacity: 0 },
@@ -89,30 +65,35 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
   const menuVariants = {
     hidden: { y: "100%", opacity: 0.5 },
-    visible: { 
-      y: "0%", 
+    visible: {
+      y: "0%",
       opacity: 1,
-      transition: { 
-        type: "spring" as const, 
-        damping: 25, 
-        stiffness: 200 
-      } 
+      transition: {
+        type: "spring" as const,
+        damping: 25,
+        stiffness: 200,
+      },
     },
-    exit: { 
-      y: "100%", 
+    exit: {
+      y: "100%",
       opacity: 0,
-      transition: { 
-        duration: 0.2, 
-        ease: "easeIn" as const 
-      } 
+      transition: {
+        duration: 0.2,
+        ease: "easeIn" as const,
+      },
     },
+  };
+
+  const handleSignOut = () => {
+    logout();
+    onClose();
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop with blur */}
           <motion.div
             variants={backdropVariants}
             initial="hidden"
@@ -120,169 +101,154 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
             exit="hidden"
             onClick={onClose}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+            aria-hidden="true"
           />
 
-          {/* Menu Drawer */}
+          {/* Menu Drawer with Glassmorphism Styling */}
           <motion.div
             variants={menuVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed inset-x-0 bottom-0 max-h-[85vh] bg-background border-t border-border rounded-t-3xl z-[70] flex flex-col overflow-hidden shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+            className={cn(
+              "fixed inset-x-0 bottom-0 z-[70]",
+              "max-h-[85vh] flex flex-col overflow-hidden",
+              // Glassmorphism styling: backdrop-blur-xl, bg-white/10, border-white/20
+              "backdrop-blur-xl bg-white/10 dark:bg-black/20",
+              "border-t border-white/20",
+              "rounded-t-3xl shadow-2xl"
+            )}
           >
             {/* Drag Handle */}
-            <div className="flex items-center justify-center py-3 border-b border-border/50">
-              <div className="w-12 h-1.5 rounded-full bg-muted-foreground/30" />
+            <div className="flex items-center justify-center py-3">
+              <div className="w-12 h-1.5 rounded-full bg-white/30" />
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-md shadow-primary/20">
-                  <Icons.Diaper className="w-6 h-6 text-primary-foreground" />
+                <div className="w-10 h-10 rounded-xl bg-primary/20 backdrop-blur-sm flex items-center justify-center">
+                  <Star className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                    <h2 className="font-heading font-bold text-lg leading-tight">Menu</h2>
-                    <p className="text-xs text-muted-foreground">Navigate BabyNest</p>
+                  <h2 className="font-heading font-bold text-lg text-foreground">
+                    More
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Additional options
+                  </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-10 w-10">
-                <X className="w-5 h-5 text-muted-foreground" />
-              </Button>
+              <GlassButton
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="rounded-full"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </GlassButton>
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-              
-              {/* User Greeting / Mini Profile */}
-              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl p-4 border border-primary/20">
-                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg ring-2 ring-primary/30">
-                        {user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground font-medium">Hello,</p>
-                        <p className="text-base font-bold text-foreground">{user?.name || 'Parent'}</p>
-                    </div>
-                 </div>
-              </div>
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+              {/* User Profile Card */}
+              <GlassCard variant="featured" size="sm" className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 backdrop-blur-sm flex items-center justify-center text-primary font-bold text-lg ring-2 ring-primary/30">
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Signed in as
+                    </p>
+                    <p className="text-base font-bold text-foreground truncate">
+                      {user?.name || "Parent"}
+                    </p>
+                  </div>
+                  <Link href="/profile" onClick={onClose}>
+                    <GlassButton variant="ghost" size="icon" aria-label="View profile">
+                      <User className="w-5 h-5" />
+                    </GlassButton>
+                  </Link>
+                </div>
+              </GlassCard>
 
-              {/* Main Navigation */}
-              <nav className="space-y-1">
-                {NAV_ITEMS.map((item) => {
-                  const isLog = item.href === "/log";
-                  const isTracking = item.href === "/tracking";
-                  const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-                  const expanded = isLog ? logExpanded : (isTracking ? trackingExpanded : false);
-                  const hasSub = item.hasSubmenu;
-                  
-                  return (
-                    <div key={item.href} className="overflow-hidden">
-                       <div className="flex items-center">
-                           {/* Main Item Link */}
-                           <Button
-                               variant={isActive && !hasSub ? "secondary" : "ghost"}
-                               className={cn(
-                                   "flex-1 justify-start h-12 text-base font-medium rounded-xl px-4",
-                                   isActive && !hasSub ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                               )}
-                               onClick={() => !hasSub && onClose()}
-                               asChild={!hasSub}
-                           >
-                               {hasSub ? (
-                                   <div onClick={() => handleNavClick(item.href)} className="w-full flex items-center gap-3 cursor-pointer">
-                                       <item.icon className={cn("w-5 h-5", (expanded || isActive) && "text-primary")} />
-                                       <span className={cn((expanded || isActive) && "font-semibold")}>{item.label}</span>
-                                       <ChevronRight className={cn("ml-auto w-5 h-5 text-muted-foreground transition-transform duration-300", expanded && "rotate-90")} />
-                                   </div>
-                               ) : (
-                                   <Link href={item.href} className="flex items-center gap-3 w-full">
-                                       <item.icon className={cn("w-5 h-5", isActive && "text-primary")} />
-                                       <span>{item.label}</span>
-                                   </Link>
-                               )}
-                           </Button>
-                       </div>
-
-                       {/* Submenu */}
-                       {hasSub && (
-                        <AnimatePresence>
-                            {expanded && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="pl-12 pr-2 pb-1 pt-1 flex flex-col gap-0.5">
-                                        {(isLog ? LOG_ITEMS : TRACKING_ITEMS).map((subItem) => (
-                                            <Link 
-                                                key={subItem.href} 
-                                                href={subItem.href}
-                                                onClick={onClose}
-                                                className={cn(
-                                                    "flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-colors",
-                                                    pathname === subItem.href 
-                                                        ? "bg-primary/10 text-primary" 
-                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                                )}
-                                            >
-                                                <subItem.icon className="w-4 h-4" />
-                                                {subItem.label}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                       )}
-                    </div>
-                  );
-                })}
-              </nav>
-
-              {/* Separator */}
-              <Separator className="bg-border/50" />
-
-              {/* Account Section */}
+              {/* Secondary Navigation Items */}
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mb-2">Account</p>
-                {ACCOUNT_ITEMS.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <Button
-                      key={item.href}
-                      variant={isActive ? "secondary" : "ghost"}
-                      className={cn(
-                        "w-full justify-start h-12 text-base font-medium rounded-xl px-4",
-                        isActive ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                      )}
-                      onClick={onClose}
-                      asChild
-                    >
-                      <Link href={item.href} className="flex items-center gap-3">
-                        <item.icon className={cn("w-5 h-5", isActive && "text-primary")} />
-                        <span>{item.label}</span>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+                  Navigate
+                </p>
+                <nav className="grid grid-cols-2 gap-2" aria-label="Secondary navigation">
+                  {SECONDARY_NAV_ITEMS.map((item) => {
+                    const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                    const Icon = item.icon;
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={onClose}
+                        className="block"
+                      >
+                        <GlassCard
+                          interactive
+                          size="sm"
+                          variant={isActive ? "featured" : "default"}
+                          className={cn(
+                            "flex flex-col items-center justify-center gap-2 py-4",
+                            "touch-target",
+                            isActive && "ring-1 ring-primary/30"
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "w-10 h-10 rounded-xl flex items-center justify-center",
+                              isActive
+                                ? "bg-primary/20 text-primary"
+                                : "bg-white/10 text-muted-foreground"
+                            )}
+                          >
+                            <Icon className="w-5 h-5" />
+                          </div>
+                          <span
+                            className={cn(
+                              "text-sm font-medium",
+                              isActive ? "text-primary" : "text-foreground"
+                            )}
+                          >
+                            {item.label}
+                          </span>
+                        </GlassCard>
                       </Link>
-                    </Button>
-                  );
-                })}
-                
-                {/* Sign Out Button */}
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start h-12 text-base font-medium rounded-xl px-4 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                  onClick={() => { logout(); onClose(); }}
-                >
-                  <LogOut className="w-5 h-5 mr-3" />
-                  <span>Sign Out</span>
-                </Button>
+                    );
+                  })}
+                </nav>
               </div>
 
+              {/* Sign Out Section */}
+              <div className="pt-2">
+                <GlassButton
+                  variant="danger"
+                  className="w-full justify-center gap-2"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Sign Out</span>
+                </GlassButton>
+              </div>
             </div>
+
+            {/* Safe area padding for home indicator */}
+            <div className="pb-safe" />
           </motion.div>
         </>
       )}
     </AnimatePresence>
   );
 }
+
+export default MobileMenu;

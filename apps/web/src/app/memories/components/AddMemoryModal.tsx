@@ -1,10 +1,29 @@
+"use client";
+
 import { useState, useRef } from "react";
 import { CreateMemoryDto, MemoryEntryType } from "@babynest/types";
 import { Icons } from "@/components/icons";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
 import { api } from "@/lib/api-client";
 import Image from "next/image";
+
+/**
+ * AddMemoryModal Component
+ * 
+ * A glassmorphism-styled modal for adding new memories.
+ * Uses GlassModal wrapper with GlassInput, GlassTextarea, and GlassButton components.
+ * 
+ * Features:
+ * - Drag and drop photo upload
+ * - Memory type selection (Photo, Milestone, First Moment, Journal Note)
+ * - Title, date, and note fields
+ * - Glassmorphism styling throughout
+ * 
+ * @requirements 18.5
+ */
 
 interface AddMemoryModalProps {
   onClose: () => void;
@@ -113,203 +132,193 @@ export function AddMemoryModal({ onClose, onAdd }: AddMemoryModalProps) {
     }
   };
 
+  const memoryTypes = [
+    { value: MemoryEntryType.PHOTO, label: "Photo", icon: Icons.Memories },
+    { value: MemoryEntryType.MILESTONE, label: "Milestone", icon: Icons.Milestone },
+    { value: MemoryEntryType.FIRST, label: "First Moment", icon: Icons.Sparkles },
+    { value: MemoryEntryType.NOTE, label: "Journal Note", icon: Icons.Log },
+  ];
+
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
-      onClick={onClose}
+    <GlassModal
+      isOpen={true}
+      onClose={onClose}
+      title="Add Memory"
+      size="lg"
     >
-      <Card 
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200 aurora-card shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-foreground text-shadow-soft">Add Memory</h2>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
-              disabled={isSubmitting}
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
-          </div>
+      {error && (
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+          <p className="text-sm text-destructive">{error}</p>
+        </div>
+      )}
 
-          {error && (
-            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg animate-in slide-in-from-top-2">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Photo Upload Area */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Photo
-              </label>
-              {photoPreview ? (
-                <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg">
-                  <Image
-                    src={photoPreview}
-                    alt="Preview"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 500px"
-                    className="object-cover"
-                  />
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Icons.Loader className="w-8 h-8 animate-spin text-white" />
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={clearPhoto}
-                    disabled={isUploading}
-                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors disabled:opacity-50"
-                  >
-                    <Icons.Close className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
-                    isDragging
-                      ? "border-primary bg-primary/10 scale-105"
-                      : "border-muted-foreground/30 hover:border-primary hover:bg-muted/50"
-                  }`}
-                >
-                  <Icons.Memories className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    Drop your photo here
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    or click to browse
-                  </p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* Photo Upload Area */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Photo
+          </label>
+          {photoPreview ? (
+            <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg">
+              <Image
+                src={photoPreview}
+                alt="Preview"
+                fill
+                sizes="(max-width: 768px) 100vw, 500px"
+                className="object-cover"
+              />
+              {isUploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <Icons.Loader className="w-8 h-8 animate-spin text-white" />
                 </div>
               )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                className="hidden"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Memory Type */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Memory Type
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: MemoryEntryType.PHOTO, label: "Photo", icon: Icons.Memories },
-                  { value: MemoryEntryType.MILESTONE, label: "Milestone", icon: Icons.Milestone },
-                  { value: MemoryEntryType.FIRST, label: "First Moment", icon: Icons.Sparkles },
-                  { value: MemoryEntryType.NOTE, label: "Journal Note", icon: Icons.Log },
-                ].map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => setEntryType(type.value)}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        entryType === type.value
-                          ? "bg-primary text-primary-foreground glow-soft"
-                          : "bg-muted/50 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:bg-muted"
-                      }`}
-                      disabled={isSubmitting}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {type.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Title
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="First smile, First steps..."
-                className="w-full px-4 py-3 rounded-xl bg-muted/50 backdrop-blur-sm border-none focus:ring-2 focus:ring-primary outline-none transition-all"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Date */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Date
-              </label>
-              <input
-                type="date"
-                value={takenAt}
-                onChange={(e) => setTakenAt(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-muted/50 backdrop-blur-sm border-none focus:ring-2 focus:ring-primary outline-none transition-all"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Note */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Note (optional)
-              </label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="What made this moment special?"
-                rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-muted/50 backdrop-blur-sm border-none focus:ring-2 focus:ring-primary outline-none resize-none transition-all"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 mt-2">
-              <Button
+              <GlassButton
                 type="button"
-                variant="outline"
-                onClick={onClose}
-                className="flex-1"
-                disabled={isSubmitting || isUploading}
+                variant="ghost"
+                size="icon"
+                onClick={clearPhoto}
+                disabled={isUploading}
+                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white"
               >
-                Cancel
-              </Button>
-              <Button type="submit" className="flex-1 glow-primary" disabled={isSubmitting || isUploading}>
-                {isSubmitting ? (
-                  <>
-                    <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : isUploading ? (
-                  <>
-                    <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Icons.Check className="w-4 h-4 mr-2" />
-                    Save Memory
-                  </>
-                )}
-              </Button>
+                <Icons.Close className="w-4 h-4" />
+              </GlassButton>
             </div>
-          </form>
+          ) : (
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                isDragging
+                  ? "border-primary bg-primary/10 scale-[1.02]"
+                  : "border-white/20 hover:border-primary/50 hover:bg-white/5"
+              }`}
+            >
+              <Icons.Memories className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground mb-1">
+                Drop your photo here
+              </p>
+              <p className="text-xs text-muted-foreground">
+                or click to browse
+              </p>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileInputChange}
+            className="hidden"
+            disabled={isSubmitting}
+          />
         </div>
-      </Card>
-    </div>
+
+        {/* Memory Type */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Memory Type
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {memoryTypes.map((type) => {
+              const Icon = type.icon;
+              return (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setEntryType(type.value)}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all touch-target ${
+                    entryType === type.value
+                      ? "bg-primary text-primary-foreground shadow-lg"
+                      : "bg-white/10 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:bg-white/20 border border-white/10"
+                  }`}
+                  disabled={isSubmitting}
+                >
+                  <Icon className="w-4 h-4" />
+                  {type.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Title */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Title
+          </label>
+          <GlassInput
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="First smile, First steps..."
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Date */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Date
+          </label>
+          <GlassInput
+            type="date"
+            value={takenAt}
+            onChange={(e) => setTakenAt(e.target.value)}
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Note */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Note <span className="text-muted-foreground font-normal">(optional)</span>
+          </label>
+          <GlassTextarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="What made this moment special?"
+            rows={3}
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 mt-2">
+          <GlassButton
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            className="flex-1"
+            disabled={isSubmitting || isUploading}
+          >
+            Cancel
+          </GlassButton>
+          <GlassButton
+            type="submit"
+            variant="primary"
+            className="flex-1"
+            disabled={isSubmitting || isUploading}
+          >
+            {isSubmitting ? (
+              <>
+                <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : isUploading ? (
+              <>
+                <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Icons.Check className="w-4 h-4 mr-2" />
+                Save Memory
+              </>
+            )}
+          </GlassButton>
+        </div>
+      </form>
+    </GlassModal>
   );
 }

@@ -2,9 +2,9 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/glass-select";
 import { Icons } from "@/components/icons";
 import { useBaby } from "@/context/baby-context";
 import { api } from "@/lib/api-client";
@@ -107,7 +107,7 @@ export function BabyProfileContent() {
     return (
       <div className="text-center py-6">
         <p className="text-muted-foreground mb-4 text-sm">No baby profile found.</p>
-        <Button onClick={() => router.push("/onboarding")} size="sm">Create Profile</Button>
+        <GlassButton onClick={() => router.push("/onboarding")} size="sm" variant="primary">Create Profile</GlassButton>
       </div>
     );
   }
@@ -138,18 +138,18 @@ export function BabyProfileContent() {
             )}
           </div>
           <div className="flex gap-2">
-            <Button
+            <GlassButton
               type="button"
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
               <Icons.Memories className="w-4 h-4 mr-1" />
               {photoPreview ? "Change" : "Upload"}
-            </Button>
+            </GlassButton>
             {photoPreview && (
-              <Button
+              <GlassButton
                 type="button"
                 variant="ghost"
                 size="sm"
@@ -157,7 +157,7 @@ export function BabyProfileContent() {
                 disabled={isUploading}
               >
                 Remove
-              </Button>
+              </GlassButton>
             )}
           </div>
           <input
@@ -172,7 +172,7 @@ export function BabyProfileContent() {
         {/* Name */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">Name</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Baby's name" />
+          <GlassInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Baby's name" />
         </div>
 
         {/* Date of Birth */}
@@ -187,24 +187,24 @@ export function BabyProfileContent() {
         {/* Gender */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-1">Gender</label>
-          <Select value={gender} onValueChange={setGender}>
-            <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <GlassSelect value={gender} onValueChange={setGender}>
+            <GlassSelectTrigger><GlassSelectValue placeholder="Select gender" /></GlassSelectTrigger>
+            <GlassSelectContent>
+              <GlassSelectItem value="male">Male</GlassSelectItem>
+              <GlassSelectItem value="female">Female</GlassSelectItem>
+              <GlassSelectItem value="other">Other</GlassSelectItem>
+            </GlassSelectContent>
+          </GlassSelect>
         </div>
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">
-          <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); resetForm(); }} disabled={isSubmitting}>
+          <GlassButton variant="default" size="sm" onClick={() => { setIsEditing(false); resetForm(); }} disabled={isSubmitting}>
             Cancel
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={isSubmitting || isUploading || !name.trim()}>
+          </GlassButton>
+          <GlassButton variant="primary" size="sm" onClick={handleSave} disabled={isSubmitting || isUploading || !name.trim()}>
             {isSubmitting ? "Saving..." : "Save Changes"}
-          </Button>
+          </GlassButton>
         </div>
       </div>
     );
@@ -213,7 +213,7 @@ export function BabyProfileContent() {
   if (showDeleteConfirm) {
     return (
       <div className="space-y-4">
-        <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg">
+        <div className="p-3 bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-xl">
           <p className="text-sm text-red-700 dark:text-red-400 mb-2">
             Delete <strong>{baby.name}&apos;s</strong> profile and all data?
           </p>
@@ -225,24 +225,24 @@ export function BabyProfileContent() {
           <label className="block text-sm text-muted-foreground mb-1">
             Type <strong>{baby.name}</strong> to confirm:
           </label>
-          <Input
+          <GlassInput
             value={deleteConfirmText}
             onChange={(e) => setDeleteConfirmText(e.target.value)}
             placeholder={baby.name}
           />
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}>
+          <GlassButton variant="default" size="sm" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}>
             Cancel
-          </Button>
-          <Button
-            variant="destructive"
+          </GlassButton>
+          <GlassButton
+            variant="danger"
             size="sm"
             disabled={deleteConfirmText !== baby.name || isDeleting}
             onClick={handleDelete}
           >
             {isDeleting ? "Deleting..." : "Delete Forever"}
-          </Button>
+          </GlassButton>
         </div>
       </div>
     );
@@ -286,17 +286,17 @@ export function BabyProfileContent() {
 
       {/* Actions */}
       <div className="flex flex-wrap gap-2 pt-2">
-        <Button size="sm" onClick={() => setIsEditing(true)}>
+        <GlassButton size="sm" variant="primary" onClick={() => setIsEditing(true)}>
           <Icons.Edit className="w-4 h-4 mr-1" />
           Edit
-        </Button>
+        </GlassButton>
         <Link href="/settings/caregivers">
-          <Button variant="outline" size="sm">
+          <GlassButton variant="default" size="sm">
             <Icons.Users className="w-4 h-4 mr-1" />
             Caregivers
-          </Button>
+          </GlassButton>
         </Link>
-        <Button
+        <GlassButton
           variant="ghost"
           size="sm"
           onClick={() => setShowDeleteConfirm(true)}
@@ -304,7 +304,7 @@ export function BabyProfileContent() {
         >
           <Icons.Trash className="w-4 h-4 mr-1" />
           Delete
-        </Button>
+        </GlassButton>
       </div>
     </div>
   );

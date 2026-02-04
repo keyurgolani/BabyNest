@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { api, VelocityResponse } from "@/lib/api-client";
@@ -53,34 +54,32 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
 
   if (loading) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30", className)}>
+      <GlassCard className={cn("border-0 bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30", className)}>
         <div className="space-y-4">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   if (error) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30", className)}>
+      <GlassCard variant="danger" className={cn("border-0", className)}>
         <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
           <AlertTriangle className="w-5 h-5" />
           <span className="text-sm">{error}</span>
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   if (!data || data.measurementCount < 2) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30", className)}>
+      <GlassCard className={cn("border-0 bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30", className)}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-          </div>
+          <IconBadge color="growth" icon={TrendingUp} size="default" gradient />
           <div>
             <h3 className="font-semibold text-foreground">Growth Velocity</h3>
             <p className="text-xs text-muted-foreground">Track growth rate over time</p>
@@ -89,7 +88,7 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
         <p className="text-sm text-muted-foreground text-center py-8">
           Add at least 2 growth measurements to see velocity data
         </p>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -112,12 +111,10 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
   };
 
   return (
-    <Card className={cn("p-4 border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30", className)}>
+    <GlassCard className={cn("border-0 bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30", className)}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
-          <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
-        </div>
+        <IconBadge color="growth" icon={TrendingUp} size="default" gradient />
         <div>
           <h3 className="font-semibold text-foreground">Growth Velocity</h3>
           <p className="text-xs text-muted-foreground">
@@ -129,7 +126,7 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
       {/* Velocity Metrics */}
       <div className="space-y-3">
         {/* Weight Velocity */}
-        <div className="p-3 rounded-xl bg-white/50 dark:bg-black/20">
+        <div className="p-3 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Weight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -156,7 +153,7 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
         </div>
 
         {/* Height Velocity */}
-        <div className="p-3 rounded-xl bg-white/50 dark:bg-black/20">
+        <div className="p-3 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Ruler className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -183,7 +180,7 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
         </div>
 
         {/* Head Circumference Velocity */}
-        <div className="p-3 rounded-xl bg-white/50 dark:bg-black/20">
+        <div className="p-3 rounded-xl bg-white/50 dark:bg-black/20 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Circle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -209,7 +206,7 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
       </div>
 
       {/* Overall Assessment */}
-      <div className="mt-4 p-3 rounded-xl bg-green-100/50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-800/50">
+      <div className="mt-4 p-3 rounded-xl bg-green-100/50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm">
         <div className="flex items-center gap-2 mb-1">
           <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
           <p className="text-sm text-foreground font-medium">Growth Summary</p>
@@ -218,6 +215,6 @@ export function GrowthVelocityCard({ className }: GrowthVelocityCardProps) {
           {data.measurementCount} measurements tracked. {data.unitDescription}
         </p>
       </div>
-    </Card>
+    </GlassCard>
   );
 }

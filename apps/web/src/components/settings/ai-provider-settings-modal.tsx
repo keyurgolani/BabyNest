@@ -1,16 +1,37 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import {
+  GlassSelect,
+  GlassSelectContent,
+  GlassSelectItem,
+  GlassSelectTrigger,
+  GlassSelectValue,
+} from "@/components/ui/glass-select";
+import { Switch } from "@/components/ui/switch";
 import { Icons } from "@/components/icons";
 import { api, AiProviderInfo, AiConfigResponse, AiProviderType, ModelInfo } from "@/lib/api-client";
 
+/**
+ * AiProviderSettingsModal Component
+ *
+ * A modal for configuring AI inference providers with glassmorphism styling.
+ * Uses GlassModal wrapper, GlassInput, GlassSelect, and GlassButton components.
+ *
+ * @requirements 18.5
+ */
+
 interface AiProviderSettingsModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Callback when the modal should close */
   onClose: () => void;
 }
 
-export function AiProviderSettingsModal({ onClose }: AiProviderSettingsModalProps) {
+export function AiProviderSettingsModal({ isOpen, onClose }: AiProviderSettingsModalProps) {
   const [providers, setProviders] = useState<AiProviderInfo[]>([]);
   const [config, setConfig] = useState<AiConfigResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,8 +82,19 @@ export function AiProviderSettingsModal({ onClose }: AiProviderSettingsModalProp
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (isOpen) {
+      loadData();
+    }
+  }, [isOpen, loadData]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setError(null);
+      setTestResult(null);
+      setSaving(false);
+    }
+  }, [isOpen]);
 
   // Get provider info by ID
   const getProviderInfo = useCallback((providerId: AiProviderType | '') => {
@@ -122,15 +154,15 @@ export function AiProviderSettingsModal({ onClose }: AiProviderSettingsModalProp
   }, [visionModel, getProviderInfo]);
 
   // Handle provider change - don't load models until API key is provided
-  const handleTextProviderChange = async (providerId: AiProviderType | '') => {
-    setTextProvider(providerId);
+  const handleTextProviderChange = async (providerId: string) => {
+    setTextProvider(providerId as AiProviderType | '');
     setTextApiKey('');
     setTextModel('');
     setTextModels([]);
   };
 
-  const handleVisionProviderChange = async (providerId: AiProviderType | '') => {
-    setVisionProvider(providerId);
+  const handleVisionProviderChange = async (providerId: string) => {
+    setVisionProvider(providerId as AiProviderType | '');
     setVisionApiKey('');
     setVisionModel('');
     setVisionModels([]);
@@ -244,306 +276,328 @@ export function AiProviderSettingsModal({ onClose }: AiProviderSettingsModalProp
     }
   };
 
-  if (loading) {
+  // Loading state
+  if (loading && isOpen) {
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <Card className="w-full max-w-lg p-8">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </Card>
-      </div>
+      <GlassModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="AI Provider Settings"
+        size="lg"
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </GlassModal>
     );
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="AI Provider Settings"
+      size="lg"
     >
-      <Card variant="default" className="w-full max-w-lg animate-scale-in shadow-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600">
-                <Icons.Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">AI Provider Settings</CardTitle>
-                <CardDescription>Configure your AI inference providers</CardDescription>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
+      <div className="space-y-6">
+        {/* Header Icon */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+            <Icons.Sparkles className="w-5 h-5" />
           </div>
-        </CardHeader>
+          <p className="text-sm text-muted-foreground">
+            Configure your AI inference providers
+          </p>
+        </div>
 
-        <CardContent className="pt-0 space-y-6">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Enable Custom Providers */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-            <div>
-              <p className="font-medium text-foreground">Use Custom AI Providers</p>
-              <p className="text-sm text-muted-foreground">Override default Ollama with your preferred providers</p>
-            </div>
-            <button
-              onClick={() => setIsEnabled(!isEnabled)}
-              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                isEnabled ? 'bg-primary' : 'bg-muted-foreground/30'
-              }`}
-              role="switch"
-              aria-checked={isEnabled}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                  isEnabled ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 rounded-xl bg-destructive/10 text-destructive text-sm border border-destructive/20">
+            {error}
           </div>
+        )}
 
-          {isEnabled && (
-            <>
-              {/* Text Provider Section */}
-              <div className="space-y-4">
-                <h3 className="font-semibold text-foreground flex items-center gap-2">
-                  <Icons.Sparkles className="w-4 h-4" />
-                  Text Generation
-                </h3>
+        {/* Enable Custom Providers Toggle */}
+        <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+          <div>
+            <p className="font-medium text-foreground">Use Custom AI Providers</p>
+            <p className="text-sm text-muted-foreground">Override default Ollama with your preferred providers</p>
+          </div>
+          <Switch
+            checked={isEnabled}
+            onCheckedChange={setIsEnabled}
+          />
+        </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Provider</label>
-                  <select
-                    value={textProvider}
-                    onChange={(e) => handleTextProviderChange(e.target.value as AiProviderType | '')}
-                    className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground"
-                  >
-                    <option value="">Use Default (Ollama)</option>
+        {isEnabled && (
+          <>
+            {/* Text Provider Section */}
+            <div className="space-y-4 pt-2">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <Icons.Sparkles className="w-4 h-4" />
+                Text Generation
+              </h3>
+
+              {/* Provider Select */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-foreground">Provider</label>
+                <GlassSelect
+                  value={textProvider || 'default'}
+                  onValueChange={(value) => handleTextProviderChange(value === 'default' ? '' : value)}
+                >
+                  <GlassSelectTrigger>
+                    <GlassSelectValue placeholder="Select provider" />
+                  </GlassSelectTrigger>
+                  <GlassSelectContent>
+                    <GlassSelectItem value="default">Use Default (Ollama)</GlassSelectItem>
                     {providers.filter(p => p.capabilities.supportsChat).map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
+                      <GlassSelectItem key={p.id} value={p.id}>{p.name}</GlassSelectItem>
                     ))}
-                  </select>
-                </div>
-
-                {textProvider && getProviderInfo(textProvider)?.requiresApiKey && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      API Key {config?.hasTextApiKey && <span className="text-muted-foreground">(saved)</span>}
-                    </label>
-                    <input
-                      type="password"
-                      value={textApiKey}
-                      onChange={(e) => setTextApiKey(e.target.value)}
-                      onBlur={handleTextApiKeyBlur}
-                      placeholder={config?.hasTextApiKey ? '••••••••••••••••' : 'Enter API key to load available models'}
-                      className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground"
-                    />
-                    {!textModels.length && !loadingTextModels && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Enter your API key and click outside to load available models
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {textProvider && loadingTextModels && (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Icons.Loader className="w-4 h-4 animate-spin" />
-                    Loading available models...
-                  </div>
-                )}
-
-                {textProvider && textModels.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Model</label>
-                    <select
-                      value={textModel}
-                      onChange={(e) => setTextModel(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground"
-                    >
-                      {textModels.length === 0 && <option value="">Select a model</option>}
-                      {textModels.map(model => (
-                        <option key={model.id} value={model.id}>
-                          {model.name}{model.supportsVision ? ' (vision)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {textProvider && textModels.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTest('text')}
-                      disabled={testing === 'text' || !textModel}
-                      className="rounded-lg"
-                    >
-                      {testing === 'text' ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                      ) : (
-                        <Icons.Activity className="w-4 h-4 mr-2" />
-                      )}
-                      Test Connection
-                    </Button>
-                    {testResult?.type === 'text' && (
-                      <span className={`text-sm ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
-                        {testResult.message}
-                      </span>
-                    )}
-                  </div>
-                )}
+                  </GlassSelectContent>
+                </GlassSelect>
               </div>
 
-              {/* Vision Provider Section */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                <h3 className="font-semibold text-foreground flex items-center gap-2">
-                  <Icons.PhotoImport className="w-4 h-4" />
-                  Vision (Image Analysis)
-                </h3>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Provider</label>
-                  <select
-                    value={visionProvider}
-                    onChange={(e) => handleVisionProviderChange(e.target.value as AiProviderType | '')}
-                    className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground"
-                  >
-                    <option value="">Use Default (Ollama)</option>
-                    {providers.filter(p => p.capabilities.supportsVision).map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
+              {/* API Key Input */}
+              {textProvider && getProviderInfo(textProvider)?.requiresApiKey && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    API Key {config?.hasTextApiKey && <span className="text-muted-foreground">(saved)</span>}
+                  </label>
+                  <GlassInput
+                    type="password"
+                    value={textApiKey}
+                    onChange={(e) => setTextApiKey(e.target.value)}
+                    onBlur={handleTextApiKeyBlur}
+                    placeholder={config?.hasTextApiKey ? '••••••••••••••••' : 'Enter API key to load available models'}
+                  />
+                  {!textModels.length && !loadingTextModels && (
+                    <p className="text-xs text-muted-foreground">
+                      Enter your API key and click outside to load available models
+                    </p>
+                  )}
                 </div>
-
-                {visionProvider && getProviderInfo(visionProvider)?.requiresApiKey && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      API Key {config?.hasVisionApiKey && <span className="text-muted-foreground">(saved)</span>}
-                    </label>
-                    <input
-                      type="password"
-                      value={visionApiKey}
-                      onChange={(e) => setVisionApiKey(e.target.value)}
-                      onBlur={handleVisionApiKeyBlur}
-                      placeholder={config?.hasVisionApiKey ? '••••••••••••••••' : 'Enter API key to load available models'}
-                      className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground"
-                    />
-                    {!visionModels.length && !loadingVisionModels && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Enter your API key and click outside to load available models
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {visionProvider && loadingVisionModels && (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Icons.Loader className="w-4 h-4 animate-spin" />
-                    Loading available models...
-                  </div>
-                )}
-
-                {visionProvider && visionModels.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Model</label>
-                    <select
-                      value={visionModel}
-                      onChange={(e) => setVisionModel(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground"
-                    >
-                      {visionModels.length === 0 && <option value="">Select a model</option>}
-                      {visionModels.map(model => (
-                        <option key={model.id} value={model.id}>
-                          {model.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {visionProvider && visionModels.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTest('vision')}
-                      disabled={testing === 'vision' || !visionModel}
-                      className="rounded-lg"
-                    >
-                      {testing === 'vision' ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-                      ) : (
-                        <Icons.Activity className="w-4 h-4 mr-2" />
-                      )}
-                      Test Connection
-                    </Button>
-                    {testResult?.type === 'vision' && (
-                      <span className={`text-sm ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
-                        {testResult.message}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Info Box */}
-              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-sm text-blue-700 dark:text-blue-300">
-                <p className="font-medium mb-1">How it works</p>
-                <p>When enabled, your custom providers will be used for AI features like insights and photo import. If your provider fails, the app will automatically fall back to the default Ollama instance.</p>
-              </div>
-            </>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            {config?.isEnabled && (
-              <Button
-                variant="ghost"
-                onClick={handleReset}
-                disabled={saving}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                Reset
-              </Button>
-            )}
-            <div className="flex-1" />
-            <Button
-              variant="outline"
-              onClick={onClose}
-              disabled={saving}
-              className="rounded-xl"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="glow"
-              onClick={handleSave}
-              disabled={saving}
-              className="rounded-xl"
-            >
-              {saving ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                  Saving...
-                </div>
-              ) : (
-                'Save Settings'
               )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+
+              {/* Loading Models */}
+              {textProvider && loadingTextModels && (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Icons.Loader className="w-4 h-4 animate-spin" />
+                  Loading available models...
+                </div>
+              )}
+
+              {/* Model Select */}
+              {textProvider && textModels.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground">Model</label>
+                  <GlassSelect
+                    value={textModel || 'select'}
+                    onValueChange={(value) => setTextModel(value === 'select' ? '' : value)}
+                  >
+                    <GlassSelectTrigger>
+                      <GlassSelectValue placeholder="Select a model" />
+                    </GlassSelectTrigger>
+                    <GlassSelectContent>
+                      {textModels.length === 0 && (
+                        <GlassSelectItem value="select">Select a model</GlassSelectItem>
+                      )}
+                      {textModels.map(model => (
+                        <GlassSelectItem key={model.id} value={model.id}>
+                          {model.name}{model.supportsVision ? ' (vision)' : ''}
+                        </GlassSelectItem>
+                      ))}
+                    </GlassSelectContent>
+                  </GlassSelect>
+                </div>
+              )}
+
+              {/* Test Connection Button */}
+              {textProvider && textModels.length > 0 && (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <GlassButton
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleTest('text')}
+                    disabled={testing === 'text' || !textModel}
+                  >
+                    {testing === 'text' ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <Icons.Activity className="w-4 h-4 mr-2" />
+                        Test Connection
+                      </>
+                    )}
+                  </GlassButton>
+                  {testResult?.type === 'text' && (
+                    <span className={`text-sm ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
+                      {testResult.message}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Vision Provider Section */}
+            <div className="space-y-4 pt-4 border-t border-white/10">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <Icons.PhotoImport className="w-4 h-4" />
+                Vision (Image Analysis)
+              </h3>
+
+              {/* Provider Select */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-foreground">Provider</label>
+                <GlassSelect
+                  value={visionProvider || 'default'}
+                  onValueChange={(value) => handleVisionProviderChange(value === 'default' ? '' : value)}
+                >
+                  <GlassSelectTrigger>
+                    <GlassSelectValue placeholder="Select provider" />
+                  </GlassSelectTrigger>
+                  <GlassSelectContent>
+                    <GlassSelectItem value="default">Use Default (Ollama)</GlassSelectItem>
+                    {providers.filter(p => p.capabilities.supportsVision).map(p => (
+                      <GlassSelectItem key={p.id} value={p.id}>{p.name}</GlassSelectItem>
+                    ))}
+                  </GlassSelectContent>
+                </GlassSelect>
+              </div>
+
+              {/* API Key Input */}
+              {visionProvider && getProviderInfo(visionProvider)?.requiresApiKey && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    API Key {config?.hasVisionApiKey && <span className="text-muted-foreground">(saved)</span>}
+                  </label>
+                  <GlassInput
+                    type="password"
+                    value={visionApiKey}
+                    onChange={(e) => setVisionApiKey(e.target.value)}
+                    onBlur={handleVisionApiKeyBlur}
+                    placeholder={config?.hasVisionApiKey ? '••••••••••••••••' : 'Enter API key to load available models'}
+                  />
+                  {!visionModels.length && !loadingVisionModels && (
+                    <p className="text-xs text-muted-foreground">
+                      Enter your API key and click outside to load available models
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Loading Models */}
+              {visionProvider && loadingVisionModels && (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Icons.Loader className="w-4 h-4 animate-spin" />
+                  Loading available models...
+                </div>
+              )}
+
+              {/* Model Select */}
+              {visionProvider && visionModels.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground">Model</label>
+                  <GlassSelect
+                    value={visionModel || 'select'}
+                    onValueChange={(value) => setVisionModel(value === 'select' ? '' : value)}
+                  >
+                    <GlassSelectTrigger>
+                      <GlassSelectValue placeholder="Select a model" />
+                    </GlassSelectTrigger>
+                    <GlassSelectContent>
+                      {visionModels.length === 0 && (
+                        <GlassSelectItem value="select">Select a model</GlassSelectItem>
+                      )}
+                      {visionModels.map(model => (
+                        <GlassSelectItem key={model.id} value={model.id}>
+                          {model.name}
+                        </GlassSelectItem>
+                      ))}
+                    </GlassSelectContent>
+                  </GlassSelect>
+                </div>
+              )}
+
+              {/* Test Connection Button */}
+              {visionProvider && visionModels.length > 0 && (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <GlassButton
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleTest('vision')}
+                    disabled={testing === 'vision' || !visionModel}
+                  >
+                    {testing === 'vision' ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <Icons.Activity className="w-4 h-4 mr-2" />
+                        Test Connection
+                      </>
+                    )}
+                  </GlassButton>
+                  {testResult?.type === 'vision' && (
+                    <span className={`text-sm ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
+                      {testResult.message}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Info Box */}
+            <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-sm text-blue-700 dark:text-blue-300">
+              <p className="font-medium mb-1">How it works</p>
+              <p>When enabled, your custom providers will be used for AI features like insights and photo import. If your provider fails, the app will automatically fall back to the default Ollama instance.</p>
+            </div>
+          </>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
+          {config?.isEnabled && (
+            <GlassButton
+              variant="ghost"
+              onClick={handleReset}
+              disabled={saving}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              Reset
+            </GlassButton>
+          )}
+          <div className="flex-1" />
+          <GlassButton
+            variant="default"
+            onClick={onClose}
+            disabled={saving}
+          >
+            Cancel
+          </GlassButton>
+          <GlassButton
+            variant="primary"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                <span>Saving...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Icons.Check className="w-4 h-4" />
+                <span>Save Settings</span>
+              </div>
+            )}
+          </GlassButton>
+        </div>
+      </div>
+    </GlassModal>
   );
 }

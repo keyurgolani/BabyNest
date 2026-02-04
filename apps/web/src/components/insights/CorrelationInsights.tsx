@@ -1,6 +1,7 @@
 import React from "react";
 import { Sparkles, ArrowRight } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 
 export interface CorrelationInsight {
@@ -38,11 +39,11 @@ const strengthConfig = {
 export function CorrelationInsights({ insights }: CorrelationInsightsProps) {
   if (insights.length === 0) {
     return (
-      <Card className="p-6 border-0 bg-muted/30">
+      <GlassCard className="border-0">
         <div className="text-center text-muted-foreground text-sm">
           Not enough data to detect correlations yet. Keep tracking activities!
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -50,9 +51,7 @@ export function CorrelationInsights({ insights }: CorrelationInsightsProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
-          <Sparkles className="w-5 h-5" />
-        </div>
+        <IconBadge color="nursing" icon={Sparkles} size="default" gradient />
         <div>
           <h3 className="font-semibold text-foreground">Pattern Correlations</h3>
           <p className="text-xs text-muted-foreground">
@@ -67,10 +66,11 @@ export function CorrelationInsights({ insights }: CorrelationInsightsProps) {
           const config = strengthConfig[insight.strength];
 
           return (
-            <Card
+            <GlassCard
               key={insight.id}
+              size="sm"
               className={cn(
-                "p-4 border-0 transition-all duration-200",
+                "border-0 transition-all duration-200",
                 config.bg
               )}
             >
@@ -78,13 +78,13 @@ export function CorrelationInsights({ insights }: CorrelationInsightsProps) {
                 <div className="flex-1">
                   {/* Correlation Flow */}
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="flex-1 bg-white/50 dark:bg-black/20 px-3 py-2 rounded-lg">
+                    <div className="flex-1 bg-white/50 dark:bg-black/20 px-3 py-2 rounded-xl backdrop-blur-sm">
                       <span className="text-sm font-medium text-foreground">
                         {insight.pattern}
                       </span>
                     </div>
                     <ArrowRight className={cn("w-5 h-5 shrink-0", config.color)} />
-                    <div className="flex-1 bg-white/50 dark:bg-black/20 px-3 py-2 rounded-lg">
+                    <div className="flex-1 bg-white/50 dark:bg-black/20 px-3 py-2 rounded-xl backdrop-blur-sm">
                       <span className="text-sm font-medium text-foreground">
                         {insight.correlation}
                       </span>
@@ -98,7 +98,7 @@ export function CorrelationInsights({ insights }: CorrelationInsightsProps) {
 
                   {/* Actionable Tip */}
                   {insight.actionable && (
-                    <div className="bg-white/70 dark:bg-black/30 p-3 rounded-lg border border-white/50 dark:border-white/10">
+                    <div className="bg-white/70 dark:bg-black/30 p-3 rounded-xl border border-white/50 dark:border-white/10 backdrop-blur-sm">
                       <p className="text-xs text-foreground">
                         <span className="font-semibold">Try this:</span> {insight.actionable}
                       </p>
@@ -116,7 +116,7 @@ export function CorrelationInsights({ insights }: CorrelationInsightsProps) {
                   </div>
                 </div>
               </div>
-            </Card>
+            </GlassCard>
           );
         })}
       </div>

@@ -1,35 +1,42 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { MobileContainer } from "@/components/layout/mobile-container";
+// Import types from insights (non-lazy)
 import {
-  SleepPredictionCard,
-  WeeklySummaryCard,
-  AnomaliesCard,
-  AlertsSection,
-  PatternCard,
-  RecommendationsSection,
-  MilestoneInsights,
-  SummaryCard,
   HealthAlert,
   Recommendation,
   Milestone,
   SummaryData,
-  CorrelationInsights,
   CorrelationInsight,
-  PatternChart,
   ChartDataPoint,
-  GrowthTracker,
   GrowthMeasurement,
-  FeedingPrediction,
   FeedingPredictionData,
-  GrowthPercentilesChart,
-  GrowthVelocityCard,
-  TrendAnalysisCard,
 } from "@/components/insights";
+// Import PatternCard directly (lightweight, used in multiple tabs)
+import { PatternCard } from "@/components/insights/PatternCard";
+// Import SummaryCard directly (shown immediately on overview tab)
+import { SummaryCard } from "@/components/insights/SummaryCard";
+// Lazy-loaded heavy components for improved initial load time (Requirement 21.2)
+import {
+  LazySleepPredictionCard,
+  LazyWeeklySummaryCard,
+  LazyAnomaliesCard,
+  LazyAlertsSection,
+  LazyRecommendationsSection,
+  LazyMilestoneInsights,
+  LazyCorrelationInsights,
+  LazyPatternChart,
+  LazyGrowthTracker,
+  LazyFeedingPrediction,
+  LazyGrowthPercentilesChart,
+  LazyGrowthVelocityCard,
+  LazyTrendAnalysisCard,
+} from "@/components/lazy/insights";
 import { Icons } from "@/components/icons";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { PageHeader } from "@/components/ui/page-header";
+import { FilterPills, FilterOption } from "@/components/ui/filter-pills";
 import { cn } from "@/lib/utils";
 import { api, TrendInsightsResponse } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
@@ -106,92 +113,93 @@ function clearCache(): void {
   });
 }
 
-// Animated skeleton components
+// Glassmorphism-styled skeleton components
 function InsightSkeleton() {
   return (
     <div className="space-y-6">
-      {/* Summary skeleton */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-muted/50 to-muted/30 p-6">
+      {/* Summary skeleton with glassmorphism */}
+      <GlassCard variant="featured" size="lg" className="relative overflow-hidden">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-muted animate-pulse" />
+            <div className="w-12 h-12 rounded-xl bg-white/10 animate-pulse" />
             <div className="space-y-2 flex-1">
-              <div className="h-5 w-32 bg-muted rounded animate-pulse" />
-              <div className="h-3 w-48 bg-muted/70 rounded animate-pulse" style={{ animationDelay: '0.1s' }} />
+              <div className="h-5 w-32 bg-white/10 rounded animate-pulse" />
+              <div className="h-3 w-48 bg-white/5 rounded animate-pulse" style={{ animationDelay: '0.1s' }} />
             </div>
           </div>
           <div className="space-y-2">
-            <div className="h-3 w-full bg-muted/60 rounded animate-pulse" style={{ animationDelay: '0.2s' }} />
-            <div className="h-3 w-3/4 bg-muted/60 rounded animate-pulse" style={{ animationDelay: '0.3s' }} />
+            <div className="h-3 w-full bg-white/5 rounded animate-pulse" style={{ animationDelay: '0.2s' }} />
+            <div className="h-3 w-3/4 bg-white/5 rounded animate-pulse" style={{ animationDelay: '0.3s' }} />
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skeleton-shimmer" />
-      </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+      </GlassCard>
 
-      {/* Pattern cards skeleton */}
+      {/* Pattern cards skeleton with glassmorphism */}
       <div className="grid grid-cols-2 gap-3">
         {[0, 1, 2, 3].map((i) => (
-          <div 
+          <GlassCard 
             key={i} 
-            className="relative overflow-hidden rounded-xl bg-muted/30 p-4"
+            size="sm"
+            className="relative overflow-hidden"
           >
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
-                <div className="h-4 w-16 bg-muted rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
+                <div className="w-8 h-8 rounded-lg bg-white/10 animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                <div className="h-4 w-16 bg-white/10 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
               </div>
-              <div className="h-8 w-20 bg-muted rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.1}s` }} />
-              <div className="h-3 w-24 bg-muted/60 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.15}s` }} />
+              <div className="h-8 w-20 bg-white/10 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.1}s` }} />
+              <div className="h-3 w-24 bg-white/5 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.15}s` }} />
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" style={{ animationDelay: `${i * 0.2}s` }} />
-          </div>
+          </GlassCard>
         ))}
       </div>
 
-      {/* Prediction cards skeleton */}
+      {/* Prediction cards skeleton with glassmorphism */}
       <div className="space-y-4">
         {[0, 1].map((i) => (
-          <div 
+          <GlassCard 
             key={i}
-            className="relative overflow-hidden rounded-xl bg-muted/30 p-5"
+            className="relative overflow-hidden"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-muted animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 animate-pulse" style={{ animationDelay: `${i * 0.15}s` }} />
                   <div className="space-y-1">
-                    <div className="h-4 w-28 bg-muted rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.05}s` }} />
-                    <div className="h-3 w-20 bg-muted/60 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.1}s` }} />
+                    <div className="h-4 w-28 bg-white/10 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.05}s` }} />
+                    <div className="h-3 w-20 bg-white/5 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.1}s` }} />
                   </div>
                 </div>
-                <div className="h-6 w-16 bg-muted rounded-full animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.15}s` }} />
+                <div className="h-6 w-16 bg-white/10 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.15}s` }} />
               </div>
               <div className="space-y-2">
-                <div className="h-3 w-full bg-muted/50 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.2}s` }} />
-                <div className="h-3 w-2/3 bg-muted/50 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.25}s` }} />
+                <div className="h-3 w-full bg-white/5 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.2}s` }} />
+                <div className="h-3 w-2/3 bg-white/5 rounded animate-pulse" style={{ animationDelay: `${i * 0.15 + 0.25}s` }} />
               </div>
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" style={{ animationDelay: `${i * 0.3}s` }} />
-          </div>
+          </GlassCard>
         ))}
       </div>
 
-      {/* Correlations skeleton */}
-      <div className="relative overflow-hidden rounded-xl bg-muted/30 p-5">
+      {/* Correlations skeleton with glassmorphism */}
+      <GlassCard className="relative overflow-hidden">
         <div className="space-y-4">
-          <div className="h-5 w-36 bg-muted rounded animate-pulse" />
+          <div className="h-5 w-36 bg-white/10 rounded animate-pulse" />
           {[0, 1, 2].map((i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/20">
-              <div className="w-8 h-8 rounded-full bg-muted animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+              <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
               <div className="flex-1 space-y-1">
-                <div className="h-3 w-32 bg-muted rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
-                <div className="h-2 w-24 bg-muted/60 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.1}s` }} />
+                <div className="h-3 w-32 bg-white/10 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.05}s` }} />
+                <div className="h-2 w-24 bg-white/5 rounded animate-pulse" style={{ animationDelay: `${i * 0.1 + 0.1}s` }} />
               </div>
             </div>
           ))}
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
-      </div>
+      </GlassCard>
 
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes shimmer {
@@ -398,21 +406,19 @@ export default function InsightsPage() {
           setCorrelations(trendCorrelations);
           setToCache(CACHE_KEYS.CORRELATIONS, trendCorrelations, babyId);
         } else {
-             // Fallback to static correlations if no positive trends
-             const newCorrelations: CorrelationInsight[] = [
-             // ... existing static correlations
-          {
-            id: "corr-1",
-            pattern: "Outdoor time in morning",
-            correlation: "Better afternoon naps",
-            strength: "strong",
-            confidence: 87,
-            insight: "Babies who spend time outdoors in the morning tend to nap better in the afternoon. Natural light helps regulate their circadian rhythm.",
-            actionable: "Try a morning walk or outdoor play session before the first afternoon nap.",
-          },
-          // ... (keep other existing static correlations for now as fallback)
-        ];
-           setCorrelations(newCorrelations);
+          // Fallback to static correlations if no positive trends
+          const newCorrelations: CorrelationInsight[] = [
+            {
+              id: "corr-1",
+              pattern: "Outdoor time in morning",
+              correlation: "Better afternoon naps",
+              strength: "strong",
+              confidence: 87,
+              insight: "Babies who spend time outdoors in the morning tend to nap better in the afternoon. Natural light helps regulate their circadian rhythm.",
+              actionable: "Try a morning walk or outdoor play session before the first afternoon nap.",
+            },
+          ];
+          setCorrelations(newCorrelations);
         }
       } else if (cachedCorrelations) {
         setCorrelations(cachedCorrelations);
@@ -463,57 +469,57 @@ export default function InsightsPage() {
         
         // Add some static high priority ones if missing
         if (!trendRecommendations.some(r => r.category === 'sleep')) {
-             trendRecommendations.push({
-          id: "rec-1",
-          title: "Establish a Consistent Bedtime Routine",
-          description: "A predictable bedtime routine helps signal to your baby that it's time to sleep. Try bath, book, and lullaby.",
-          category: "sleep",
-          priority: "high",
-          actionable: true,
-          estimatedTime: "20-30 min",
-        });
+          trendRecommendations.push({
+            id: "rec-1",
+            title: "Establish a Consistent Bedtime Routine",
+            description: "A predictable bedtime routine helps signal to your baby that it's time to sleep. Try bath, book, and lullaby.",
+            category: "sleep",
+            priority: "high",
+            actionable: true,
+            estimatedTime: "20-30 min",
+          });
         }
         
         setRecommendations(trendRecommendations);
       } else {
         // Fallback to static recommendations
         setRecommendations([
-        {
-          id: "rec-1",
-          title: "Establish a Consistent Bedtime Routine",
-          description: "A predictable bedtime routine helps signal to your baby that it's time to sleep. Try bath, book, and lullaby.",
-          category: "sleep",
-          priority: "high",
-          actionable: true,
-          estimatedTime: "20-30 min",
-        },
-        {
-          id: "rec-2",
-          title: "Increase Tummy Time Duration",
-          description: "Gradually increase tummy time to help strengthen your baby's neck and shoulder muscles for crawling.",
-          category: "development",
-          priority: "medium",
-          actionable: true,
-          estimatedTime: "5-10 min sessions",
-        },
-        {
-          id: "rec-3",
-          title: "Monitor Feeding Cues",
-          description: "Watch for early hunger cues like rooting or hand-to-mouth movements to feed before baby gets too fussy.",
-          category: "nutrition",
-          priority: "medium",
-          actionable: true,
-        },
-        {
-          id: "rec-4",
-          title: "Track Growth Measurements",
-          description: "Regular weight and height measurements help ensure your baby is growing on track.",
-          category: "health",
-          priority: "low",
-          actionable: true,
-          estimatedTime: "5 min",
-        },
-      ]);
+          {
+            id: "rec-1",
+            title: "Establish a Consistent Bedtime Routine",
+            description: "A predictable bedtime routine helps signal to your baby that it's time to sleep. Try bath, book, and lullaby.",
+            category: "sleep",
+            priority: "high",
+            actionable: true,
+            estimatedTime: "20-30 min",
+          },
+          {
+            id: "rec-2",
+            title: "Increase Tummy Time Duration",
+            description: "Gradually increase tummy time to help strengthen your baby's neck and shoulder muscles for crawling.",
+            category: "development",
+            priority: "medium",
+            actionable: true,
+            estimatedTime: "5-10 min sessions",
+          },
+          {
+            id: "rec-3",
+            title: "Monitor Feeding Cues",
+            description: "Watch for early hunger cues like rooting or hand-to-mouth movements to feed before baby gets too fussy.",
+            category: "nutrition",
+            priority: "medium",
+            actionable: true,
+          },
+          {
+            id: "rec-4",
+            title: "Track Growth Measurements",
+            description: "Regular weight and height measurements help ensure your baby is growing on track.",
+            category: "health",
+            priority: "low",
+            actionable: true,
+            estimatedTime: "5 min",
+          },
+        ]);
       }
 
       // Check cache for milestones
@@ -680,61 +686,51 @@ export default function InsightsPage() {
     setAlerts((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const tabs: { id: InsightTab; label: string; icon: React.ReactNode }[] = [
-    { id: "overview", label: "Overview", icon: <Icons.Insights className="w-4 h-4" /> },
-    { id: "patterns", label: "Patterns", icon: <Icons.Stats className="w-4 h-4" /> },
-    { id: "growth", label: "Growth", icon: <Icons.Growth className="w-4 h-4" /> },
-    { id: "alerts", label: "Alerts", icon: <Icons.AlertCircle className="w-4 h-4" /> },
-    { id: "milestones", label: "Milestones", icon: <Icons.Milestone className="w-4 h-4" /> },
+  // FilterPills options for tab navigation
+  const tabOptions: FilterOption[] = [
+    { value: "overview", label: "Overview", icon: Icons.Insights },
+    { value: "patterns", label: "Patterns", icon: Icons.Stats },
+    { value: "growth", label: "Growth", icon: Icons.Growth },
+    { value: "alerts", label: `Alerts${alerts.length > 0 ? ` (${alerts.length})` : ''}`, icon: Icons.AlertCircle },
+    { value: "milestones", label: "Milestones", icon: Icons.Milestone },
   ];
 
   return (
-    <MobileContainer>
+    <div className="min-h-screen">
       <div className="p-6 space-y-6 animate-slide-up pb-32">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
-              <Icons.Insights className="w-7 h-7" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-heading font-bold text-foreground">AI Insights</h1>
-              <p className="text-muted-foreground text-sm">Powered by pattern analysis</p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="rounded-full"
-          >
-            <RefreshCw className={cn("w-5 h-5", refreshing && "animate-spin")} />
-          </Button>
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2">
-          {tabs.map((tab) => (
-            <Button
-              key={tab.id}
-              variant={activeTab === tab.id ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex items-center gap-2 shrink-0",
-                activeTab === tab.id && "shadow-md"
-              )}
+        {/* Page Header with glassmorphism styling */}
+        <PageHeader
+          title="AI Insights"
+          subtitle="Powered by pattern analysis"
+          action={
+            <GlassButton
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="rounded-full"
             >
-              {tab.icon}
-              {tab.label}
-              {tab.id === "alerts" && alerts.length > 0 && (
-                <span className="ml-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                  {alerts.length}
-                </span>
-              )}
-            </Button>
-          ))}
+              <RefreshCw className={cn("w-5 h-5", refreshing && "animate-spin")} />
+            </GlassButton>
+          }
+        />
+
+        {/* Hero icon badge */}
+        <div className="flex items-center gap-4 -mt-2">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+            <Icons.Insights className="w-7 h-7" />
+          </div>
         </div>
 
+        {/* Tab Navigation using FilterPills */}
+        <FilterPills
+          options={tabOptions}
+          selected={activeTab}
+          onChange={(value) => setActiveTab(value as InsightTab)}
+          className="-mx-2 px-2"
+        />
+
+        {/* Overview Tab */}
         {activeTab === "overview" && (
           loading ? (
             <InsightSkeleton />
@@ -787,32 +783,33 @@ export default function InsightsPage() {
                 </div>
               )}
 
-              {/* Predictive Insights */}
+              {/* Predictive Insights with GlassCard featured variant */}
               <div className="grid grid-cols-1 gap-4 animate-fade-in" style={{ animationDelay: "0.2s" }}>
-                <SleepPredictionCard />
-                <FeedingPrediction prediction={feedingPrediction} />
+                <LazySleepPredictionCard />
+                <LazyFeedingPrediction prediction={feedingPrediction} />
               </div>
 
               {/* Correlation Insights */}
               {correlations.length > 0 && (
                 <div className="animate-fade-in" style={{ animationDelay: "0.3s" }}>
-                  <CorrelationInsights insights={correlations} />
+                  <LazyCorrelationInsights insights={correlations} />
                 </div>
               )}
 
               {recommendations.length > 0 && (
                 <div className="animate-fade-in" style={{ animationDelay: "0.4s" }}>
-                  <RecommendationsSection recommendations={recommendations.slice(0, 2)} />
+                  <LazyRecommendationsSection recommendations={recommendations.slice(0, 2)} />
                 </div>
               )}
 
               <div className="animate-fade-in" style={{ animationDelay: "0.5s" }}>
-                <WeeklySummaryCard />
+                <LazyWeeklySummaryCard />
               </div>
             </div>
           )
         )}
 
+        {/* Patterns Tab */}
         {activeTab === "patterns" && (
           <div className="space-y-6">
             {patternData && (
@@ -874,7 +871,7 @@ export default function InsightsPage() {
 
             {/* Visual Charts */}
             <div className="grid grid-cols-1 gap-4">
-              <PatternChart
+              <LazyPatternChart
                 title="Sleep Duration (Last 7 Days)"
                 subtitle="Hours of sleep per day"
                 data={sleepChartData}
@@ -883,7 +880,7 @@ export default function InsightsPage() {
                 trendValue="+5%"
                 color="indigo"
               />
-              <PatternChart
+              <LazyPatternChart
                 title="Feeding Frequency (Last 7 Days)"
                 subtitle="Number of feedings per day"
                 data={feedingChartData}
@@ -895,20 +892,21 @@ export default function InsightsPage() {
             </div>
 
             {/* AI-Powered Trend Analysis with Period Selection */}
-            <TrendAnalysisCard showPeriodSelector={true} initialPeriod="weekly" />
+            <LazyTrendAnalysisCard showPeriodSelector={true} initialPeriod="weekly" />
 
-            <AnomaliesCard />
+            <LazyAnomaliesCard />
           </div>
         )}
 
+        {/* Growth Tab */}
         {activeTab === "growth" && (
           <div className="space-y-6">
-            <GrowthPercentilesChart />
-            <GrowthVelocityCard />
-            <GrowthTracker measurements={growthMeasurements} babyAgeMonths={babyAgeMonths} />
+            <LazyGrowthPercentilesChart />
+            <LazyGrowthVelocityCard />
+            <LazyGrowthTracker measurements={growthMeasurements} babyAgeMonths={babyAgeMonths} />
             
-            {/* Growth Insights */}
-            <Card className="p-4 border-0 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/30 dark:to-cyan-950/30">
+            {/* Growth Insights with GlassCard featured variant */}
+            <GlassCard variant="featured" className="bg-gradient-to-br from-teal-50/50 to-cyan-50/50 dark:from-teal-950/30 dark:to-cyan-950/30">
               <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 Growth Insights
@@ -927,32 +925,35 @@ export default function InsightsPage() {
                   <span>Continue current feeding schedule. Next measurement recommended in 2 weeks.</span>
                 </p>
               </div>
-            </Card>
+            </GlassCard>
           </div>
         )}
 
+        {/* Alerts Tab */}
         {activeTab === "alerts" && (
           <div className="space-y-6">
-            <AlertsSection
+            <LazyAlertsSection
               alerts={alerts}
               onDismiss={handleDismissAlert}
               onMarkAddressed={handleDismissAlert}
             />
-            <RecommendationsSection recommendations={recommendations} />
+            <LazyRecommendationsSection recommendations={recommendations} />
           </div>
         )}
 
+        {/* Milestones Tab */}
         {activeTab === "milestones" && (
           <div className="space-y-6">
-            <MilestoneInsights milestones={milestones} babyAgeMonths={babyAgeMonths} />
+            <LazyMilestoneInsights milestones={milestones} babyAgeMonths={babyAgeMonths} />
           </div>
         )}
 
-        <Card className="p-4 border-0 bg-muted/30">
+        {/* Related Links Section with GlassCard */}
+        <GlassCard className="mt-6">
           <h3 className="font-semibold text-foreground mb-3 text-sm">Related</h3>
           <div className="space-y-2">
             <Link href="/tracking/timeline">
-              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted transition-colors">
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
                 <div className="flex items-center gap-3">
                   <Icons.Stats className="w-5 h-5 text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">View Activity Timeline</span>
@@ -961,7 +962,7 @@ export default function InsightsPage() {
               </div>
             </Link>
             <Link href="/report">
-              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-muted transition-colors">
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
                 <div className="flex items-center gap-3">
                   <Icons.Report className="w-5 h-5 text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">Generate Report</span>
@@ -970,8 +971,8 @@ export default function InsightsPage() {
               </div>
             </Link>
           </div>
-        </Card>
+        </GlassCard>
       </div>
-    </MobileContainer>
+    </div>
   );
 }

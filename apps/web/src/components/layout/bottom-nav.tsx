@@ -1,5 +1,18 @@
 "use client";
 
+/**
+ * @deprecated This component has been replaced by MobileNav.
+ * Use `@/components/layout/mobile-nav` instead.
+ * This file is kept for reference and will be removed in a future update.
+ * 
+ * Migration: The MobileNav component now provides:
+ * - Glassmorphism styling
+ * - 5 navigation items: Home, Log, Activity, Memories, More
+ * - Active indicator with glow effect
+ * - Safe area padding (pb-safe)
+ * - 48px minimum touch targets
+ */
+
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

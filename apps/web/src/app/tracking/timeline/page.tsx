@@ -1,57 +1,86 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { PageHeader } from "@/components/ui/page-header";
+import { FilterPills, FilterOption } from "@/components/ui/filter-pills";
+import { TimelineItem } from "@/components/ui/timeline-item";
+import { ActivityColor } from "@/components/ui/icon-badge";
 import { Icons } from "@/components/icons";
-import { cn } from "@/lib/utils";
-import { MobileContainer } from "@/components/layout/mobile-container";
 import { api } from "@/lib/api-client";
-import { ChevronLeft, Calendar, Edit2, Trash2 } from "lucide-react";
+import { Calendar, Edit2, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-interface TimelineItem {
+interface TimelineItemData {
   id: string;
   type: string;
   title: string;
   subtitle: string;
   timestamp: Date;
   icon: keyof typeof Icons;
-  color: string;
-  bgColor: string;
-  rawData?: Record<string, unknown>; // Store the original data for editing
+  color: ActivityColor;
+  rawData?: Record<string, unknown>;
 }
 
-const TYPE_CONFIG: Record<string, { icon: keyof typeof Icons; color: string; bgColor: string }> = {
-  feeding: { icon: "Feed", color: "text-orange-500", bgColor: "bg-orange-500/10" },
-  sleep: { icon: "Sleep", color: "text-indigo-500", bgColor: "bg-indigo-500/10" },
-  diaper: { icon: "Diaper", color: "text-green-500", bgColor: "bg-green-500/10" },
-  activity: { icon: "Activity", color: "text-cyan-500", bgColor: "bg-cyan-500/10" },
-  growth: { icon: "Growth", color: "text-emerald-500", bgColor: "bg-emerald-500/10" },
-  medication: { icon: "Medication", color: "text-blue-500", bgColor: "bg-blue-500/10" },
-  symptom: { icon: "Symptom", color: "text-red-500", bgColor: "bg-red-500/10" },
-  vaccination: { icon: "Vaccination", color: "text-purple-500", bgColor: "bg-purple-500/10" },
+const TYPE_CONFIG: Record<string, { icon: keyof typeof Icons; color: ActivityColor }> = {
+  feeding: { icon: "Feed", color: "feed" },
+  sleep: { icon: "Sleep", color: "sleep" },
+  diaper: { icon: "Diaper", color: "diaper" },
+  activity: { icon: "Activity", color: "activity" },
+  growth: { icon: "Growth", color: "growth" },
+  medication: { icon: "Medication", color: "health" },
+  symptom: { icon: "Symptom", color: "health" },
+  vaccination: { icon: "Vaccination", color: "health" },
 };
 
+// Filter options for FilterPills - Requirement 15.3
+const FILTER_OPTIONS: FilterOption[] = [
+  { value: "all", label: "All", icon: Icons.Activity },
+  { value: "feed", label: "Feed", icon: Icons.Feed },
+  { value: "sleep", label: "Sleep", icon: Icons.Sleep },
+  { value: "diaper", label: "Diaper", icon: Icons.Diaper },
+  { value: "activity", label: "Activity", icon: Icons.Play },
+];
+
+// Helper to format date headers - Requirement 15.2
+function formatDateHeader(date: Date): string {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const isToday = date.toDateString() === today.toDateString();
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  if (isToday) return "Today";
+  if (isYesterday) return "Yesterday";
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function TimelinePage() {
-  const [items, setItems] = useState<TimelineItem[]>([]);
+  const [items, setItems] = useState<TimelineItemData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState<"today" | "week" | "month">("week");
-  
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<TimelineItem | null>(null);
+  const [editingItem, setEditingItem] = useState<TimelineItemData | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingItem, setDeletingItem] = useState<TimelineItem | null>(null);
+  const [deletingItem, setDeletingItem] = useState<TimelineItemData | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAllData = useCallback(async () => {
@@ -67,7 +96,7 @@ export default function TimelinePage() {
         api.health.vaccinations.list().catch(() => ({ data: [] })),
       ]);
 
-      const allItems: TimelineItem[] = [
+      const allItems: TimelineItemData[] = [
         ...feedingsRes.data.map(f => ({
           id: f.id,
           type: "feeding",
@@ -157,29 +186,29 @@ export default function TimelinePage() {
     fetchAllData();
   }, [fetchAllData]);
 
+  // Filter items by type - Requirement 15.4
   const filteredItems = useMemo(() => {
-    const now = new Date();
-    let startDate: Date;
-    
-    switch (dateFilter) {
-      case "today":
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        break;
-      case "week":
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case "month":
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-    }
-    
-    return items
-      .filter(item => item.timestamp >= startDate)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, [items, dateFilter]);
+    let filtered = items;
 
+    // Apply type filter
+    if (typeFilter !== "all") {
+      const typeMapping: Record<string, string[]> = {
+        feed: ["feeding"],
+        sleep: ["sleep"],
+        diaper: ["diaper"],
+        activity: ["activity", "growth"],
+      };
+      const allowedTypes = typeMapping[typeFilter] || [];
+      filtered = filtered.filter(item => allowedTypes.includes(item.type));
+    }
+
+    // Sort by timestamp descending
+    return filtered.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }, [items, typeFilter]);
+
+  // Group items by date - Requirement 15.2
   const groupedByDate = useMemo(() => {
-    const groups: Record<string, TimelineItem[]> = {};
+    const groups: Record<string, TimelineItemData[]> = {};
     filteredItems.forEach(item => {
       const dateKey = item.timestamp.toDateString();
       if (!groups[dateKey]) groups[dateKey] = [];
@@ -189,13 +218,13 @@ export default function TimelinePage() {
   }, [filteredItems]);
 
   // Handle edit button click
-  const handleEdit = (item: TimelineItem) => {
+  const handleEdit = (item: TimelineItemData) => {
     setEditingItem(item);
     setEditModalOpen(true);
   };
 
   // Handle delete button click
-  const handleDeleteClick = (item: TimelineItem) => {
+  const handleDeleteClick = (item: TimelineItemData) => {
     setDeletingItem(item);
     setDeleteDialogOpen(true);
   };
@@ -206,7 +235,6 @@ export default function TimelinePage() {
 
     setIsDeleting(true);
     try {
-      // Call the appropriate delete API based on type
       switch (deletingItem.type) {
         case "feeding":
           await api.feedings.delete(deletingItem.id);
@@ -237,8 +265,6 @@ export default function TimelinePage() {
       toast.success("Entry deleted successfully");
       setDeleteDialogOpen(false);
       setDeletingItem(null);
-      
-      // Refresh the timeline
       await fetchAllData();
     } catch (error) {
       console.error("Failed to delete entry:", error);
@@ -254,7 +280,6 @@ export default function TimelinePage() {
 
     setIsSubmitting(true);
     try {
-      // Call the appropriate update API based on type
       switch (editingItem.type) {
         case "feeding":
           await api.feedings.update(editingItem.id, formData);
@@ -285,8 +310,6 @@ export default function TimelinePage() {
       toast.success("Entry updated successfully");
       setEditModalOpen(false);
       setEditingItem(null);
-      
-      // Refresh the timeline
       await fetchAllData();
     } catch (error) {
       console.error("Failed to update entry:", error);
@@ -297,106 +320,131 @@ export default function TimelinePage() {
   };
 
   return (
-    <MobileContainer>
-      <div className="p-4 space-y-6 pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/tracking" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-heading font-bold text-foreground">Timeline</h1>
-            <p className="text-sm text-muted-foreground">{filteredItems.length} activities</p>
-          </div>
-        </div>
+    <div className="min-h-screen pb-32">
+      <div className="p-4 space-y-6">
+        {/* Page Header - Requirement 15.1 */}
+        <PageHeader
+          title="Timeline"
+          subtitle={`${filteredItems.length} activities`}
+          backHref="/tracking"
+        />
 
-        {/* Date Filter */}
-        <div className="flex gap-1 bg-muted/50 p-1 rounded-xl">
-          {[
-            { key: "today" as const, label: "Today" },
-            { key: "week" as const, label: "7 Days" },
-            { key: "month" as const, label: "30 Days" },
-          ].map((filter) => (
-            <Button
-              key={filter.key}
-              variant="ghost"
-              onClick={() => setDateFilter(filter.key)}
-              className={cn(
-                "flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all h-auto",
-                dateFilter === filter.key
-                  ? "bg-background text-foreground shadow-sm hover:bg-background"
-                  : "text-muted-foreground hover:text-foreground hover:bg-transparent"
-              )}
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
+        {/* Filter Pills - Requirement 15.3 */}
+        <FilterPills
+          options={FILTER_OPTIONS}
+          selected={typeFilter}
+          onChange={setTypeFilter}
+        />
 
-        {/* Timeline */}
+        {/* Timeline Content */}
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
+          <div className="space-y-8">
+            {/* Timeline loading skeleton with date groups */}
+            {[1, 2].map((groupIndex) => (
+              <div key={groupIndex} className="space-y-4">
+                {/* Date header skeleton */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 animate-pulse" />
+                  <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
+                  <div className="h-3 w-16 bg-white/10 rounded animate-pulse" />
+                </div>
+                {/* Timeline items skeleton */}
+                <div className="ml-4">
+                  {Array.from({ length: groupIndex === 1 ? 3 : 2 }).map((_, itemIndex, arr) => (
+                    <div key={itemIndex} className="relative flex gap-4 pb-6">
+                      {/* Connecting line */}
+                      {itemIndex !== arr.length - 1 && (
+                        <div className="absolute left-[18px] top-10 bottom-0 w-0.5 bg-white/10" />
+                      )}
+                      {/* Dot indicator skeleton */}
+                      <div className="relative z-10 flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-white/10 animate-pulse" />
+                      </div>
+                      {/* Content skeleton */}
+                      <GlassCard size="sm" className="flex-1 relative overflow-hidden">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/10 flex-shrink-0 animate-pulse" />
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="h-4 w-24 bg-white/10 rounded animate-pulse" />
+                              <div className="h-3 w-16 bg-white/10 rounded animate-pulse" />
+                            </div>
+                            <div className="h-3 w-32 bg-white/10 rounded animate-pulse" />
+                          </div>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+                      </GlassCard>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         ) : filteredItems.length === 0 ? (
-          <Card className="p-8 text-center">
+          <GlassCard className="p-8 text-center">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No activities in this period</p>
-          </Card>
+            <p className="text-muted-foreground">No activities found</p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              {typeFilter !== "all" ? "Try selecting a different filter" : "Start logging activities to see them here"}
+            </p>
+          </GlassCard>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
+            {/* Group events by date - Requirement 15.2 */}
             {Object.entries(groupedByDate).map(([dateKey, dayItems]) => (
               <div key={dateKey}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {new Date(dateKey).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+                {/* Date Header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--glass-bg)] backdrop-blur-sm border border-[var(--glass-border)]">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {formatDateHeader(new Date(dateKey))}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ({dayItems.length} {dayItems.length === 1 ? "event" : "events"})
                   </span>
                 </div>
-                <div className="space-y-2 ml-2 border-l-2 border-muted pl-4">
-                  {dayItems.map((item) => {
+
+                {/* Timeline Items with vertical connecting lines - Requirement 15.1, 15.4 */}
+                <div className="ml-4">
+                  {dayItems.map((item, index) => {
                     const IconComponent = Icons[item.icon];
+                    const isFirst = index === 0;
+                    const isLast = index === dayItems.length - 1;
+
                     return (
                       <div key={item.id} className="relative">
-                        <div className="absolute -left-[21px] top-3 w-2 h-2 rounded-full bg-muted-foreground" />
-                        <Card className="p-3">
-                          <div className="flex items-center gap-3">
-                            <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center", item.bgColor)}>
-                              <IconComponent className={cn("w-4 h-4", item.color)} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-foreground text-sm">{item.title}</p>
-                              {item.subtitle && (
-                                <p className="text-xs text-muted-foreground">{item.subtitle}</p>
-                              )}
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              {item.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                            </span>
-                            <div className="flex gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEdit(item)}
-                                className="h-8 w-8 p-0 hover:bg-muted"
-                                title="Edit entry"
-                              >
-                                <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteClick(item)}
-                                className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-950/30"
-                                title="Delete entry"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
+                        <TimelineItem
+                          icon={IconComponent}
+                          time={item.timestamp}
+                          title={item.title}
+                          detail={item.subtitle}
+                          color={item.color}
+                          isFirst={isFirst}
+                          isLast={isLast}
+                        />
+                        {/* Action buttons overlay */}
+                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100">
+                          <GlassButton
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(item)}
+                            className="h-8 w-8"
+                            title="Edit entry"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </GlassButton>
+                          <GlassButton
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(item)}
+                            className="h-8 w-8 hover:bg-red-500/10 hover:text-red-500"
+                            title="Delete entry"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </GlassButton>
+                        </div>
                       </div>
                     );
                   })}
@@ -409,7 +457,7 @@ export default function TimelinePage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600">
@@ -425,7 +473,7 @@ export default function TimelinePage() {
           </DialogHeader>
 
           {deletingItem && (
-            <div className="p-3 bg-muted/50 rounded-lg">
+            <GlassCard size="sm">
               <p className="text-sm font-medium text-foreground">{deletingItem.title}</p>
               {deletingItem.subtitle && (
                 <p className="text-xs text-muted-foreground">{deletingItem.subtitle}</p>
@@ -433,22 +481,20 @@ export default function TimelinePage() {
               <p className="text-xs text-muted-foreground mt-1">
                 {deletingItem.timestamp.toLocaleString()}
               </p>
-            </div>
+            </GlassCard>
           )}
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
+            <GlassButton
+              variant="ghost"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
               className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
+            </GlassButton>
+            <GlassButton
+              variant="danger"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
               className="flex-1"
@@ -464,7 +510,7 @@ export default function TimelinePage() {
                   Delete
                 </>
               )}
-            </Button>
+            </GlassButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -482,13 +528,14 @@ export default function TimelinePage() {
           isSubmitting={isSubmitting}
         />
       )}
-    </MobileContainer>
+    </div>
   );
 }
 
+
 // Edit Entry Modal Component
 interface EditEntryModalProps {
-  item: TimelineItem;
+  item: TimelineItemData;
   open: boolean;
   onClose: () => void;
   onSubmit: (data: Record<string, unknown>) => void;
@@ -496,11 +543,7 @@ interface EditEntryModalProps {
 }
 
 function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEntryModalProps) {
-  // Initialize form data directly from item.rawData, will reset when item.id changes
   const [formData, setFormData] = useState<Record<string, unknown>>(() => item.rawData || {});
-
-  // Use a key on the Dialog component instead of useEffect to reset state
-  // This is handled by the parent component passing item.id as key
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -511,13 +554,11 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Helper to safely get string values from formData
   const getString = (key: string): string | undefined => {
     const value = formData[key];
     return typeof value === 'string' ? value : undefined;
   };
 
-  // Helper to safely get values for inputs (handles string, number, or empty)
   const getValue = (key: string): string | number => {
     const value = formData[key];
     if (value === null || value === undefined) return '';
@@ -533,7 +574,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -546,28 +587,28 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             </div>
 
             {formData.type === "breastfeeding" && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="leftDuration">Left Duration (min)</Label>
-                    <Input
-                      id="leftDuration"
-                      type="number"
-                      value={getValue("leftDuration")}
-                      onChange={(e) => updateField("leftDuration", e.target.value ? parseInt(e.target.value) : null)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rightDuration">Right Duration (min)</Label>
-                    <Input
-                      id="rightDuration"
-                      type="number"
-                      value={getValue("rightDuration")}
-                      onChange={(e) => updateField("rightDuration", e.target.value ? parseInt(e.target.value) : null)}
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="leftDuration">Left Duration (min)</Label>
+                  <Input
+                    id="leftDuration"
+                    type="number"
+                    value={getValue("leftDuration")}
+                    onChange={(e) => updateField("leftDuration", e.target.value ? parseInt(e.target.value) : null)}
+                    className="bg-transparent border-[var(--glass-border)]"
+                  />
                 </div>
-              </>
+                <div className="space-y-2">
+                  <Label htmlFor="rightDuration">Right Duration (min)</Label>
+                  <Input
+                    id="rightDuration"
+                    type="number"
+                    value={getValue("rightDuration")}
+                    onChange={(e) => updateField("rightDuration", e.target.value ? parseInt(e.target.value) : null)}
+                    className="bg-transparent border-[var(--glass-border)]"
+                  />
+                </div>
+              </div>
             )}
 
             {formData.type === "bottle" && (
@@ -579,12 +620,13 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                     type="number"
                     value={getValue("amount")}
                     onChange={(e) => updateField("amount", e.target.value ? parseInt(e.target.value) : null)}
+                    className="bg-transparent border-[var(--glass-border)]"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bottleType">Bottle Type</Label>
                   <Select value={getString("bottleType")} onValueChange={(value) => updateField("bottleType", value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -604,6 +646,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -615,7 +658,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="sleepType">Type</Label>
               <Select value={getString("sleepType")} onValueChange={(value) => updateField("sleepType", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -632,6 +675,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.startTime ? new Date(String(formData.startTime)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("startTime", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -642,13 +686,14 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.endTime ? new Date(String(formData.endTime)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("endTime", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="quality">Quality</Label>
               <Select value={getString("quality")} onValueChange={(value) => updateField("quality", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                   <SelectValue placeholder="Select quality" />
                 </SelectTrigger>
                 <SelectContent>
@@ -666,6 +711,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -677,7 +723,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -696,6 +742,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -706,6 +753,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -717,7 +765,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="activityType">Type</Label>
               <Select value={getString("activityType")} onValueChange={(value) => updateField("activityType", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -736,6 +784,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="number"
                 value={getValue("duration")}
                 onChange={(e) => updateField("duration", e.target.value ? parseInt(e.target.value) : null)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -746,6 +795,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -762,6 +812,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.01"
                 value={formData.weight ? (Number(formData.weight) / 1000).toFixed(2) : ""}
                 onChange={(e) => updateField("weight", e.target.value ? Math.round(parseFloat(e.target.value) * 1000) : null)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -773,6 +824,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.1"
                 value={formData.height ? (Number(formData.height) / 10).toFixed(1) : ""}
                 onChange={(e) => updateField("height", e.target.value ? Math.round(parseFloat(e.target.value) * 10) : null)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -784,6 +836,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.1"
                 value={formData.headCircumference ? (Number(formData.headCircumference) / 10).toFixed(1) : ""}
                 onChange={(e) => updateField("headCircumference", e.target.value ? Math.round(parseFloat(e.target.value) * 10) : null)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -794,6 +847,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -804,6 +858,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -818,6 +873,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="name"
                 value={getValue("name")}
                 onChange={(e) => updateField("name", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -828,6 +884,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                   id="dosage"
                   value={getValue("dosage")}
                   onChange={(e) => updateField("dosage", e.target.value)}
+                  className="bg-transparent border-[var(--glass-border)]"
                 />
               </div>
               <div className="space-y-2">
@@ -836,6 +893,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                   id="unit"
                   value={getValue("unit")}
                   onChange={(e) => updateField("unit", e.target.value)}
+                  className="bg-transparent border-[var(--glass-border)]"
                 />
               </div>
             </div>
@@ -847,6 +905,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -857,6 +916,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -871,13 +931,14 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="symptomType"
                 value={getValue("symptomType")}
                 onChange={(e) => updateField("symptomType", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="severity">Severity</Label>
               <Select value={getString("severity")} onValueChange={(value) => updateField("severity", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-[var(--glass-border)]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -896,6 +957,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.1"
                 value={getValue("temperature")}
                 onChange={(e) => updateField("temperature", e.target.value ? parseFloat(e.target.value) : null)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -906,6 +968,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -916,6 +979,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -930,6 +994,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="vaccineName"
                 value={getValue("vaccineName")}
                 onChange={(e) => updateField("vaccineName", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -939,6 +1004,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="provider"
                 value={getValue("provider")}
                 onChange={(e) => updateField("provider", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -948,6 +1014,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="location"
                 value={getValue("location")}
                 onChange={(e) => updateField("location", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -958,6 +1025,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
 
@@ -968,6 +1036,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-transparent border-[var(--glass-border)]"
               />
             </div>
           </>
@@ -978,16 +1047,23 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
     }
   };
 
+  const IconComponent = Icons[item.icon];
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", item.bgColor)}>
-              {(() => {
-                const IconComponent = Icons[item.icon];
-                return IconComponent ? <IconComponent className={cn("w-5 h-5", item.color)} /> : null;
-              })()}
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: `var(--color-${item.color})20` }}
+            >
+              {IconComponent && (
+                <IconComponent
+                  className="w-5 h-5"
+                  style={{ color: `var(--color-${item.color})` }}
+                />
+              )}
             </div>
             <div>
               <DialogTitle>Edit {item.title}</DialogTitle>
@@ -1002,17 +1078,18 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
           {renderFormFields()}
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
+            <GlassButton
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
+            </GlassButton>
+            <GlassButton
               type="submit"
+              variant="primary"
               disabled={isSubmitting}
               className="flex-1"
             >
@@ -1027,7 +1104,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                   Save Changes
                 </>
               )}
-            </Button>
+            </GlassButton>
           </DialogFooter>
         </form>
       </DialogContent>

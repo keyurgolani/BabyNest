@@ -1,6 +1,6 @@
 import React from "react";
 import { LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { cn } from "@/lib/utils";
 
 interface PatternCardProps {
@@ -91,7 +91,7 @@ export function PatternCard({
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
-    <Card className={cn("p-4 border-0 bg-gradient-to-br", colors.bg)}>
+    <GlassCard size="sm" className={cn("border-0 bg-gradient-to-br", colors.bg)}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className={cn("w-4 h-4", colors.icon)} />
         <span className={cn("text-xs font-medium", colors.label)}>{title}</span>
@@ -108,7 +108,7 @@ export function PatternCard({
       <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
       
       {details && details.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-black/5 dark:border-white/5 space-y-1">
+        <div className="mt-3 pt-3 border-t border-white/20 dark:border-white/10 space-y-1">
           {details.map((detail, idx) => (
             <div key={idx} className="flex justify-between text-xs">
               <span className="text-muted-foreground">{detail.label}</span>
@@ -117,6 +117,6 @@ export function PatternCard({
           ))}
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }

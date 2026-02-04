@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/layout/mobile-container";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { api, DiaperType, BottleType, ActivityType } from "@/lib/api-client";
@@ -15,28 +16,38 @@ import {
   Scale, Ruler, Circle
 } from "lucide-react";
 
+/**
+ * Quick Log Page
+ * 
+ * Displays 11 quick log widgets in a responsive grid layout.
+ * - 2 columns on mobile (< 768px)
+ * - 3 columns on tablet (768px - 1023px)
+ * - 4 columns on desktop (>= 1024px)
+ * 
+ * @requirements 13.1, 13.2, 13.3, 13.4
+ */
 export default function QuickLogPage() {
   return (
     <MobileContainer>
-      <div className="p-4 space-y-3 pb-32 overflow-y-auto">
-        {/* Header */}
-        <div className="mb-2">
-          <h1 className="text-2xl font-heading font-bold text-foreground">Quick Log</h1>
-          <p className="text-sm text-muted-foreground">Tap to log instantly</p>
-        </div>
+      <div className="p-4 space-y-4 pb-32 overflow-y-auto">
+        {/* PageHeader Component - Requirement 13.4 */}
+        <PageHeader 
+          title="Quick Log" 
+          subtitle="Tap to log instantly"
+        />
 
-        {/* Responsive grid - 2 cols on mobile, 3 on md, 4 on lg */}
+        {/* Responsive grid - Requirement 13.4: 2-column mobile, 3-column tablet, 4-column desktop */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           <QuickBottleWidget />
           <QuickDiaperWidget />
           <QuickSleepWidget />
           <QuickNursingWidget />
+          <QuickActivityWidget />
+          <QuickGrowthWidget />
           <QuickTemperatureWidget />
           <QuickMedicineWidget />
           <QuickPumpWidget />
           <QuickSolidsWidget />
-          <QuickActivityWidget />
-          <QuickGrowthWidget />
           <QuickSymptomWidget />
         </div>
       </div>
@@ -44,7 +55,10 @@ export default function QuickLogPage() {
   );
 }
 
-// Bottle Widget - Quick log common amounts
+/**
+ * Bottle Widget - Quick log common amounts
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickBottleWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -70,9 +84,9 @@ function QuickBottleWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-orange-500/10 to-orange-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-feed)]/10 to-[var(--color-feed)]/5">
       <Link href="/log/feed?type=bottle" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-feed)] flex items-center justify-center shadow-lg shadow-[var(--color-feed)]/20">
           <Milk className="w-5 h-5 text-white" />
         </div>
         <span className="font-bold text-foreground">Bottle</span>
@@ -85,21 +99,25 @@ function QuickBottleWidget() {
             onClick={() => handleQuickLog(amount)}
             disabled={isLoading}
             className={cn(
-              "py-3 rounded-xl text-sm font-bold transition-all",
+              "py-3 rounded-xl text-sm font-bold transition-all min-h-[44px]",
               selectedAmount === amount
-                ? "bg-orange-500 text-white"
-                : "bg-orange-500/15 text-orange-600 dark:text-orange-400 hover:bg-orange-500/25 active:scale-95"
+                ? "bg-[var(--color-feed)] text-white"
+                : "bg-[var(--color-feed)]/15 hover:bg-[var(--color-feed)]/25 active:scale-95"
             )}
+            style={{ color: selectedAmount === amount ? undefined : 'var(--color-feed)' }}
           >
             {selectedAmount === amount ? <Check className="w-4 h-4 mx-auto" /> : `${amount}ml`}
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Diaper Widget - Quick log types
+/**
+ * Diaper Widget - Quick log types
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickDiaperWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<DiaperType | null>(null);
@@ -124,9 +142,9 @@ function QuickDiaperWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-green-500/10 to-green-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-diaper)]/10 to-[var(--color-diaper)]/5">
       <Link href="/log/diaper" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/20">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-diaper)] flex items-center justify-center shadow-lg shadow-[var(--color-diaper)]/20">
           <Baby className="w-5 h-5 text-white" />
         </div>
         <span className="font-bold text-foreground">Diaper</span>
@@ -139,22 +157,26 @@ function QuickDiaperWidget() {
             onClick={() => handleQuickLog(type)}
             disabled={isLoading}
             className={cn(
-              "py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2",
+              "py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 min-h-[44px]",
               selectedType === type
-                ? "bg-green-500 text-white"
-                : "bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25 active:scale-95"
+                ? "bg-[var(--color-diaper)] text-white"
+                : "bg-[var(--color-diaper)]/15 hover:bg-[var(--color-diaper)]/25 active:scale-95"
             )}
+            style={{ color: selectedType === type ? undefined : 'var(--color-diaper)' }}
           >
             {selectedType === type ? <Check className="w-4 h-4" /> : <span>{emoji}</span>}
             <span>{label}</span>
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Sleep Widget - Start timer
+/**
+ * Sleep Widget - Start timer
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickSleepWidget() {
   const router = useRouter();
   const { babyStatus, setBabyStatus, setLastStatusChange } = useLogs();
@@ -172,9 +194,9 @@ function QuickSleepWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-indigo-500/10 to-indigo-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-sleep)]/10 to-[var(--color-sleep)]/5">
       <Link href="/log/sleep" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-sleep)] flex items-center justify-center shadow-lg shadow-[var(--color-sleep)]/20">
           <Moon className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Sleep</span>
@@ -183,11 +205,12 @@ function QuickSleepWidget() {
       <button 
         onClick={isSleeping ? handleViewSleep : handleStartSleep}
         className={cn(
-          "w-full flex items-center justify-center gap-2 py-4 rounded-xl transition-all active:scale-95",
+          "w-full flex items-center justify-center gap-2 py-4 rounded-xl transition-all active:scale-95 min-h-[48px]",
           isSleeping 
-            ? "bg-indigo-500 text-white animate-pulse" 
-            : "bg-indigo-500/15 hover:bg-indigo-500/25"
+            ? "bg-[var(--color-sleep)] text-white animate-pulse" 
+            : "bg-[var(--color-sleep)]/15 hover:bg-[var(--color-sleep)]/25"
         )}
+        style={{ color: isSleeping ? undefined : 'var(--color-sleep)' }}
       >
         {isSleeping ? (
           <>
@@ -196,16 +219,19 @@ function QuickSleepWidget() {
           </>
         ) : (
           <>
-            <Play className="w-5 h-5 text-indigo-500" />
-            <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">Start Sleep</span>
+            <Play className="w-5 h-5" />
+            <span className="text-sm font-bold">Start Sleep</span>
           </>
         )}
       </button>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Nursing Widget - Start timer with side selection
+/**
+ * Nursing Widget - Start timer with side selection
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickNursingWidget() {
   const router = useRouter();
   const { nursingTimer, startNursingTimer } = useLogs();
@@ -222,9 +248,9 @@ function QuickNursingWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-pink-500/10 to-pink-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-nursing)]/10 to-[var(--color-nursing)]/5">
       <Link href="/log/feed" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-nursing)] flex items-center justify-center shadow-lg shadow-[var(--color-nursing)]/20">
           <Baby className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Nursing</span>
@@ -233,7 +259,7 @@ function QuickNursingWidget() {
       {isNursing ? (
         <button 
           onClick={handleViewNursing}
-          className="w-full flex items-center justify-center gap-2 py-4 bg-pink-500 text-white rounded-xl transition-all active:scale-95 animate-pulse"
+          className="w-full flex items-center justify-center gap-2 py-4 bg-[var(--color-nursing)] text-white rounded-xl transition-all active:scale-95 animate-pulse min-h-[48px]"
         >
           <Baby className="w-5 h-5" />
           <span className="text-sm font-bold">Nursing...</span>
@@ -242,32 +268,37 @@ function QuickNursingWidget() {
         <div className="grid grid-cols-2 gap-2">
           <button 
             onClick={() => handleStartNursing("left")}
-            className="flex items-center justify-center gap-1 py-3 bg-pink-500/15 hover:bg-pink-500/25 active:scale-95 rounded-xl transition-all"
+            className="flex items-center justify-center gap-1 py-3 bg-[var(--color-nursing)]/15 hover:bg-[var(--color-nursing)]/25 active:scale-95 rounded-xl transition-all min-h-[44px]"
+            style={{ color: 'var(--color-nursing)' }}
           >
-            <span className="text-sm font-bold text-pink-600 dark:text-pink-400">◀ Left</span>
+            <span className="text-sm font-bold">◀ Left</span>
           </button>
           <button 
             onClick={() => handleStartNursing("right")}
-            className="flex items-center justify-center gap-1 py-3 bg-pink-500/15 hover:bg-pink-500/25 active:scale-95 rounded-xl transition-all"
+            className="flex items-center justify-center gap-1 py-3 bg-[var(--color-nursing)]/15 hover:bg-[var(--color-nursing)]/25 active:scale-95 rounded-xl transition-all min-h-[44px]"
+            style={{ color: 'var(--color-nursing)' }}
           >
-            <span className="text-sm font-bold text-pink-600 dark:text-pink-400">Right ▶</span>
+            <span className="text-sm font-bold">Right ▶</span>
           </button>
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }
 
-// Activity Widget - Quick log activities with timer
+/**
+ * Activity Widget - Quick log activities with timer
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickActivityWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   
   const activities = [
-    { type: "tummy_time" as ActivityType, label: "Tummy", icon: Baby, color: "bg-cyan-500", duration: 5 },
-    { type: "bath" as ActivityType, label: "Bath", icon: Bath, color: "bg-teal-500", duration: 15 },
-    { type: "play" as ActivityType, label: "Play", icon: Gamepad2, color: "bg-violet-500", duration: 15 },
-    { type: "outdoor" as ActivityType, label: "Outdoor", icon: TreePine, color: "bg-green-500", duration: 30 },
+    { type: "tummy_time" as ActivityType, label: "Tummy", icon: Baby, duration: 5 },
+    { type: "bath" as ActivityType, label: "Bath", icon: Bath, duration: 15 },
+    { type: "play" as ActivityType, label: "Play", icon: Gamepad2, duration: 15 },
+    { type: "outdoor" as ActivityType, label: "Outdoor", icon: TreePine, duration: 30 },
   ];
 
   const handleQuickLog = async (activityType: ActivityType, duration: number) => {
@@ -289,52 +320,56 @@ function QuickActivityWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-activity)]/10 to-[var(--color-activity)]/5">
       <Link href="/log/activity" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-activity)] flex items-center justify-center shadow-lg shadow-[var(--color-activity)]/20">
           <Gamepad2 className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Activity</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
       </Link>
       <div className="grid grid-cols-2 gap-2">
-        {activities.map(({ type, label, icon: Icon, color, duration }) => (
+        {activities.map(({ type, label, icon: Icon, duration }) => (
           <button
             key={type}
             onClick={() => handleQuickLog(type, duration)}
             disabled={isLoading}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all active:scale-95",
+              "flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl transition-all active:scale-95 min-h-[44px]",
               selectedActivity === type
-                ? `${color} text-white`
-                : "bg-cyan-500/15 hover:bg-cyan-500/25"
+                ? "bg-[var(--color-activity)] text-white"
+                : "bg-[var(--color-activity)]/15 hover:bg-[var(--color-activity)]/25"
             )}
+            style={{ color: selectedActivity === type ? undefined : 'var(--color-activity)' }}
           >
             {selectedActivity === type ? (
               <Check className="w-4 h-4" />
             ) : (
-              <Icon className={cn("w-4 h-4", selectedActivity === type ? "text-white" : "text-cyan-600 dark:text-cyan-400")} />
+              <Icon className="w-4 h-4" />
             )}
-            <span className={cn("text-[10px] font-bold", selectedActivity === type ? "text-white" : "text-cyan-600 dark:text-cyan-400")}>{label}</span>
+            <span className="text-[10px] font-bold">{label}</span>
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Growth Widget - Quick log measurements
+/**
+ * Growth Widget - Quick log measurements
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickGrowthWidget() {
   const measurements = [
-    { type: "weight", label: "Weight", icon: Scale, color: "bg-emerald-500" },
-    { type: "height", label: "Height", icon: Ruler, color: "bg-blue-500" },
-    { type: "head", label: "Head", icon: Circle, color: "bg-purple-500" },
+    { type: "weight", label: "Weight", icon: Scale },
+    { type: "height", label: "Height", icon: Ruler },
+    { type: "head", label: "Head", icon: Circle },
   ];
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-growth)]/10 to-[var(--color-growth)]/5">
       <Link href="/log/growth" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-growth)] flex items-center justify-center shadow-lg shadow-[var(--color-growth)]/20">
           <Scale className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Growth</span>
@@ -345,21 +380,22 @@ function QuickGrowthWidget() {
           <Link
             key={type}
             href={`/log/growth?type=${type}`}
-            className={cn(
-              "flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all active:scale-95",
-              "bg-emerald-500/15 hover:bg-emerald-500/25"
-            )}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all active:scale-95 min-h-[44px] bg-[var(--color-growth)]/15 hover:bg-[var(--color-growth)]/25"
+            style={{ color: 'var(--color-growth)' }}
           >
-            <Icon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{label}</span>
+            <Icon className="w-4 h-4" />
+            <span className="text-xs font-bold">{label}</span>
           </Link>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Temperature Widget - Quick log common temps
+/**
+ * Temperature Widget - Quick log common temps
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickTemperatureWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTemp, setSelectedTemp] = useState<number | null>(null);
@@ -387,9 +423,9 @@ function QuickTemperatureWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-rose-500/10 to-rose-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-health)]/10 to-[var(--color-health)]/5">
       <Link href="/log/temperature" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-health)] flex items-center justify-center shadow-lg shadow-[var(--color-health)]/20">
           <Thermometer className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Temp</span>
@@ -404,24 +440,28 @@ function QuickTemperatureWidget() {
               onClick={() => handleQuickLog(temp)}
               disabled={isLoading}
               className={cn(
-                "py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95",
+                "py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 min-h-[44px]",
                 selectedTemp === temp
-                  ? "bg-rose-500 text-white"
+                  ? "bg-[var(--color-health)] text-white"
                   : isNormal
-                    ? "bg-green-500/15 text-green-600 dark:text-green-400 hover:bg-green-500/25"
-                    : "bg-rose-500/15 text-rose-600 dark:text-rose-400 hover:bg-rose-500/25"
+                    ? "bg-[var(--color-growth)]/15 hover:bg-[var(--color-growth)]/25"
+                    : "bg-[var(--color-health)]/15 hover:bg-[var(--color-health)]/25"
               )}
+              style={{ color: selectedTemp === temp ? undefined : (isNormal ? 'var(--color-growth)' : 'var(--color-health)') }}
             >
               {selectedTemp === temp ? <Check className="w-3 h-3 mx-auto" /> : `${temp}°F`}
             </button>
           );
         })}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Medicine Widget - Quick log common meds
+/**
+ * Medicine Widget - Quick log common meds
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickMedicineWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMed, setSelectedMed] = useState<string | null>(null);
@@ -451,9 +491,9 @@ function QuickMedicineWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-medicine)]/10 to-[var(--color-medicine)]/5">
       <Link href="/log/medication" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-medicine)] flex items-center justify-center shadow-lg shadow-[var(--color-medicine)]/20">
           <Pill className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Medicine</span>
@@ -466,22 +506,26 @@ function QuickMedicineWidget() {
             onClick={() => handleQuickLog(med)}
             disabled={isLoading}
             className={cn(
-              "py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95",
+              "py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95 min-h-[44px]",
               selectedMed === med.name
-                ? "bg-blue-500 text-white"
-                : "bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25"
+                ? "bg-[var(--color-medicine)] text-white"
+                : "bg-[var(--color-medicine)]/15 hover:bg-[var(--color-medicine)]/25"
             )}
+            style={{ color: selectedMed === med.name ? undefined : 'var(--color-medicine)' }}
           >
             {selectedMed === med.name ? <Check className="w-3 h-3" /> : <span>💊</span>}
             <span>{med.name} {med.dosage}{med.unit}</span>
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Pump Widget - Quick log amounts
+/**
+ * Pump Widget - Quick log amounts
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickPumpWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -507,9 +551,9 @@ function QuickPumpWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-tummy)]/10 to-[var(--color-tummy)]/5">
       <Link href="/log/feed?type=pumping" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-tummy)] flex items-center justify-center shadow-lg shadow-[var(--color-tummy)]/20">
           <Droplets className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Pump</span>
@@ -522,21 +566,25 @@ function QuickPumpWidget() {
             onClick={() => handleQuickLog(amount)}
             disabled={isLoading}
             className={cn(
-              "py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95",
+              "py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 min-h-[44px]",
               selectedAmount === amount
-                ? "bg-purple-500 text-white"
-                : "bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-500/25"
+                ? "bg-[var(--color-tummy)] text-white"
+                : "bg-[var(--color-tummy)]/15 hover:bg-[var(--color-tummy)]/25"
             )}
+            style={{ color: selectedAmount === amount ? undefined : 'var(--color-tummy)' }}
           >
             {selectedAmount === amount ? <Check className="w-3 h-3 mx-auto" /> : `${amount}ml`}
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Solids Widget - Quick log food types
+/**
+ * Solids Widget - Quick log food types
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickSolidsWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFood, setSelectedFood] = useState<string | null>(null);
@@ -565,9 +613,9 @@ function QuickSolidsWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-amber-500/10 to-amber-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-feed)]/10 to-[var(--color-feed)]/5">
       <Link href="/log/feed?type=solid" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-feed)] flex items-center justify-center shadow-lg shadow-[var(--color-feed)]/20">
           <Utensils className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Solids</span>
@@ -580,22 +628,26 @@ function QuickSolidsWidget() {
             onClick={() => handleQuickLog(type)}
             disabled={isLoading}
             className={cn(
-              "py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 active:scale-95",
+              "py-2.5 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 active:scale-95 min-h-[44px]",
               selectedFood === type
-                ? "bg-amber-500 text-white"
-                : "bg-amber-500/15 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25"
+                ? "bg-[var(--color-feed)] text-white"
+                : "bg-[var(--color-feed)]/15 hover:bg-[var(--color-feed)]/25"
             )}
+            style={{ color: selectedFood === type ? undefined : 'var(--color-feed)' }}
           >
             {selectedFood === type ? <Check className="w-3 h-3" /> : <span>{emoji}</span>}
             <span>{label}</span>
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 
-// Symptom Widget - Quick log symptoms
+/**
+ * Symptom Widget - Quick log symptoms
+ * @requirements 13.2, 13.3 - Uses GlassCard styling and GlassButton-style action buttons
+ */
 function QuickSymptomWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSymptom, setSelectedSymptom] = useState<string | null>(null);
@@ -625,9 +677,9 @@ function QuickSymptomWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-red-500/10 to-red-500/5">
+    <GlassCard size="sm" className="bg-gradient-to-br from-[var(--color-health)]/10 to-[var(--color-health)]/5">
       <Link href="/log/symptom" className="flex items-center gap-2 mb-3">
-        <div className="w-9 h-9 rounded-xl bg-red-500 flex items-center justify-center shadow-lg shadow-red-500/20">
+        <div className="w-9 h-9 rounded-xl bg-[var(--color-health)] flex items-center justify-center shadow-lg shadow-[var(--color-health)]/20">
           <Thermometer className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-sm text-foreground">Symptom</span>
@@ -640,17 +692,18 @@ function QuickSymptomWidget() {
             onClick={() => handleQuickLog(type)}
             disabled={isLoading}
             className={cn(
-              "flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all active:scale-95",
+              "flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all active:scale-95 min-h-[44px]",
               selectedSymptom === type
-                ? "bg-red-500 text-white"
-                : "bg-red-500/15 hover:bg-red-500/25"
+                ? "bg-[var(--color-health)] text-white"
+                : "bg-[var(--color-health)]/15 hover:bg-[var(--color-health)]/25"
             )}
+            style={{ color: selectedSymptom === type ? undefined : 'var(--color-health)' }}
           >
             {selectedSymptom === type ? <Check className="w-3 h-3" /> : <span className="text-sm">{emoji}</span>}
-            <span className={cn("text-[10px] font-bold", selectedSymptom === type ? "text-white" : "text-red-600 dark:text-red-400")}>{label}</span>
+            <span className="text-[10px] font-bold">{label}</span>
           </button>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }

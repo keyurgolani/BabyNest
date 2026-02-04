@@ -4,7 +4,7 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBaby } from "@/context/baby-context";
 import {
   QuickActionsCard,
@@ -13,17 +13,20 @@ import {
   AISummaryCard,
   UpcomingMedications,
   TopQuickActions,
+  HeroCard,
+  QuickStatsBar,
 } from "@/components/dashboard";
-import { FeedingPrediction } from "@/components/insights/FeedingPrediction";
+// Lazy-loaded FeedingPrediction for improved initial load time (Requirement 21.2)
+import { LazyFeedingPrediction } from "@/components/lazy/insights";
 import { api, SleepStatisticsResponse, GrowthResponse, ActivityListResponse, FeedingStatisticsResponse, DiaperStatisticsResponse } from "@/lib/api-client";
 import { motion } from "framer-motion";
 import { EditBabyProfileModal } from "@/components/settings/edit-baby-profile-modal";
 import { Memory } from "@babynest/types";
 import { Download, Loader2, Calendar, Users } from "lucide-react";
+import { GlassCard } from "@/components/ui/glass-card";
 
 export default function Home() {
   const { baby, babyId, refreshBaby } = useBaby();
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [showEditModal, setShowEditModal] = useState(false);
   const [randomMemory, setRandomMemory] = useState<Memory | null>(null);
   const [sleepStats, setSleepStats] = useState<SleepStatisticsResponse | null>(null);
@@ -32,7 +35,6 @@ export default function Home() {
   const [latestGrowth, setLatestGrowth] = useState<GrowthResponse | null>(null);
   const [recentActivities, setRecentActivities] = useState<ActivityListResponse | null>(null);
   const [downloading, setDownloading] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
 
   // Fetch random memory
   const fetchRandomMemory = async () => {
@@ -186,81 +188,6 @@ export default function Home() {
     return `${days} days`;
   }, [baby]);
 
-  // Format relative time (e.g., "2h ago", "30m ago")
-  const formatTimeAgo = (timestamp: string) => {
-    const now = new Date();
-    const time = new Date(timestamp);
-    const diffMs = now.getTime() - time.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    
-    if (diffMins < 1) return "just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return time.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  };
-
-  // Quick info items for the status bar
-  const quickInfo = useMemo(() => {
-    const items: { icon: React.ReactNode; label: string; value: string; color: string }[] = [];
-    
-    // Last feeding
-    if (feedingStats?.lastFeeding) {
-      const feedType = feedingStats.lastFeeding.type === 'breastfeeding' ? 'Nursed' : 
-                       feedingStats.lastFeeding.type === 'bottle' ? 'Bottle' : 
-                       feedingStats.lastFeeding.type === 'pumping' ? 'Pumped' : 'Solids';
-      items.push({
-        icon: <Icons.Feed className="w-3.5 h-3.5" />,
-        label: `Fed (${feedType})`,
-        value: formatTimeAgo(feedingStats.lastFeeding.timestamp),
-        color: 'text-amber-600 dark:text-amber-400'
-      });
-    }
-    
-    // Last diaper
-    if (diaperStats?.lastDiaper) {
-      const diaperType = diaperStats.lastDiaper.type === 'wet' ? 'Wet' : 
-                         diaperStats.lastDiaper.type === 'dirty' ? 'Dirty' : 
-                         diaperStats.lastDiaper.type === 'mixed' ? 'Mixed' : 'Dry';
-      items.push({
-        icon: <Icons.Diaper className="w-3.5 h-3.5" />,
-        label: `Diaper (${diaperType})`,
-        value: formatTimeAgo(diaperStats.lastDiaper.timestamp),
-        color: 'text-sky-600 dark:text-sky-400'
-      });
-    }
-    
-    // Wake window
-    if (sleepStats?.currentWakeWindowFormatted) {
-      items.push({
-        icon: <Icons.Sleep className="w-3.5 h-3.5" />,
-        label: 'Awake',
-        value: sleepStats.currentWakeWindowFormatted,
-        color: 'text-violet-600 dark:text-violet-400'
-      });
-    }
-    
-    return items;
-  }, [feedingStats, diaperStats, sleepStats]);
-
-  // Handle parallax tilt effect
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!heroRef.current) return;
-    const rect = heroRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const mouseX = e.clientX - centerX;
-    const mouseY = e.clientY - centerY;
-    const maxTilt = 15;
-    const tiltX = (mouseY / (rect.height / 2)) * maxTilt;
-    const tiltY = -(mouseX / (rect.width / 2)) * maxTilt;
-    setTilt({ x: tiltX, y: tiltY });
-  };
-
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-  };
-
   // Animation variants for staggered entrance
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -285,140 +212,95 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen w-full bg-aurora text-foreground relative flex flex-col overflow-hidden">
-      <div className="absolute inset-0 bg-white/40 pointer-events-none" />
-      <motion.main
-        className="relative z-10 flex flex-col w-full mx-auto px-4 h-full"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-      {/* Header with Hero Avatar - Fixed */}
-      <motion.div variants={itemVariants} className="flex justify-between items-center md:items-start flex-shrink-0 py-4 gap-4">
-        <div className="flex items-center md:items-start gap-4 flex-1 min-w-0">
-          {/* Parallax Hero Avatar */}
-          <div className="flex flex-col items-center gap-2 flex-shrink-0">
-            <div
-              ref={heroRef}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              onClick={() => baby && !baby.photoUrl && setShowEditModal(true)}
-              className={`relative ${!baby?.photoUrl ? 'cursor-pointer' : ''} group`}
-              style={{ perspective: "500px" }}
-              title={!baby?.photoUrl ? "Click to add profile photo" : undefined}
-            >
-              <div
-                className="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg transition-transform duration-200 ease-out relative"
-                style={{
-                  transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                  transformStyle: "preserve-3d",
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={baby?.photoUrl || "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby"}
-                  alt={baby?.name || "Baby"}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
-                  }}
-                />
-                {/* Edit overlay on hover - only show when no photo */}
-                {!baby?.photoUrl && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <Icons.Edit className="w-6 h-6 text-white" />
-                  </div>
-                )}
-              </div>
-              {/* Glow effect */}
-              <div
-                className="absolute inset-0 rounded-full bg-primary/20 blur-xl -z-10 transition-opacity duration-200"
-                style={{
-                  opacity: Math.abs(tilt.x) + Math.abs(tilt.y) > 0 ? 0.6 : 0.3,
-                }}
-              />
-            </div>
-            {/* Age badge - shown below avatar on mobile only */}
-            {babyAge && (
-              <span className="md:hidden text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium glow-soft">
-                {babyAge}
-              </span>
-            )}
-          </div>
+    <motion.main
+      className="flex flex-col w-full h-full"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Header with Hero Avatar - More compact */}
+      <motion.div variants={itemVariants} className="flex justify-between items-center flex-shrink-0 py-3 px-4 gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Hero Avatar */}
+          <HeroCard
+            photoUrl={baby?.photoUrl}
+            name={baby?.name || "Baby"}
+            showEditOverlay={!!baby}
+            onEditClick={() => setShowEditModal(true)}
+          />
 
           {/* Baby Info */}
           <div className="flex flex-col flex-1 min-w-0 justify-center">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-heading font-bold text-foreground text-shadow-soft truncate">
+              <h1 className="text-xl md:text-2xl font-heading font-bold text-foreground truncate">
                 {baby?.name || "Baby"}
               </h1>
-              {/* Age badge - shown next to name on desktop */}
               {babyAge && (
-                <span className="hidden md:inline-block text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium glow-soft flex-shrink-0">
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium flex-shrink-0">
                   {babyAge}
                 </span>
               )}
             </div>
-            {/* Quick Info Bar */}
-            {quickInfo.length > 0 && (
-              <div className="flex flex-col gap-1.5 mt-2">
-                {quickInfo.map((item, index) => (
-                  <div 
-                    key={index} 
-                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/60 dark:bg-black/20 border border-border/50 ${item.color}`}
-                  >
-                    {item.icon}
-                    <span className="text-xs font-medium">{item.label}</span>
-                    <span className="text-xs opacity-60">·</span>
-                    <span className="text-xs font-bold">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Quick Stats Bar */}
+            <QuickStatsBar
+              feedingStats={feedingStats}
+              diaperStats={diaperStats}
+              sleepStats={sleepStats}
+              className="mt-1"
+            />
           </div>
         </div>
 
-        <div className="flex items-start flex-shrink-0 md:hidden">
+        <div className="flex items-center flex-shrink-0 md:hidden">
           <TopQuickActions />
         </div>
       </motion.div>
 
-      {/* Two Column Layout - Fills remaining height */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 overflow-y-auto lg:overflow-hidden min-h-0">
-        {/* Left Column: Actions, AI Summary, Reports, Navigation */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-6 overflow-visible lg:overflow-y-auto pb-32 lg:pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-          {/* Quick Action Shortcuts - Hidden on mobile since they're in the header */}
-          <div className="hidden md:block">
+      {/* Compact Dashboard Grid */}
+      <div className="flex-1 overflow-y-auto px-4 pb-32 lg:pb-4">
+        <motion.div 
+          variants={containerVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 auto-rows-auto"
+        >
+          {/* Quick Actions - Desktop only, spans 8 cols */}
+          <motion.div variants={itemVariants} className="hidden md:block lg:col-span-8">
             <QuickActionsCard />
-          </div>
+          </motion.div>
 
-          {/* AI Summary */}
-          <AISummaryCard />
+          {/* AI Summary - Full width on mobile/tablet, spans 4 cols on desktop */}
+          <motion.div variants={itemVariants} className="md:col-span-2 lg:col-span-4">
+            <AISummaryCard />
+          </motion.div>
 
-          {/* Mobile Only: Right column cards */}
-          <div className="lg:hidden flex flex-col gap-6">
-            <FeedingPrediction />
+          {/* Feeding Prediction + Medications Row */}
+          <motion.div variants={itemVariants} className="lg:col-span-4">
+            <LazyFeedingPrediction />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="lg:col-span-4">
             <UpcomingMedications />
-            <RemindersCard />
-            <MilestonesCard />
-          </div>
+          </motion.div>
 
-          {/* Memory + Navigation Links Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-shrink-0">
-            {/* Random Memory - Left Half (Square) */}
-            <Link
-              href="/memories"
-              className="group relative aspect-square rounded-xl border border-rose-200/50 dark:border-rose-800/30 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 overflow-hidden"
-            >
-              <div className="absolute inset-0 rounded-xl overflow-hidden">
+          {/* Reminders + Milestones Row */}
+          <motion.div variants={itemVariants} className="lg:col-span-4">
+            <RemindersCard />
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="lg:col-span-4">
+            <MilestonesCard />
+          </motion.div>
+
+          {/* Memory Card - Compact */}
+          <motion.div variants={itemVariants} className="lg:col-span-4">
+            <Link href="/memories" className="group block h-full">
+              <GlassCard interactive className="h-full min-h-[140px] relative overflow-hidden !p-0">
                 {randomMemory ? (
                   <>
                     <Image
                       src={randomMemory.photoUrl}
                       alt={randomMemory.title || "Memory"}
                       fill
-                      sizes="(max-width: 768px) 50vw, 200px"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       priority
                       unoptimized={randomMemory.photoUrl.startsWith("http")}
@@ -438,163 +320,134 @@ export default function Home() {
                     </div>
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950/30 dark:to-pink-950/30 flex flex-col items-center justify-center gap-3">
-                    <div className="w-16 h-16 rounded-2xl bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
-                      <Icons.Memories className="w-8 h-8 text-rose-600 dark:text-rose-400" />
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
+                    <div className="w-12 h-12 rounded-xl bg-[var(--color-memory)]/20 flex items-center justify-center">
+                      <Icons.Memories className="w-6 h-6 text-[var(--color-memory)]" />
                     </div>
-                    <span className="text-sm text-muted-foreground">No memories yet</span>
-                    <span className="text-xs text-muted-foreground/70">Tap to add your first memory</span>
+                    <span className="text-sm text-foreground font-medium">No memories yet</span>
+                    <span className="text-xs text-muted-foreground text-center">Tap to add your first memory</span>
                   </div>
                 )}
-              </div>
+              </GlassCard>
             </Link>
+          </motion.div>
 
-            {/* Navigation Cards - Right Half (Stacked Vertically) */}
-            <div className="flex flex-col gap-2">
-              {/* Family Overview Card */}
-              <Link
-                href="/family"
-                className="group flex-1 p-3 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200/50 dark:border-amber-800/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
-              >
-                <div className="flex items-center justify-between">
+          {/* Quick Navigation Grid - 4 compact cards in a row */}
+          <motion.div variants={itemVariants} className="lg:col-span-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {/* Family Card */}
+              <Link href="/family" className="group">
+                <GlassCard interactive size="sm" className="h-full">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-feed)]/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Users className="w-4 h-4 text-[var(--color-feed)]" />
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block">Family Overview</span>
-                      <span className="text-[10px] text-muted-foreground">All babies & alerts</span>
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-foreground block truncate">Family</span>
+                      <span className="text-xs text-muted-foreground truncate block">All babies</span>
                     </div>
                   </div>
-                  <Icons.ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </div>
+                </GlassCard>
               </Link>
 
-              {/* Statistics Card */}
-              <Link
-                href="/tracking/timeline"
-                className="group flex-1 p-3 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 border border-blue-200/50 dark:border-blue-800/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
-              >
-                <div className="flex items-center justify-between">
+              {/* Timeline Card */}
+              <Link href="/tracking/timeline" className="group">
+                <GlassCard interactive size="sm" className="h-full">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Icons.Stats className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-activity)]/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Icons.Stats className="w-4 h-4 text-[var(--color-activity)]" />
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block">Timeline</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        Activity history
-                      </span>
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-foreground block truncate">Timeline</span>
+                      <span className="text-xs text-muted-foreground truncate block">History</span>
                     </div>
                   </div>
-                  <Icons.ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </div>
+                </GlassCard>
               </Link>
 
               {/* Growth Card */}
-              <Link
-                href="/tracking/growth"
-                className="group flex-1 p-3 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-800/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
-              >
-                <div className="flex items-center justify-between">
+              <Link href="/tracking/growth" className="group">
+                <GlassCard interactive size="sm" className="h-full">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Icons.Growth className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-growth)]/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Icons.Growth className="w-4 h-4 text-[var(--color-growth)]" />
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block">Growth</span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {latestGrowth?.weight ? `${(latestGrowth.weight / 1000).toFixed(1)}kg` : "Track progress"}
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-foreground block truncate">Growth</span>
+                      <span className="text-xs text-muted-foreground truncate block">
+                        {latestGrowth?.weight ? `${(latestGrowth.weight / 1000).toFixed(1)}kg` : "Track"}
                       </span>
                     </div>
                   </div>
-                  <Icons.ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </div>
+                </GlassCard>
               </Link>
 
               {/* Activities Card */}
-              <Link
-                href="/tracking/activities"
-                className="group flex-1 p-3 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 border border-purple-200/50 dark:border-purple-800/30 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
-              >
-                <div className="flex items-center justify-between">
+              <Link href="/tracking/activities" className="group">
+                <GlassCard interactive size="sm" className="h-full">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Icons.Activity className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <div className="w-8 h-8 rounded-lg bg-[var(--color-nursing)]/20 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                      <Icons.Activity className="w-4 h-4 text-[var(--color-nursing)]" />
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block">Activities</span>
-                      <span className="text-[10px] text-muted-foreground">
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-foreground block truncate">Activities</span>
+                      <span className="text-xs text-muted-foreground truncate block">
                         {recentActivities?.data?.length ? `${recentActivities.data.length} logged` : "Daily fun"}
                       </span>
                     </div>
                   </div>
-                  <Icons.ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </div>
+                </GlassCard>
               </Link>
-
-              {/* Weekly Report Card */}
-              <div className="flex-1 p-3 rounded-xl bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-sky-950/30 dark:to-indigo-950/30 border border-sky-200/50 dark:border-sky-800/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center">
-                      <Icons.Report className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block">Weekly Report</span>
-                      <span className="text-[10px] text-muted-foreground">Last 7 days</span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleDownload}
-                    disabled={downloading}
-                    className="h-7 px-2 text-xs bg-sky-600 hover:bg-sky-700 text-white"
-                  >
-                    {downloading ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <>
-                        <Download className="w-3 h-3 mr-1" />
-                        PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <div className="mt-2 pt-2 border-t border-sky-200/50 dark:border-sky-800/30 flex items-center justify-between">
-                  <Link
-                    href="/report"
-                    className="text-[10px] text-sky-600 dark:text-sky-400 font-medium hover:underline flex items-center gap-1"
-                  >
-                    <Calendar className="w-3 h-3" />
-                    Custom range
-                  </Link>
-                  <Link
-                    href="/report?tab=scheduled"
-                    className="text-[10px] text-muted-foreground hover:text-foreground"
-                  >
-                    Schedule →
-                  </Link>
-                </div>
-              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Right Column: Feeding, Medications, Reminders, Milestones - Desktop Only */}
-        <motion.div variants={itemVariants} className="hidden lg:flex flex-col gap-6 overflow-visible lg:overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-          {/* Feeding Prediction */}
-          <FeedingPrediction />
-
-          {/* Upcoming Medications */}
-          <UpcomingMedications />
-
-          {/* Reminders */}
-          <RemindersCard />
-
-          {/* Milestones */}
-          <MilestonesCard />
+          {/* Weekly Report Card - Compact */}
+          <motion.div variants={itemVariants} className="lg:col-span-4">
+            <GlassCard size="sm">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-sleep)]/20 flex items-center justify-center flex-shrink-0">
+                    <Icons.Report className="w-4 h-4 text-[var(--color-sleep)]" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-sm font-semibold text-foreground block truncate">Weekly Report</span>
+                    <span className="text-xs text-muted-foreground truncate block">Last 7 days</span>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="h-8 px-2.5 text-xs bg-[var(--color-sleep)] hover:bg-[var(--color-sleep)]/80 text-white rounded-lg flex-shrink-0"
+                >
+                  {downloading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <>
+                      <Download className="w-3.5 h-3.5 mr-1" />
+                      PDF
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                <Link
+                  href="/report"
+                  className="text-[var(--color-sleep)] font-medium hover:underline flex items-center gap-1"
+                >
+                  <Calendar className="w-3 h-3" />
+                  Custom range
+                </Link>
+                <Link
+                  href="/report?tab=scheduled"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Schedule →
+                </Link>
+              </div>
+            </GlassCard>
+          </motion.div>
         </motion.div>
       </div>
 
@@ -609,6 +462,5 @@ export default function Home() {
         />
       )}
     </motion.main>
-    </div>
   );
 }

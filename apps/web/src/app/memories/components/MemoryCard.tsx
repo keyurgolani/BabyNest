@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Memory, MemoryEntryType } from "@babynest/types";
 import { Icons } from "@/components/icons";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import Image from "next/image";
 
 interface MemoryCardProps {
@@ -11,6 +11,12 @@ interface MemoryCardProps {
   index: number;
 }
 
+/**
+ * MemoryCard Component
+ * 
+ * Individual memory card with glassmorphism styling for the masonry grid.
+ * Uses GlassCard component for consistent styling.
+ */
 export function MemoryCard({ memory, onDelete, onView, index }: MemoryCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -41,9 +47,10 @@ export function MemoryCard({ memory, onDelete, onView, index }: MemoryCardProps)
   const typeIcon = getTypeIcon();
 
   return (
-    <Card 
-      className="overflow-hidden p-0 group cursor-pointer card-elevated transition-all duration-300 relative animate-in fade-in"
-      style={{ animationDelay: `${index * 50}ms` }}
+    <GlassCard 
+      interactive
+      size="sm"
+      className="overflow-hidden !p-0 group cursor-pointer transition-all duration-300 relative"
       onClick={() => onView(memory)}
     >
       <div className="aspect-square bg-gradient-to-br from-muted/50 to-muted relative overflow-hidden rounded-xl">
@@ -102,7 +109,7 @@ export function MemoryCard({ memory, onDelete, onView, index }: MemoryCardProps)
         {/* Dropdown menu */}
         {showMenu && (
           <div 
-            className="absolute top-12 right-2 bg-background rounded-lg shadow-xl border p-1 z-10 animate-in zoom-in-95 duration-200"
+            className="absolute top-12 right-2 bg-[var(--glass-bg)] backdrop-blur-xl rounded-xl shadow-xl border border-[var(--glass-border)] p-1 z-10 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -113,7 +120,7 @@ export function MemoryCard({ memory, onDelete, onView, index }: MemoryCardProps)
                 }
                 setShowMenu(false);
               }}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-md w-full transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg w-full transition-colors"
             >
               <Icons.Trash className="w-4 h-4" />
               Delete
@@ -129,6 +136,6 @@ export function MemoryCard({ memory, onDelete, onView, index }: MemoryCardProps)
           <p className="text-xs text-white/90 drop-shadow-md">{formatDate(memory.takenAt)}</p>
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 }

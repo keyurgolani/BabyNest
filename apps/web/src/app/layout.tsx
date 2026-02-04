@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { AppLayout } from "@/components/layout/app-layout";
+import { AppShell } from "@/components/layout/app-shell";
 import { AuthProvider } from "@/components/auth-provider";
 import { BabyProvider } from "@/context/baby-context";
 import { ToasterWrapper } from "@/components/ui/toaster-wrapper";
@@ -19,6 +19,22 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "BabyNest Monitor",
   description: "Next Generation Baby Monitoring",
+};
+
+/**
+ * Viewport configuration for safe area insets support
+ * 
+ * viewport-fit=cover is required for env(safe-area-inset-*) CSS values to work
+ * on devices with notches (iPhone X+) and home indicators.
+ * 
+ * @requirements 20.5 - Safe area insets for mobile devices
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 // Script to apply theme before React hydration to prevent flash
@@ -63,7 +79,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <BabyProvider>
-            <AppLayout>{children}</AppLayout>
+            <AppShell>{children}</AppShell>
           </BabyProvider>
           <ToasterWrapper />
         </AuthProvider>

@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { PageHeader } from "@/components/ui/page-header";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { api, GrowthResponse } from "@/lib/api-client";
-import { ChevronLeft, Scale, Ruler, TrendingUp, Plus } from "lucide-react";
+import { Scale, Ruler, TrendingUp, Plus } from "lucide-react";
 
 interface GrowthMeasurement {
   id: string;
@@ -65,32 +67,34 @@ export default function GrowthTrackingPage() {
   return (
     <MobileContainer>
       <div className="p-4 space-y-6 pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/tracking" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-heading font-bold text-foreground">Growth Tracking</h1>
-            <p className="text-sm text-muted-foreground">Monitor development over time</p>
-          </div>
-          <Link href="/log/growth">
-            <Button size="sm" className="gap-1">
-              <Plus className="w-4 h-4" />
-              Add
-            </Button>
-          </Link>
-        </div>
+        {/* Header with PageHeader component */}
+        <PageHeader
+          title="Growth Tracking"
+          subtitle="Monitor development over time"
+          backHref="/tracking"
+          action={
+            <Link href="/log/growth">
+              <GlassButton size="sm" variant="primary" className="gap-1">
+                <Plus className="w-4 h-4" />
+                Add
+              </GlassButton>
+            </Link>
+          }
+        />
 
-        {/* Latest Stats */}
+        {/* Latest Stats with GlassCard */}
         {latest && (
           <div className="grid grid-cols-3 gap-3">
-            <Card className={cn(
-              "p-4 border-2 transition-all cursor-pointer",
-              activeTab === "weight" ? "border-emerald-500 bg-emerald-500/10" : "border-transparent"
-            )} onClick={() => setActiveTab("weight")}>
+            <GlassCard
+              interactive
+              className={cn(
+                "border-2 transition-all cursor-pointer",
+                activeTab === "weight" ? "border-emerald-500 bg-emerald-500/10" : "border-transparent"
+              )}
+              onClick={() => setActiveTab("weight")}
+            >
               <div className="flex flex-col items-center">
-                <Scale className="w-5 h-5 text-emerald-500 mb-2" />
+                <IconBadge icon={Scale} color="growth" size="sm" className="mb-2" />
                 <span className="text-2xl font-bold text-foreground">{gramsToKg(latest.weight)}</span>
                 <span className="text-xs text-muted-foreground">kg</span>
                 {previous && (
@@ -102,13 +106,17 @@ export default function GrowthTrackingPage() {
                   </span>
                 )}
               </div>
-            </Card>
-            <Card className={cn(
-              "p-4 border-2 transition-all cursor-pointer",
-              activeTab === "height" ? "border-blue-500 bg-blue-500/10" : "border-transparent"
-            )} onClick={() => setActiveTab("height")}>
+            </GlassCard>
+            <GlassCard
+              interactive
+              className={cn(
+                "border-2 transition-all cursor-pointer",
+                activeTab === "height" ? "border-blue-500 bg-blue-500/10" : "border-transparent"
+              )}
+              onClick={() => setActiveTab("height")}
+            >
               <div className="flex flex-col items-center">
-                <Ruler className="w-5 h-5 text-blue-500 mb-2" />
+                <IconBadge icon={Ruler} color="activity" size="sm" className="mb-2" />
                 <span className="text-2xl font-bold text-foreground">{mmToCm(latest.height)}</span>
                 <span className="text-xs text-muted-foreground">cm</span>
                 {previous && (
@@ -120,13 +128,17 @@ export default function GrowthTrackingPage() {
                   </span>
                 )}
               </div>
-            </Card>
-            <Card className={cn(
-              "p-4 border-2 transition-all cursor-pointer",
-              activeTab === "head" ? "border-purple-500 bg-purple-500/10" : "border-transparent"
-            )} onClick={() => setActiveTab("head")}>
+            </GlassCard>
+            <GlassCard
+              interactive
+              className={cn(
+                "border-2 transition-all cursor-pointer",
+                activeTab === "head" ? "border-purple-500 bg-purple-500/10" : "border-transparent"
+              )}
+              onClick={() => setActiveTab("head")}
+            >
               <div className="flex flex-col items-center">
-                <Icons.Diaper className="w-5 h-5 text-purple-500 mb-2" />
+                <IconBadge icon={Icons.Diaper} color="nursing" size="sm" className="mb-2" />
                 <span className="text-2xl font-bold text-foreground">{mmToCm(latest.headCircumference)}</span>
                 <span className="text-xs text-muted-foreground">cm</span>
                 {previous && (
@@ -138,11 +150,11 @@ export default function GrowthTrackingPage() {
                   </span>
                 )}
               </div>
-            </Card>
+            </GlassCard>
           </div>
         )}
 
-        {/* Chart */}
+        {/* Chart with glassmorphism styling */}
         <GrowthChart measurements={measurements} activeTab={activeTab} isLoading={isLoading} />
 
         {/* History */}
@@ -155,16 +167,16 @@ export default function GrowthTrackingPage() {
               ))}
             </div>
           ) : measurements.length === 0 ? (
-            <Card className="p-8 text-center">
+            <GlassCard className="p-8 text-center">
               <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
               <p className="text-muted-foreground">No measurements yet</p>
               <Link href="/log/growth">
-                <Button className="mt-4" size="sm">Add First Measurement</Button>
+                <GlassButton variant="primary" className="mt-4" size="sm">Add First Measurement</GlassButton>
               </Link>
-            </Card>
+            </GlassCard>
           ) : (
             [...measurements].reverse().map((m) => (
-              <Card key={m.id} className="p-4">
+              <GlassCard key={m.id} interactive>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-foreground">
@@ -178,7 +190,7 @@ export default function GrowthTrackingPage() {
                     <span className="text-purple-600 dark:text-purple-400 font-medium">{mmToCm(m.headCircumference)} cm</span>
                   </div>
                 </div>
-              </Card>
+              </GlassCard>
             ))
           )}
         </div>
@@ -199,17 +211,17 @@ function GrowthChart({
 }) {
   if (isLoading) {
     return (
-      <Card className="p-6">
+      <GlassCard size="lg">
         <div className="h-48 bg-muted/50 rounded-xl animate-pulse" />
-      </Card>
+      </GlassCard>
     );
   }
 
   if (measurements.length < 2) {
     return (
-      <Card className="p-6 text-center">
+      <GlassCard size="lg" className="text-center">
         <p className="text-muted-foreground text-sm">Add at least 2 measurements to see the chart</p>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -226,9 +238,9 @@ function GrowthChart({
 
   const getColor = () => {
     switch (activeTab) {
-      case "weight": return "var(--color-chart-2)";
-      case "height": return "var(--color-chart-1)";
-      case "head": return "var(--color-chart-4)";
+      case "weight": return "var(--color-growth)";
+      case "height": return "var(--color-activity)";
+      case "head": return "var(--color-nursing)";
     }
   };
 
@@ -259,7 +271,7 @@ function GrowthChart({
   };
 
   return (
-    <Card className="p-6">
+    <GlassCard size="lg">
       <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
         <TrendingUp className="w-4 h-4" />
         {getLabel()} Trend
@@ -318,6 +330,6 @@ function GrowthChart({
           <span>{formatValue(min)}</span>
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 }

@@ -68,8 +68,8 @@ export function TodaySummaryCard() {
       value: summary ? formatDuration(summary.sleep.totalMinutes) : "0m",
       subValue: summary ? `${summary.sleep.napCount} naps` : "",
       icon: Moon,
-      color: "text-[#5A9AB8] dark:text-[#7EB8DA]",
-      bg: "bg-[#E8F4FA] dark:bg-[#263540]",
+      color: "text-[var(--color-sleep)]",
+      bg: "bg-[var(--color-sleep)]/10",
       glow: "shadow-[0_0_20px_rgba(126,184,218,0.15)]",
     },
     {
@@ -77,8 +77,8 @@ export function TodaySummaryCard() {
       value: summary ? `${summary.feeding.count}x` : "0x",
       subValue: summary?.feeding.totalMl ? `${summary.feeding.totalMl}ml` : "",
       icon: Utensils,
-      color: "text-[#D4896A] dark:text-[#F4A261]",
-      bg: "bg-[#FFF0E6] dark:bg-[#3D2E26]",
+      color: "text-[var(--color-feed)]",
+      bg: "bg-[var(--color-feed)]/10",
       glow: "shadow-[0_0_20px_rgba(244,162,97,0.15)]",
     },
     {
@@ -86,8 +86,8 @@ export function TodaySummaryCard() {
       value: summary ? `${summary.diaper.total}x` : "0x",
       subValue: summary ? `${summary.diaper.wet}W ${summary.diaper.dirty}D` : "",
       icon: Baby,
-      color: "text-[#6BA87A] dark:text-[#A8D5BA]",
-      bg: "bg-[#EDF7F0] dark:bg-[#263D2E]",
+      color: "text-[var(--color-diaper)]",
+      bg: "bg-[var(--color-diaper)]/10",
       glow: "shadow-[0_0_20px_rgba(168,213,186,0.15)]",
     },
     {
@@ -95,8 +95,8 @@ export function TodaySummaryCard() {
       value: summary ? formatDuration(summary.activities.tummyTimeMinutes) : "0m",
       subValue: "Tummy time",
       icon: Activity,
-      color: "text-[#C97B8B] dark:text-[#F28482]",
-      bg: "bg-[#FFF0F2] dark:bg-[#3D2A2E]",
+      color: "text-[var(--color-tummy)]",
+      bg: "bg-[var(--color-tummy)]/10",
       glow: "shadow-[0_0_20px_rgba(242,132,130,0.15)]",
     },
   ];

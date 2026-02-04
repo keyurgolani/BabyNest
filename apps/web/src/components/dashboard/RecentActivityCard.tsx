@@ -117,15 +117,15 @@ export function RecentActivityCard() {
   const getIconBg = (type: string) => {
     switch (type) {
       case "feeding":
-        return "bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400";
+        return "bg-[var(--color-feed)]/15 text-[var(--color-feed)]";
       case "sleep":
-        return "bg-indigo-100 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400";
+        return "bg-[var(--color-sleep)]/15 text-[var(--color-sleep)]";
       case "diaper":
-        return "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400";
+        return "bg-[var(--color-diaper)]/15 text-[var(--color-diaper)]";
       case "medication":
-        return "bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400";
+        return "bg-[var(--color-health)]/15 text-[var(--color-health)]";
       default:
-        return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+        return "bg-[var(--color-activity)]/15 text-[var(--color-activity)]";
     }
   };
 

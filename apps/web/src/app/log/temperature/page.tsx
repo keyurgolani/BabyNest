@@ -1,21 +1,39 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import Link from "next/link";
-import { ChevronLeft, Thermometer } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { MobileContainer } from "@/components/layout/mobile-container";
+import { Thermometer } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { api, SymptomSeverity } from "@/lib/api-client";
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
+import { LogFormWrapper } from "@/components/log/log-form-wrapper";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const QUICK_TEMPS_F = [98.6, 99.5, 100.4, 101, 102, 103];
 const QUICK_TEMPS_C = [37.0, 37.5, 38.0, 38.3, 38.9, 39.4];
 
 export default function TemperatureLogPage() {
+  return (
+    <Suspense fallback={<TemperaturePageLoading />}>
+      <TemperatureLogPageContent />
+    </Suspense>
+  );
+}
+
+function TemperaturePageLoading() {
+  return (
+    <div className="p-4 space-y-6 animate-pulse">
+      <div className="h-10 bg-white/10 rounded-lg w-1/3" />
+      <div className="h-32 bg-white/10 rounded-3xl" />
+    </div>
+  );
+}
+
+function TemperatureLogPageContent() {
   const [temperature, setTemperature] = useState("");
   const [tempUnit, setTempUnit] = useState<"F" | "C">("F");
   const [timestamp, setTimestamp] = useState<Date>(new Date());
@@ -108,133 +126,141 @@ export default function TemperatureLogPage() {
   };
 
   return (
-    <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/log" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Log Temperature</h1>
-        </div>
-
-        {/* Temperature Display */}
-        <Card className="p-6 border-0 bg-gradient-to-br from-card to-muted/20">
-          <div className="flex flex-col items-center">
-            {/* Large Temperature Input */}
-            <div className="relative mb-4">
-              <label htmlFor="temperature-input" className="sr-only">Temperature</label>
-              <input
-                id="temperature-input"
-                name="temperature-input"
-                type="number"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-                placeholder={tempUnit === "F" ? "98.6" : "37.0"}
-                className="w-40 h-24 text-center text-5xl font-heading font-bold bg-transparent border-b-4 border-muted focus:border-primary outline-none transition-colors tabular-nums"
-              />
-              <span className="absolute right-0 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground">
-                °{tempUnit}
-              </span>
-            </div>
-
-            {/* Status Badge */}
-            {tempStatus && (
-              <div className={cn("px-4 py-2 rounded-full text-sm font-bold text-white mb-4", tempStatus.bg)}>
-                {tempStatus.label}
+    <div className="p-4 pb-32">
+      <LogFormWrapper
+        title="Log Temperature"
+        backHref="/log"
+        showCard={false}
+      >
+        <div className="space-y-6">
+          {/* Temperature Display Card */}
+          <GlassCard size="lg" className="space-y-4">
+            <div className="flex flex-col items-center">
+              {/* Large Temperature Input */}
+              <div className="relative mb-4">
+                <label htmlFor="temperature-input" className="sr-only">Temperature</label>
+                <GlassInput
+                  id="temperature-input"
+                  name="temperature-input"
+                  type="number"
+                  step="0.1"
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  placeholder={tempUnit === "F" ? "98.6" : "37.0"}
+                  className="w-40 h-24 text-center text-5xl font-heading font-bold border-b-4 border-[var(--glass-border)] focus:border-primary rounded-none px-0 tabular-nums min-h-[48px]"
+                />
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground">
+                  °{tempUnit}
+                </span>
               </div>
-            )}
 
-            {/* Unit Toggle */}
-            <div className="flex bg-muted/50 rounded-xl p-1">
-              <button
-                onClick={() => setTempUnit("F")}
-                className={cn(
-                  "px-6 py-2 rounded-lg font-bold transition-all",
-                  tempUnit === "F"
-                    ? "bg-white dark:bg-black shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                °F
-              </button>
-              <button
-                onClick={() => setTempUnit("C")}
-                className={cn(
-                  "px-6 py-2 rounded-lg font-bold transition-all",
-                  tempUnit === "C"
-                    ? "bg-white dark:bg-black shadow-sm text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                °C
-              </button>
-            </div>
-          </div>
-        </Card>
+              {/* Status Badge */}
+              {tempStatus && (
+                <div className={cn("px-4 py-2 rounded-full text-sm font-bold text-white mb-4", tempStatus.bg)}>
+                  {tempStatus.label}
+                </div>
+              )}
 
-        {/* Quick Temperature Buttons */}
-        <div className="space-y-2">
-          <span id="quick-select-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Select</span>
-          <div className="grid grid-cols-3 gap-2">
-            {quickTemps.map((temp) => {
-              const status = getTempStatus(temp.toString(), tempUnit);
-              return (
-                <button
-                  key={temp}
-                  onClick={() => handleQuickTemp(temp)}
-                  className={cn(
-                    "py-3 rounded-xl font-bold text-sm transition-all border-2",
-                    temperature === temp.toString()
-                      ? `${status?.bg || "bg-primary"} border-transparent text-white`
-                      : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-                  )}
+              {/* Unit Toggle */}
+              <div className="flex gap-2">
+                <GlassButton
+                  onClick={() => setTempUnit("F")}
+                  variant={tempUnit === "F" ? "primary" : "default"}
+                  className="px-6"
                 >
-                  {temp}°
-                </button>
-              );
-            })}
+                  °F
+                </GlassButton>
+                <GlassButton
+                  onClick={() => setTempUnit("C")}
+                  variant={tempUnit === "C" ? "primary" : "default"}
+                  className="px-6"
+                >
+                  °C
+                </GlassButton>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Quick Temperature Buttons */}
+          <GlassCard size="lg" className="space-y-4">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Quick Select
+            </span>
+            <div className="grid grid-cols-3 gap-2">
+              {quickTemps.map((temp) => {
+                const status = getTempStatus(temp.toString(), tempUnit);
+                const isSelected = temperature === temp.toString();
+                return (
+                  <GlassButton
+                    key={temp}
+                    onClick={() => handleQuickTemp(temp)}
+                    variant={isSelected ? "primary" : "default"}
+                    className={cn(
+                      "py-3 font-bold text-sm min-h-[48px]",
+                      isSelected && status?.bg && `${status.bg} border-transparent text-white`
+                    )}
+                  >
+                    {temp}°
+                  </GlassButton>
+                );
+              })}
+            </div>
+          </GlassCard>
+
+          {/* Desktop: Time and Notes Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Time */}
+            <GlassCard size="lg" className="space-y-4">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                When
+              </span>
+              <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+            </GlassCard>
+
+            {/* Notes */}
+            <GlassCard size="lg" className="space-y-4">
+              <label htmlFor="temperature-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Notes
+              </label>
+              <GlassTextarea
+                id="temperature-notes"
+                name="temperature-notes"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Any observations (e.g., after bath, fussy, etc.)"
+                rows={2}
+                className="min-h-[80px]"
+              />
+            </GlassCard>
           </div>
-        </div>
 
-        {/* Time */}
-        <div className="space-y-2">
-          <span id="temperature-when-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">When</span>
-          <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+          {/* Spacer for fixed button */}
+          <div className="h-5" />
         </div>
+      </LogFormWrapper>
 
-        {/* Notes */}
-        <div className="space-y-2">
-          <label htmlFor="temperature-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
-          <textarea
-            id="temperature-notes"
-            name="temperature-notes"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Any observations (e.g., after bath, fussy, etc.)"
-            className="w-full rounded-2xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 p-4 text-sm resize-none outline-none transition-all placeholder:text-muted-foreground/50"
-            rows={2}
-          />
-        </div>
-
-        {/* Spacer for fixed button */}
-        <div className="h-5" />
-
-        {/* Save Button */}
-        <div className="fixed bottom-32 left-4 right-4 z-50">
-          <Button
-            onClick={handleSave}
-            disabled={!temperature || isLoading}
-            className={cn(
-              "w-full h-16 rounded-full text-lg font-bold shadow-xl text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50",
-              tempStatus?.bg || "bg-primary"
-            )}
-          >
-            {isLoading ? "Saving..." : <><Thermometer className="w-5 h-5 mr-2" /> Save Temperature</>}
-          </Button>
-        </div>
+      {/* Save Button - Fixed at bottom */}
+      <div className="fixed bottom-32 left-4 right-4 z-50">
+        <GlassButton
+          onClick={handleSave}
+          disabled={!temperature || isLoading}
+          variant="primary"
+          size="lg"
+          className={cn(
+            "w-full h-16 rounded-full text-lg font-bold shadow-xl",
+            tempStatus?.bg && `${tempStatus.bg} shadow-${tempStatus.bg.replace('bg-', '')}/20`
+          )}
+        >
+          {isLoading ? (
+            "Saving..."
+          ) : (
+            <>
+              <Thermometer className="w-5 h-5 mr-2" />
+              Save Temperature
+            </>
+          )}
+        </GlassButton>
       </div>
-    </MobileContainer>
+    </div>
   );
 }

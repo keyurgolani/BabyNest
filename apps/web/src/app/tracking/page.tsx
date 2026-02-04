@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { PageHeader } from "@/components/ui/page-header";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { MobileContainer } from "@/components/layout/mobile-container";
@@ -19,10 +21,10 @@ export default function TrackingPage() {
     <MobileContainer>
       <div className="p-4 space-y-4 pb-32 overflow-y-auto">
         {/* Header */}
-        <div className="mb-2">
-          <h1 className="text-2xl font-heading font-bold text-foreground">Tracking</h1>
-          <p className="text-sm text-muted-foreground">Monitor your baby&apos;s progress</p>
-        </div>
+        <PageHeader 
+          title="Tracking" 
+          subtitle="Monitor your baby's progress"
+        />
 
         {/* Memories widget - Full width on mobile */}
         <div className="grid grid-cols-1 gap-3">
@@ -77,11 +79,9 @@ function GrowthWidget() {
   }, []);
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
+    <GlassCard interactive className="p-4">
       <Link href="/tracking/growth" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <TrendingUp className="w-5 h-5 text-white" />
-        </div>
+        <IconBadge color="growth" icon={TrendingUp} size="default" gradient />
         <span className="font-bold text-foreground">Growth</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
       </Link>
@@ -89,7 +89,7 @@ function GrowthWidget() {
       {isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-8 bg-muted/50 rounded-lg animate-pulse" />
+            <div key={i} className="h-8 bg-white/5 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : latestGrowth && (latestGrowth.weight > 0 || latestGrowth.height > 0) ? (
@@ -122,7 +122,7 @@ function GrowthWidget() {
           <span className="text-xs text-muted-foreground">No data yet</span>
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -165,11 +165,9 @@ function ActivityWidget() {
   const hasActivity = stats && (stats.tummyTime > 0 || stats.outdoor > 0 || stats.play > 0 || stats.bath > 0);
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5">
+    <GlassCard interactive className="p-4">
       <Link href="/tracking/activities" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <Activity className="w-5 h-5 text-white" />
-        </div>
+        <IconBadge color="activity" icon={Activity} size="default" gradient />
         <span className="font-bold text-foreground">Activities</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
       </Link>
@@ -177,7 +175,7 @@ function ActivityWidget() {
       {isLoading ? (
         <div className="grid grid-cols-2 gap-2">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-12 bg-muted/50 rounded-lg animate-pulse" />
+            <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : hasActivity ? (
@@ -205,7 +203,7 @@ function ActivityWidget() {
           <span className="text-xs text-muted-foreground">No activity today</span>
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -241,11 +239,9 @@ function HealthWidget() {
   }, []);
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-rose-500/10 to-rose-500/5">
+    <GlassCard interactive className="p-4">
       <Link href="/tracking/health" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-rose-500 flex items-center justify-center shadow-lg shadow-rose-500/20">
-          <Heart className="w-5 h-5 text-white" />
-        </div>
+        <IconBadge color="health" icon={Heart} size="default" gradient />
         <span className="font-bold text-foreground">Health</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
       </Link>
@@ -253,7 +249,7 @@ function HealthWidget() {
       {isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-8 bg-muted/50 rounded-lg animate-pulse" />
+            <div key={i} className="h-8 bg-white/5 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : healthStats ? (
@@ -281,7 +277,7 @@ function HealthWidget() {
           </div>
         </div>
       ) : null}
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -338,7 +334,7 @@ function MilestonesWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-purple-500/10 to-purple-500/5">
+    <GlassCard interactive className="p-4">
       <Link href="/milestones" className="flex items-center gap-2 mb-3">
         <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
           <Star className="w-5 h-5 text-white" />
@@ -351,10 +347,10 @@ function MilestonesWidget() {
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
             {[1, 2].map((i) => (
-              <div key={i} className="h-14 bg-muted/50 rounded-lg animate-pulse" />
+              <div key={i} className="h-14 bg-white/5 rounded-lg animate-pulse" />
             ))}
           </div>
-          <div className="h-20 bg-muted/50 rounded-lg animate-pulse" />
+          <div className="h-20 bg-white/5 rounded-lg animate-pulse" />
         </div>
       ) : stats ? (
         <div className="space-y-3">
@@ -387,7 +383,7 @@ function MilestonesWidget() {
           <span className="text-xs text-muted-foreground">Track milestones</span>
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -502,11 +498,9 @@ function MiniTimelineWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 h-full flex flex-col">
+    <GlassCard className="p-4 h-full flex flex-col">
       <Link href="/tracking/timeline" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-          <Clock className="w-5 h-5 text-white" />
-        </div>
+        <IconBadge color="sleep" icon={Clock} size="default" gradient />
         <div className="flex-1">
           <span className="font-bold text-foreground">Timeline</span>
           <p className="text-xs text-muted-foreground">Recent activity</p>
@@ -517,7 +511,7 @@ function MiniTimelineWidget() {
       {isLoading ? (
         <div className="flex-1 space-y-2">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-10 bg-muted/50 rounded-lg animate-pulse" />
+            <div key={i} className="h-10 bg-white/5 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : entries.length > 0 ? (
@@ -525,7 +519,7 @@ function MiniTimelineWidget() {
           {entries.map((entry) => (
             <div 
               key={entry.id} 
-              className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
             >
               <div className={cn("w-6 h-6 rounded-md flex items-center justify-center", getColor(entry.type))}>
                 {getIcon(entry.type)}
@@ -553,7 +547,7 @@ function MiniTimelineWidget() {
       >
         <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">View Full Timeline</span>
       </Link>
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -607,11 +601,9 @@ function MemoriesWidget() {
   };
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-amber-500/10 to-amber-500/5 overflow-hidden">
+    <GlassCard className="p-4 overflow-hidden">
       <Link href="/memories" className="flex items-center gap-2 mb-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-          <Camera className="w-5 h-5 text-white" />
-        </div>
+        <IconBadge color="memory" icon={Camera} size="default" gradient />
         <div className="flex-1">
           <span className="font-bold text-foreground">Memories</span>
           <p className="text-xs text-muted-foreground">{memories.length} photos & moments</p>
@@ -620,7 +612,7 @@ function MemoriesWidget() {
       </Link>
       
       {isLoading ? (
-        <div className="h-64 bg-muted/50 rounded-xl animate-pulse" />
+        <div className="h-64 bg-white/5 rounded-xl animate-pulse" />
       ) : currentMemory ? (
         <Link href="/memories" className="block">
           <div 
@@ -647,7 +639,7 @@ function MemoriesWidget() {
               <p className="text-white/80 text-xs">{formatDate(currentMemory.takenAt)}</p>
             </div>
             {memories.length > 1 && (
-              <div className="absolute top-2 right-2 px-2 py-1 bg-black/40 rounded-full">
+              <div className="absolute top-2 right-2 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full">
                 <span className="text-white text-[10px] font-medium">
                   {currentIndex + 1} / {memories.length}
                 </span>
@@ -657,13 +649,13 @@ function MemoriesWidget() {
         </Link>
       ) : (
         <Link href="/memories" className="block">
-          <div className="flex flex-col items-center justify-center h-64 bg-amber-500/10 rounded-xl">
+          <div className="flex flex-col items-center justify-center h-64 bg-white/5 rounded-xl">
             <Camera className="w-12 h-12 text-amber-500/40 mb-2" />
             <span className="text-sm text-muted-foreground">No memories yet</span>
             <span className="text-xs text-amber-600 dark:text-amber-400 mt-1">Tap to add your first</span>
           </div>
         </Link>
       )}
-    </Card>
+    </GlassCard>
   );
 }

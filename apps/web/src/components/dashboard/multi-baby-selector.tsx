@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Badge } from "@/components/ui/badge";
 import { api, BabyResponseDto } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
@@ -73,10 +73,10 @@ export function MultiBabySelector() {
   return (
     <div className="relative">
       {/* Current Baby Button */}
-      <Button
-        variant="outline"
+      <GlassButton
+        variant="default"
         onClick={() => setShowDropdown(!showDropdown)}
-        className="w-full justify-between gap-2 h-auto py-3 px-4 bg-card hover:bg-accent"
+        className="w-full justify-between gap-2 h-auto py-3 px-4"
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           {/* Avatar */}
@@ -118,7 +118,7 @@ export function MultiBabySelector() {
             showDropdown && "rotate-180"
           )} 
         />
-      </Button>
+      </GlassButton>
 
       {/* Dropdown Menu */}
       {showDropdown && (
@@ -130,17 +130,17 @@ export function MultiBabySelector() {
           />
           
           {/* Menu */}
-          <Card className="absolute top-full left-0 right-0 mt-2 z-50 p-2 shadow-lg border-2">
+          <GlassCard className="absolute top-full left-0 right-0 mt-2 z-50 p-2 shadow-lg">
             <div className="space-y-1 max-h-[400px] overflow-y-auto">
               {babies.map((babyItem) => (
                 <button
                   key={babyItem.id}
                   onClick={() => handleSelectBaby(babyItem)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left",
+                    "w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-left",
                     baby?.id === babyItem.id
                       ? "bg-primary/10 hover:bg-primary/15"
-                      : "hover:bg-accent"
+                      : "hover:bg-white/10"
                   )}
                 >
                   {/* Avatar */}
@@ -184,7 +184,7 @@ export function MultiBabySelector() {
               {/* Add Baby Button */}
               <Link href="/onboarding">
                 <button
-                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors text-left border-t mt-2 pt-3"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-colors text-left border-t border-white/10 mt-2 pt-3"
                   onClick={() => setShowDropdown(false)}
                 >
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -197,7 +197,7 @@ export function MultiBabySelector() {
                 </button>
               </Link>
             </div>
-          </Card>
+          </GlassCard>
         </>
       )}
     </div>
@@ -231,11 +231,11 @@ export function MultiBabySummaryDashboard() {
 
   if (loading) {
     return (
-      <Card className="p-6">
+      <GlassCard>
         <div className="flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -246,64 +246,60 @@ export function MultiBabySummaryDashboard() {
   return (
     <div className="space-y-4">
       {/* Summary Header */}
-      <Card className="border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">All Babies Summary</h3>
-            <Badge variant="outline">{babies.length} babies</Badge>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            {babies.map((baby) => (
-              <Link 
-                key={baby.id} 
-                href={`/?baby=${baby.id}`}
-                className="p-3 rounded-lg bg-white/50 dark:bg-black/20 hover:bg-white/70 dark:hover:bg-black/30 transition-colors"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 relative">
-                    {baby.photoUrl ? (
-                      <Image 
-                        src={baby.photoUrl} 
-                        alt={baby.name} 
-                        fill
-                        sizes="32px"
-                        className="object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
-                        }}
-                      />
-                    ) : (
-                      <Baby className="w-4 h-4 text-primary" />
-                    )}
-                  </div>
-                  <p className="font-medium text-sm text-foreground truncate">
-                    {baby.name}
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {baby.age.months}m {baby.age.days}d
-                </p>
-              </Link>
-            ))}
-          </div>
+      <GlassCard>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-foreground">All Babies Summary</h3>
+          <Badge variant="outline" className="bg-white/10 border-white/20">{babies.length} babies</Badge>
         </div>
-      </Card>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {babies.map((baby) => (
+            <Link 
+              key={baby.id} 
+              href={`/?baby=${baby.id}`}
+              className="p-3 rounded-xl bg-white/20 dark:bg-white/5 hover:bg-white/30 dark:hover:bg-white/10 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0 relative">
+                  {baby.photoUrl ? (
+                    <Image 
+                      src={baby.photoUrl} 
+                      alt={baby.name} 
+                      fill
+                      sizes="32px"
+                      className="object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://api.dicebear.com/7.x/avataaars/svg?seed=Baby";
+                      }}
+                    />
+                  ) : (
+                    <Baby className="w-4 h-4 text-primary" />
+                  )}
+                </div>
+                <p className="font-medium text-sm text-foreground truncate">
+                  {baby.name}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {baby.age.months}m {baby.age.days}d
+              </p>
+            </Link>
+          ))}
+        </div>
+      </GlassCard>
 
       {/* Upcoming Events Across All Babies */}
-      <Card className="border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
-            <h3 className="font-semibold text-foreground">Upcoming Events</h3>
-          </div>
-          
-          <p className="text-sm text-muted-foreground text-center py-4">
-            No upcoming events for any baby
-          </p>
+      <GlassCard>
+        <div className="flex items-center gap-2 mb-3">
+          <Calendar className="w-5 h-5 text-[var(--color-activity)]" />
+          <h3 className="font-semibold text-foreground">Upcoming Events</h3>
         </div>
-      </Card>
+        
+        <p className="text-sm text-muted-foreground text-center py-4">
+          No upcoming events for any baby
+        </p>
+      </GlassCard>
     </div>
   );
 }

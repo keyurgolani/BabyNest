@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { PageHeader } from "@/components/ui/page-header";
+import { IconBadge } from "@/components/ui/icon-badge";
 
 import { cn } from "@/lib/utils";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { api, SymptomResponse, MedicationResponse, VaccinationResponse } from "@/lib/api-client";
-import { ChevronLeft, Plus, Thermometer, Pill, Syringe, Calendar, AlertCircle } from "lucide-react";
+import { Plus, Thermometer, Pill, Syringe, Calendar, AlertCircle } from "lucide-react";
 
 type TabType = "symptoms" | "medications" | "vaccinations";
 
@@ -51,52 +53,59 @@ export default function HealthTrackingPage() {
   return (
     <MobileContainer>
       <div className="p-4 space-y-6 pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/tracking" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-heading font-bold text-foreground">Health Tracking</h1>
-            <p className="text-sm text-muted-foreground">Symptoms, medications & vaccines</p>
-          </div>
-          <Link href={getLogLink()}>
-            <Button size="sm" className="gap-1">
-              <Plus className="w-4 h-4" />
-              Add
-            </Button>
-          </Link>
-        </div>
+        {/* Header with PageHeader component */}
+        <PageHeader
+          title="Health Tracking"
+          subtitle="Symptoms, medications & vaccines"
+          backHref="/tracking"
+          action={
+            <Link href={getLogLink()}>
+              <GlassButton size="sm" variant="primary" className="gap-1">
+                <Plus className="w-4 h-4" />
+                Add
+              </GlassButton>
+            </Link>
+          }
+        />
 
-        {/* Tab Selector */}
-        <div className="flex gap-1 bg-muted/50 p-1 rounded-xl">
-          {[
-            { key: "symptoms" as const, label: "Symptoms", icon: Thermometer, count: symptoms.length },
-            { key: "medications" as const, label: "Meds", icon: Pill, count: medications.length },
-            { key: "vaccinations" as const, label: "Vaccines", icon: Syringe, count: vaccinations.length },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1 px-2 py-2 text-sm font-medium rounded-lg transition-all",
-                activeTab === tab.key
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <tab.icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
-              <span className="text-xs bg-muted px-1.5 rounded-full">{tab.count}</span>
-            </button>
-          ))}
-        </div>
+        {/* Tab Selector with GlassCard styling */}
+        <GlassCard size="sm" className="p-1.5">
+          <div className="flex gap-1">
+            {[
+              { key: "symptoms" as const, label: "Symptoms", icon: Thermometer, count: symptoms.length },
+              { key: "medications" as const, label: "Meds", icon: Pill, count: medications.length },
+              { key: "vaccinations" as const, label: "Vaccines", icon: Syringe, count: vaccinations.length },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200",
+                  activeTab === tab.key
+                    ? "bg-white/20 dark:bg-white/10 text-foreground shadow-sm backdrop-blur-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+                )}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className={cn(
+                  "text-xs px-1.5 py-0.5 rounded-full font-medium",
+                  activeTab === tab.key
+                    ? "bg-white/20 dark:bg-white/10"
+                    : "bg-muted/50"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </GlassCard>
 
         {/* Content */}
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-muted/50 rounded-xl animate-pulse" />
+              <GlassCard key={i} className="h-20 animate-pulse" />
             ))}
           </div>
         ) : (
@@ -118,33 +127,31 @@ function SymptomsTab({ symptoms }: { symptoms: SymptomResponse[] }) {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "mild": return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
-      case "moderate": return "bg-orange-500/10 text-orange-600 dark:text-orange-400";
-      case "severe": return "bg-red-500/10 text-red-600 dark:text-red-400";
+      case "mild": return "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400";
+      case "moderate": return "bg-orange-500/20 text-orange-600 dark:text-orange-400";
+      case "severe": return "bg-red-500/20 text-red-600 dark:text-red-400";
       default: return "bg-muted text-muted-foreground";
     }
   };
 
   if (sortedSymptoms.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <Thermometer className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+      <GlassCard className="p-8 text-center">
+        <IconBadge color="health" icon={Thermometer} size="lg" className="mx-auto mb-3 opacity-50" />
         <p className="text-muted-foreground">No symptoms recorded</p>
         <p className="text-xs text-muted-foreground mt-1">That&apos;s great news! 🎉</p>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
     <div className="space-y-3">
       {sortedSymptoms.map((symptom) => (
-        <Card key={symptom.id} className="p-4">
+        <GlassCard key={symptom.id} interactive>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-red-500" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
+            <IconBadge color="health" icon={AlertCircle} />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p className="font-medium text-foreground capitalize">{symptom.symptomType.replace("_", " ")}</p>
                 <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", getSeverityColor(symptom.severity))}>
                   {symptom.severity}
@@ -159,11 +166,11 @@ function SymptomsTab({ symptoms }: { symptoms: SymptomResponse[] }) {
                 <p className="text-sm text-foreground mt-1">🌡️ {symptom.temperature}°C</p>
               )}
               {symptom.notes && (
-                <p className="text-sm text-muted-foreground mt-1">{symptom.notes}</p>
+                <p className="text-sm text-muted-foreground mt-1 truncate">{symptom.notes}</p>
               )}
             </div>
           </div>
-        </Card>
+        </GlassCard>
       ))}
     </div>
   );
@@ -176,22 +183,20 @@ function MedicationsTab({ medications }: { medications: MedicationResponse[] }) 
 
   if (sortedMeds.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <Pill className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+      <GlassCard className="p-8 text-center">
+        <IconBadge color="sleep" icon={Pill} size="lg" className="mx-auto mb-3 opacity-50" />
         <p className="text-muted-foreground">No medications recorded</p>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
     <div className="space-y-3">
       {sortedMeds.map((med) => (
-        <Card key={med.id} className="p-4">
+        <GlassCard key={med.id} interactive>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <Pill className="w-5 h-5 text-blue-500" />
-            </div>
-            <div className="flex-1">
+            <IconBadge color="sleep" icon={Pill} />
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground">{med.name}</p>
               <p className="text-sm text-muted-foreground">
                 {med.dosage} {med.unit} • {med.frequency?.replace("_", " ")}
@@ -203,7 +208,7 @@ function MedicationsTab({ medications }: { medications: MedicationResponse[] }) 
               </p>
             </div>
           </div>
-        </Card>
+        </GlassCard>
       ))}
     </div>
   );
@@ -216,28 +221,26 @@ function VaccinationsTab({ vaccinations }: { vaccinations: VaccinationResponse[]
 
   if (sortedVaccines.length === 0) {
     return (
-      <Card className="p-8 text-center">
-        <Syringe className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+      <GlassCard className="p-8 text-center">
+        <IconBadge color="diaper" icon={Syringe} size="lg" className="mx-auto mb-3 opacity-50" />
         <p className="text-muted-foreground">No vaccinations recorded</p>
         <Link href="/log/vaccination">
-          <Button className="mt-4" size="sm">Add Vaccination</Button>
+          <GlassButton variant="primary" className="mt-4" size="sm">Add Vaccination</GlassButton>
         </Link>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
     <div className="space-y-3">
       {sortedVaccines.map((vaccine) => (
-        <Card key={vaccine.id} className="p-4">
+        <GlassCard key={vaccine.id} interactive>
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <Syringe className="w-5 h-5 text-green-500" />
-            </div>
-            <div className="flex-1">
+            <IconBadge color="diaper" icon={Syringe} />
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground">{vaccine.vaccineName}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                <Calendar className="w-3 h-3 inline mr-1" />
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
                 {new Date(vaccine.timestamp).toLocaleDateString("en-US", { 
                   month: "short", day: "numeric", year: "numeric"
                 })}
@@ -247,7 +250,7 @@ function VaccinationsTab({ vaccinations }: { vaccinations: VaccinationResponse[]
               )}
             </div>
           </div>
-        </Card>
+        </GlassCard>
       ))}
     </div>
   );

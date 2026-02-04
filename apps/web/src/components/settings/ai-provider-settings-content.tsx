@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/glass-select";
+import { Switch } from "@/components/ui/switch";
 import { Icons } from "@/components/icons";
 import { api, AiProviderInfo, AiConfigResponse, AiProviderType, ModelInfo } from "@/lib/api-client";
 
@@ -239,32 +242,22 @@ export function AiProviderSettingsContent() {
       )}
 
       {/* Enable Custom Providers */}
-      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+      <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
         <div>
           <p className="font-medium text-foreground text-sm">Use Custom AI Providers</p>
           <p className="text-xs text-muted-foreground">Override default Ollama</p>
         </div>
-        <button
-          onClick={() => setIsEnabled(!isEnabled)}
-          className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-            isEnabled ? 'bg-primary' : 'bg-muted-foreground/30'
-          }`}
-          role="switch"
-          aria-checked={isEnabled}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-              isEnabled ? 'translate-x-5' : 'translate-x-0'
-            }`}
-          />
-        </button>
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={setIsEnabled}
+        />
       </div>
 
 
       {isEnabled && (
         <>
           {/* Text Provider Section */}
-          <div className="space-y-3 border-t border-border/30 pt-4">
+          <div className="space-y-3 border-t border-white/10 pt-4">
             <h3 className="font-medium text-foreground text-sm flex items-center gap-2">
               <Icons.Sparkles className="w-3 h-3" />
               Text Generation
@@ -272,16 +265,20 @@ export function AiProviderSettingsContent() {
 
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">Provider</label>
-              <select
-                value={textProvider}
-                onChange={(e) => handleTextProviderChange(e.target.value as AiProviderType | '')}
-                className="w-full px-3 py-2 rounded-lg bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground text-sm"
+              <GlassSelect
+                value={textProvider || "default"}
+                onValueChange={(value) => handleTextProviderChange(value === "default" ? "" : value as AiProviderType)}
               >
-                <option value="">Use Default (Ollama)</option>
-                {providers.filter(p => p.capabilities.supportsChat).map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Use Default (Ollama)" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="default">Use Default (Ollama)</GlassSelectItem>
+                  {providers.filter(p => p.capabilities.supportsChat).map(p => (
+                    <GlassSelectItem key={p.id} value={p.id}>{p.name}</GlassSelectItem>
+                  ))}
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             {textProvider && getProviderInfo(textProvider)?.requiresApiKey && (
@@ -289,13 +286,12 @@ export function AiProviderSettingsContent() {
                 <label className="block text-xs font-medium text-foreground mb-1">
                   API Key {config?.hasTextApiKey && <span className="text-muted-foreground">(saved)</span>}
                 </label>
-                <input
+                <GlassInput
                   type="password"
                   value={textApiKey}
                   onChange={(e) => setTextApiKey(e.target.value)}
                   onBlur={handleTextApiKeyBlur}
                   placeholder={config?.hasTextApiKey ? '••••••••••••••••' : 'Enter API key'}
-                  className="w-full px-3 py-2 rounded-lg bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground text-sm"
                 />
               </div>
             )}
@@ -310,26 +306,26 @@ export function AiProviderSettingsContent() {
             {textProvider && textModels.length > 0 && (
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">Model</label>
-                <select
-                  value={textModel}
-                  onChange={(e) => setTextModel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground text-sm"
-                >
-                  {textModels.map(model => (
-                    <option key={model.id} value={model.id}>{model.name}</option>
-                  ))}
-                </select>
+                <GlassSelect value={textModel} onValueChange={setTextModel}>
+                  <GlassSelectTrigger>
+                    <GlassSelectValue placeholder="Select model" />
+                  </GlassSelectTrigger>
+                  <GlassSelectContent>
+                    {textModels.map(model => (
+                      <GlassSelectItem key={model.id} value={model.id}>{model.name}</GlassSelectItem>
+                    ))}
+                  </GlassSelectContent>
+                </GlassSelect>
               </div>
             )}
 
             {textProvider && textModels.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  variant="outline"
+                <GlassButton
+                  variant="default"
                   size="sm"
                   onClick={() => handleTest('text')}
                   disabled={testing === 'text' || !textModel}
-                  className="rounded-lg text-xs h-7"
                 >
                   {testing === 'text' ? (
                     <Icons.Loader className="w-3 h-3 animate-spin mr-1" />
@@ -337,9 +333,9 @@ export function AiProviderSettingsContent() {
                     <Icons.Activity className="w-3 h-3 mr-1" />
                   )}
                   Test
-                </Button>
+                </GlassButton>
                 {testResult?.type === 'text' && (
-                  <span className={`text-xs ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
+                  <span className={`text-xs ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
                     {testResult.message}
                   </span>
                 )}
@@ -348,7 +344,7 @@ export function AiProviderSettingsContent() {
           </div>
 
           {/* Vision Provider Section */}
-          <div className="space-y-3 border-t border-border/30 pt-4">
+          <div className="space-y-3 border-t border-white/10 pt-4">
             <h3 className="font-medium text-foreground text-sm flex items-center gap-2">
               <Icons.PhotoImport className="w-3 h-3" />
               Vision (Image Analysis)
@@ -356,16 +352,20 @@ export function AiProviderSettingsContent() {
 
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">Provider</label>
-              <select
-                value={visionProvider}
-                onChange={(e) => handleVisionProviderChange(e.target.value as AiProviderType | '')}
-                className="w-full px-3 py-2 rounded-lg bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground text-sm"
+              <GlassSelect
+                value={visionProvider || "default"}
+                onValueChange={(value) => handleVisionProviderChange(value === "default" ? "" : value as AiProviderType)}
               >
-                <option value="">Use Default (Ollama)</option>
-                {providers.filter(p => p.capabilities.supportsVision).map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Use Default (Ollama)" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="default">Use Default (Ollama)</GlassSelectItem>
+                  {providers.filter(p => p.capabilities.supportsVision).map(p => (
+                    <GlassSelectItem key={p.id} value={p.id}>{p.name}</GlassSelectItem>
+                  ))}
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             {visionProvider && getProviderInfo(visionProvider)?.requiresApiKey && (
@@ -373,13 +373,12 @@ export function AiProviderSettingsContent() {
                 <label className="block text-xs font-medium text-foreground mb-1">
                   API Key {config?.hasVisionApiKey && <span className="text-muted-foreground">(saved)</span>}
                 </label>
-                <input
+                <GlassInput
                   type="password"
                   value={visionApiKey}
                   onChange={(e) => setVisionApiKey(e.target.value)}
                   onBlur={handleVisionApiKeyBlur}
                   placeholder={config?.hasVisionApiKey ? '••••••••••••••••' : 'Enter API key'}
-                  className="w-full px-3 py-2 rounded-lg bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground text-sm"
                 />
               </div>
             )}
@@ -394,26 +393,26 @@ export function AiProviderSettingsContent() {
             {visionProvider && visionModels.length > 0 && (
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">Model</label>
-                <select
-                  value={visionModel}
-                  onChange={(e) => setVisionModel(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground text-sm"
-                >
-                  {visionModels.map(model => (
-                    <option key={model.id} value={model.id}>{model.name}</option>
-                  ))}
-                </select>
+                <GlassSelect value={visionModel} onValueChange={setVisionModel}>
+                  <GlassSelectTrigger>
+                    <GlassSelectValue placeholder="Select model" />
+                  </GlassSelectTrigger>
+                  <GlassSelectContent>
+                    {visionModels.map(model => (
+                      <GlassSelectItem key={model.id} value={model.id}>{model.name}</GlassSelectItem>
+                    ))}
+                  </GlassSelectContent>
+                </GlassSelect>
               </div>
             )}
 
             {visionProvider && visionModels.length > 0 && (
               <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  variant="outline"
+                <GlassButton
+                  variant="default"
                   size="sm"
                   onClick={() => handleTest('vision')}
                   disabled={testing === 'vision' || !visionModel}
-                  className="rounded-lg text-xs h-7"
                 >
                   {testing === 'vision' ? (
                     <Icons.Loader className="w-3 h-3 animate-spin mr-1" />
@@ -421,9 +420,9 @@ export function AiProviderSettingsContent() {
                     <Icons.Activity className="w-3 h-3 mr-1" />
                   )}
                   Test
-                </Button>
+                </GlassButton>
                 {testResult?.type === 'vision' && (
-                  <span className={`text-xs ${testResult.success ? 'text-green-600' : 'text-destructive'}`}>
+                  <span className={`text-xs ${testResult.success ? 'text-green-500' : 'text-destructive'}`}>
                     {testResult.message}
                   </span>
                 )}
@@ -436,26 +435,25 @@ export function AiProviderSettingsContent() {
       {/* Action Buttons */}
       <div className="flex gap-2 pt-2">
         {config?.isEnabled && (
-          <Button
+          <GlassButton
             variant="ghost"
             size="sm"
             onClick={handleReset}
             disabled={saving}
-            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             Reset
-          </Button>
+          </GlassButton>
         )}
         <div className="flex-1" />
-        <Button
-          variant="glow"
+        <GlassButton
+          variant="primary"
           size="sm"
           onClick={handleSave}
           disabled={saving}
-          className="rounded-lg"
         >
           {saving ? "Saving..." : "Save Settings"}
-        </Button>
+        </GlassButton>
       </div>
     </div>
   );

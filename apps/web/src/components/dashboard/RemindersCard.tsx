@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { Bell, Clock, ChevronRight, Check, AlarmClock, X, Loader2 } from "lucide-react";
 import { api, NextReminderResponse } from "@/lib/api-client";
@@ -154,21 +154,41 @@ export function RemindersCard() {
 
   if (loading) {
     return (
-      <Card className="animate-pulse shadow-[0_8px_24px_rgba(244,162,97,0.15),0_0_40px_rgba(244,162,97,0.1)]">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+      <GlassCard className="relative overflow-hidden">
+        <div className="pb-3">
+          <h3 className="text-base font-semibold flex items-center gap-2">
             <Bell className="w-5 h-5 text-amber-500 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             Reminders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-16 bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl" />
-            ))}
+          </h3>
+        </div>
+        <div className="space-y-3">
+          {/* Featured reminder skeleton */}
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10 animate-pulse">
+            <div className="flex items-start gap-3">
+              <div className="w-12 h-12 rounded-xl bg-white/10 flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-32 bg-white/10 rounded" />
+                <div className="h-3 w-20 bg-white/10 rounded" />
+                <div className="flex gap-2 pt-2">
+                  <div className="h-8 w-16 bg-white/10 rounded-lg" />
+                  <div className="h-8 w-16 bg-white/10 rounded-lg" />
+                </div>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          {/* Secondary reminders skeleton */}
+          {[1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 animate-pulse">
+              <div className="w-8 h-8 rounded-lg bg-white/10" />
+              <div className="flex-1 space-y-1">
+                <div className="h-3 w-28 bg-white/10 rounded" />
+                <div className="h-2 w-20 bg-white/10 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+      </GlassCard>
     );
   }
 
@@ -177,22 +197,28 @@ export function RemindersCard() {
                     nextReminder.minutesUntilTrigger < 0;
 
   return (
-    <Card className="shadow-[0_8px_24px_rgba(244,162,97,0.15),0_0_40px_rgba(244,162,97,0.1)] hover:shadow-[0_12px_32px_rgba(244,162,97,0.25),0_0_60px_rgba(244,162,97,0.15)]">
-      <CardHeader className="pb-3">
+    <GlassCard className="hover:shadow-2xl transition-shadow duration-200">
+      <div className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <h3 className="text-base font-semibold flex items-center gap-2">
             <Bell className="w-5 h-5 text-amber-500 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             Reminders
-          </CardTitle>
+          </h3>
           <Link href="/reminders" className="text-xs text-primary font-semibold hover:underline">
             Manage
           </Link>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         {!nextReminder?.reminder && allReminders.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-2">No active reminders</p>
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3 shadow-[0_4px_16px_rgba(251,191,36,0.3)]">
+              <Bell className="w-7 h-7 text-amber-500" />
+            </div>
+            <p className="text-sm font-semibold text-foreground mb-1">No active reminders</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Set up reminders to stay on top of your baby&apos;s schedule
+            </p>
             <Link
               href="/reminders"
               className="text-xs text-primary font-medium hover:underline"
@@ -207,13 +233,13 @@ export function RemindersCard() {
               <div className={cn(
                 "p-4 rounded-xl border transition-all",
                 isOverdue 
-                  ? "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800" 
+                  ? "bg-red-500/10 border-red-500/30 dark:bg-red-950/30 dark:border-red-800/30" 
                   : "bg-primary/10 border-primary/20"
               )}>
                 <div className="flex items-start gap-3">
                   <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0",
-                    isOverdue ? "bg-red-100 dark:bg-red-900/50" : "bg-primary/20"
+                    "w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 shadow-lg",
+                    isOverdue ? "bg-red-500/20 dark:bg-red-900/50" : "bg-primary/20"
                   )}>
                     {getReminderIcon(nextReminder.reminder.type)}
                   </div>
@@ -228,7 +254,7 @@ export function RemindersCard() {
                       <span className={cn(
                         "text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0",
                         isOverdue 
-                          ? "bg-red-200 text-red-700 dark:bg-red-800 dark:text-red-200" 
+                          ? "bg-red-500/20 text-red-600 dark:bg-red-800/30 dark:text-red-300" 
                           : "bg-primary/20 text-primary"
                       )}>
                         {isOverdue ? "Overdue" : "Next"}
@@ -343,9 +369,9 @@ export function RemindersCard() {
               .map((reminder) => (
                 <div
                   key={reminder.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg-hover)] transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-base">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-base shadow-sm">
                     {getReminderIcon(reminder.type)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -370,7 +396,7 @@ export function RemindersCard() {
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </GlassCard>
   );
 }

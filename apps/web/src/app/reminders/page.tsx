@@ -1,12 +1,24 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/icons";
 import { api } from "@/lib/api-client";
 import { Reminder, ReminderType, CreateReminderDto, UpdateReminderDto } from "@babynest/types";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassCard } from "@/components/ui/glass-card";
+import { PageHeader } from "@/components/ui/page-header";
+
+/**
+ * Reminders Page - Glassmorphism Redesign
+ * 
+ * Requirements:
+ * - 23.3: Group reminders by time (Today, Tomorrow, Next Week)
+ * - 23.4: Each reminder displays in a GlassCard with checkbox and emoji icon
+ * - 23.5: Display an "Add Reminder" button at the bottom
+ */
 
 // Frontend type for display
 type FrontendReminderType = "feed" | "sleep" | "diaper" | "medicine" | "custom";
@@ -44,18 +56,20 @@ interface ReminderWithTrigger extends Reminder {
   isOverdue: boolean;
 }
 
-// Type configuration for icons and colors
+// Type configuration with emoji icons for glassmorphism design
+// Requirement 23.4: Each reminder displays with emoji icon
 const typeConfig: Record<FrontendReminderType, {
   icon: keyof typeof Icons;
+  emoji: string;
   bgColor: string;
   iconColor: string;
   label: string;
 }> = {
-  feed: { icon: "Feed", bgColor: "bg-[#FFE8D6]", iconColor: "text-[#E07A5F]", label: "Feeding" },
-  sleep: { icon: "Sleep", bgColor: "bg-[#E0F4FF]", iconColor: "text-[#4A9EBF]", label: "Sleep" },
-  diaper: { icon: "Diaper", bgColor: "bg-[#F2F7D9]", iconColor: "text-[#A7C957]", label: "Diaper" },
-  medicine: { icon: "Medication", bgColor: "bg-purple-100", iconColor: "text-purple-500", label: "Medicine" },
-  custom: { icon: "Reminders", bgColor: "bg-gray-100", iconColor: "text-gray-500", label: "Custom" },
+  feed: { icon: "Feed", emoji: "🍼", bgColor: "bg-[var(--color-feed)]/15", iconColor: "text-[var(--color-feed)]", label: "Feeding" },
+  sleep: { icon: "Sleep", emoji: "😴", bgColor: "bg-[var(--color-sleep)]/15", iconColor: "text-[var(--color-sleep)]", label: "Sleep" },
+  diaper: { icon: "Diaper", emoji: "👶", bgColor: "bg-[var(--color-diaper)]/15", iconColor: "text-[var(--color-diaper)]", label: "Diaper" },
+  medicine: { icon: "Medication", emoji: "💊", bgColor: "bg-[var(--color-medicine)]/15", iconColor: "text-[var(--color-medicine)]", label: "Medicine" },
+  custom: { icon: "Reminders", emoji: "⏰", bgColor: "bg-muted/50", iconColor: "text-muted-foreground", label: "Custom" },
 };
 
 // Quick add options
@@ -191,14 +205,14 @@ function formatReminderSchedule(reminder: Reminder): string {
   return "No schedule set";
 }
 
-type ReminderGroup = "overdue" | "today" | "tomorrow" | "thisWeek" | "later" | "snoozed" | "inactive";
+// Requirement 23.3: Group reminders by time (Today, Tomorrow, Next Week)
+type ReminderGroup = "today" | "tomorrow" | "nextWeek" | "later" | "snoozed" | "inactive";
 
 function groupReminders(reminders: ReminderWithTrigger[]): Record<ReminderGroup, ReminderWithTrigger[]> {
   const groups: Record<ReminderGroup, ReminderWithTrigger[]> = {
-    overdue: [],
     today: [],
     tomorrow: [],
-    thisWeek: [],
+    nextWeek: [],
     later: [],
     snoozed: [],
     inactive: [],
@@ -219,16 +233,15 @@ function groupReminders(reminders: ReminderWithTrigger[]): Record<ReminderGroup,
       groups.inactive.push(reminder);
     } else if (reminder.isSnoozed) {
       groups.snoozed.push(reminder);
-    } else if (reminder.isOverdue) {
-      groups.overdue.push(reminder);
     } else if (reminder.nextTriggerTime) {
       const triggerTime = new Date(reminder.nextTriggerTime);
-      if (triggerTime <= todayEnd) {
+      // Include overdue reminders in Today group
+      if (triggerTime <= todayEnd || reminder.isOverdue) {
         groups.today.push(reminder);
       } else if (triggerTime <= tomorrowEnd) {
         groups.tomorrow.push(reminder);
       } else if (triggerTime <= weekEnd) {
-        groups.thisWeek.push(reminder);
+        groups.nextWeek.push(reminder);
       } else {
         groups.later.push(reminder);
       }
@@ -261,10 +274,8 @@ export default function RemindersPage() {
   const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [batchMode, setBatchMode] = useState(false);
-  const [snoozeModalId, setSnoozeModalId] = useState<string | null>(null);
   const [completingIds, setCompletingIds] = useState<Set<string>>(new Set());
+  const [snoozeModalId, setSnoozeModalId] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const fetchReminders = useCallback(async () => {
@@ -284,7 +295,6 @@ export default function RemindersPage() {
     fetchReminders();
   }, [fetchReminders]);
 
-  // Pull to refresh handler
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchReminders();
@@ -323,18 +333,12 @@ export default function RemindersPage() {
   const completeReminder = async (id: string) => {
     setCompletingIds((prev) => new Set(prev).add(id));
     try {
-      // Mark as completed by updating lastTriggeredAt to now
       const updatedReminder = await api.reminders.update(id, {
         isActive: false,
       });
       setReminders((prev) =>
         prev.map((r) => (r.id === id ? updatedReminder : r))
       );
-      
-      // Show success message
-      setTimeout(() => {
-        setError(null);
-      }, 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to complete reminder");
     } finally {
@@ -378,75 +382,6 @@ export default function RemindersPage() {
         return next;
       });
     }
-  };
-
-  const handleBatchDelete = async () => {
-    if (!confirm(`Delete ${selectedIds.size} reminder(s)?`)) return;
-    
-    const idsToDelete = Array.from(selectedIds);
-    for (const id of idsToDelete) {
-      setDeletingIds((prev) => new Set(prev).add(id));
-    }
-    
-    try {
-      await Promise.all(idsToDelete.map(id => api.reminders.delete(id)));
-      setReminders((prev) => prev.filter((r) => !selectedIds.has(r.id)));
-      setSelectedIds(new Set());
-      setBatchMode(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete reminders");
-    } finally {
-      idsToDelete.forEach(id => {
-        setDeletingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      });
-    }
-  };
-
-  const handleBatchToggle = async (enabled: boolean) => {
-    const idsToToggle = Array.from(selectedIds);
-    for (const id of idsToToggle) {
-      setTogglingIds((prev) => new Set(prev).add(id));
-    }
-    
-    try {
-      const updates = await Promise.all(
-        idsToToggle.map(id => api.reminders.toggle(id, enabled))
-      );
-      setReminders((prev) =>
-        prev.map((r) => {
-          const updated = updates.find(u => u.id === r.id);
-          return updated || r;
-        })
-      );
-      setSelectedIds(new Set());
-      setBatchMode(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update reminders");
-    } finally {
-      idsToToggle.forEach(id => {
-        setTogglingIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      });
-    }
-  };
-
-  const toggleSelection = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
   };
 
   const handleQuickAdd = (type: FrontendReminderType) => {
@@ -504,17 +439,46 @@ export default function RemindersPage() {
     }
   };
 
+  const openAddModal = () => {
+    setSelectedType(null);
+    setEditingReminder(null);
+    setShowModal(true);
+  };
+
+  // Loading state with glassmorphism styling
   if (loading) {
     return (
-      <main className="flex flex-col gap-6 p-4 pt-12 pb-32">
-        <div className="flex justify-between items-center">
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-foreground">Reminders</h1>
-            <span className="text-muted-foreground text-sm">Never miss a moment</span>
-          </div>
-        </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <main className="flex flex-col gap-6 p-4 pt-6 pb-32">
+        <PageHeader 
+          title="Reminders" 
+          subtitle="Never miss a moment"
+        />
+        <div className="space-y-6">
+          {/* Time group skeletons */}
+          {["Today", "Tomorrow", "Next Week"].map((group, groupIndex) => (
+            <div key={group} className="space-y-3">
+              {/* Group header skeleton */}
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-20 bg-white/10 rounded animate-pulse" />
+                <div className="h-4 w-8 bg-white/10 rounded-full animate-pulse" />
+              </div>
+              {/* Reminder items skeleton */}
+              {Array.from({ length: groupIndex === 0 ? 3 : 2 }).map((_, i) => (
+                <GlassCard key={i} className="relative overflow-hidden">
+                  <div className="flex items-center gap-4">
+                    <div className="w-6 h-6 rounded-lg bg-white/10 animate-pulse" />
+                    <div className="w-12 h-12 rounded-xl bg-white/10 animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+                      <div className="h-3 w-24 bg-white/10 rounded animate-pulse" />
+                    </div>
+                    <div className="h-8 w-8 rounded-lg bg-white/10 animate-pulse" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+                </GlassCard>
+              ))}
+            </div>
+          ))}
         </div>
       </main>
     );
@@ -525,14 +489,13 @@ export default function RemindersPage() {
   return (
     <main 
       ref={scrollContainerRef}
-      className="flex flex-col gap-6 p-4 pt-12 pb-32 scroll-smooth"
+      className="flex flex-col gap-6 p-4 pt-6 pb-32 scroll-smooth"
       onTouchStart={(e) => {
         const touch = e.touches[0];
         const startY = touch.clientY;
         const scrollTop = scrollContainerRef.current?.scrollTop || 0;
         
         if (scrollTop === 0 && startY < 100) {
-          // Pull to refresh gesture detected
           const handleTouchMove = (moveEvent: TouchEvent) => {
             const currentY = moveEvent.touches[0].clientY;
             const diff = currentY - startY;
@@ -545,95 +508,53 @@ export default function RemindersPage() {
         }
       }}
     >
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold text-foreground">Reminders</h1>
-          <span className="text-muted-foreground text-sm">
-            {refreshing ? "Refreshing..." : "Never miss a moment"}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          {hasReminders && (
-            <Button
-              onClick={() => setBatchMode(!batchMode)}
-              variant={batchMode ? "default" : "outline"}
-              size="sm"
-              className="gap-2"
-            >
-              {batchMode ? <Icons.Close className="w-4 h-4" /> : <Icons.Check className="w-4 h-4" />}
-              {batchMode ? "Cancel" : "Select"}
-            </Button>
-          )}
-          <Button onClick={() => { setSelectedType(null); setEditingReminder(null); setShowModal(true); }} className="gap-2">
-            <Icons.Plus className="w-4 h-4" />
-            Add
-          </Button>
-        </div>
-      </div>
-
-      {/* Batch Actions Bar */}
-      {batchMode && selectedIds.size > 0 && (
-        <Card className="p-4 bg-primary/5 border-primary/20">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">{selectedIds.size} selected</span>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handleBatchToggle(true)}>
-                Enable
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleBatchToggle(false)}>
-                Disable
-              </Button>
-              <Button size="sm" variant="destructive" onClick={handleBatchDelete}>
-                Delete
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
+      {/* Header with PageHeader component */}
+      <PageHeader 
+        title="Reminders" 
+        subtitle={refreshing ? "Refreshing..." : "Never miss a moment"}
+      />
 
       {/* Error Message */}
       {error && (
-        <Card className="bg-red-50 border-red-200 p-4">
+        <GlassCard variant="danger" className="p-4">
           <div className="flex items-center gap-3">
-            <Icons.AlertCircle className="w-5 h-5 text-red-500" />
-            <p className="text-red-700">{error}</p>
+            <Icons.AlertCircle className="w-5 h-5 text-destructive" />
+            <p className="text-destructive flex-1">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="ml-auto text-red-500 hover:text-red-700"
+              className="text-destructive hover:text-destructive/80 transition-colors"
             >
               <Icons.Close className="w-4 h-4" />
             </button>
           </div>
-        </Card>
+        </GlassCard>
       )}
 
-      {/* Quick Add Buttons */}
-      <div className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Quick Add</h2>
+      {/* Quick Add Section with GlassCard */}
+      <GlassCard size="sm">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick Add</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickAddOptions.map((option) => {
             const config = typeConfig[option.type];
-            const IconComponent = Icons[config.icon];
             return (
               <button
                 key={option.type}
                 onClick={() => handleQuickAdd(option.type)}
-                className={`flex items-center gap-3 p-4 rounded-xl ${config.bgColor} hover:opacity-80 transition-all hover:scale-[1.02] active:scale-[0.98]`}
+                className={`flex items-center gap-3 p-4 rounded-xl ${config.bgColor} backdrop-blur-sm hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] touch-target`}
               >
-                <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
+                <span className="text-2xl" role="img" aria-label={config.label}>{config.emoji}</span>
                 <span className={`font-medium ${config.iconColor}`}>{option.label}</span>
               </button>
             );
           })}
         </div>
-      </div>
+      </GlassCard>
 
       {/* Empty State */}
       {!hasReminders && (
-        <Card className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            <Icons.Reminders className="w-10 h-10 text-primary" />
+        <GlassCard className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-20 h-20 rounded-full bg-primary/10 backdrop-blur-sm flex items-center justify-center mb-4">
+            <span className="text-4xl">⏰</span>
           </div>
           <h3 className="text-xl font-semibold text-foreground mb-2">No reminders yet</h3>
           <p className="text-muted-foreground mb-6 max-w-sm">
@@ -645,15 +566,14 @@ export default function RemindersPage() {
             <div className="flex flex-col gap-2">
               {suggestedReminders.map((suggestion, index) => {
                 const config = typeConfig[suggestion.type];
-                const IconComponent = Icons[config.icon];
                 return (
                   <button
                     key={index}
                     onClick={() => handleSuggestedReminder(suggestion)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-left"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors text-left touch-target"
                   >
                     <div className={`w-10 h-10 rounded-xl ${config.bgColor} flex items-center justify-center`}>
-                      <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
+                      <span className="text-xl">{config.emoji}</span>
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-foreground">{suggestion.title}</p>
@@ -665,38 +585,17 @@ export default function RemindersPage() {
               })}
             </div>
           </div>
-        </Card>
+        </GlassCard>
       )}
 
-      {/* Reminders List */}
+      {/* Reminders List - Grouped by Time (Requirement 23.3) */}
       {hasReminders && (
         <div className="flex flex-col gap-6">
-          {/* Overdue */}
-          {groupedReminders.overdue.length > 0 && (
-            <ReminderSection
-              title="Overdue"
-              subtitle="Needs attention"
-              reminders={groupedReminders.overdue}
-              onToggle={toggleReminder}
-              onEdit={handleEdit}
-              onDelete={deleteReminder}
-              onComplete={completeReminder}
-              onSnooze={(id) => setSnoozeModalId(id)}
-              togglingIds={togglingIds}
-              deletingIds={deletingIds}
-              completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
-              variant="overdue"
-            />
-          )}
-
-          {/* Today */}
+          {/* Today Section */}
           {groupedReminders.today.length > 0 && (
             <ReminderSection
               title="Today"
-              subtitle="Due today"
+              emoji="📅"
               reminders={groupedReminders.today}
               onToggle={toggleReminder}
               onEdit={handleEdit}
@@ -706,18 +605,14 @@ export default function RemindersPage() {
               togglingIds={togglingIds}
               deletingIds={deletingIds}
               completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
-              variant="today"
             />
           )}
 
-          {/* Tomorrow */}
+          {/* Tomorrow Section */}
           {groupedReminders.tomorrow.length > 0 && (
             <ReminderSection
               title="Tomorrow"
-              subtitle="Due tomorrow"
+              emoji="🌅"
               reminders={groupedReminders.tomorrow}
               onToggle={toggleReminder}
               onEdit={handleEdit}
@@ -727,18 +622,15 @@ export default function RemindersPage() {
               togglingIds={togglingIds}
               deletingIds={deletingIds}
               completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
             />
           )}
 
-          {/* This Week */}
-          {groupedReminders.thisWeek.length > 0 && (
+          {/* Next Week Section */}
+          {groupedReminders.nextWeek.length > 0 && (
             <ReminderSection
-              title="This Week"
-              subtitle="Next 7 days"
-              reminders={groupedReminders.thisWeek}
+              title="Next Week"
+              emoji="📆"
+              reminders={groupedReminders.nextWeek}
               onToggle={toggleReminder}
               onEdit={handleEdit}
               onDelete={deleteReminder}
@@ -747,17 +639,14 @@ export default function RemindersPage() {
               togglingIds={togglingIds}
               deletingIds={deletingIds}
               completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
             />
           )}
 
-          {/* Later */}
+          {/* Later Section */}
           {groupedReminders.later.length > 0 && (
             <ReminderSection
               title="Later"
-              subtitle="More than a week away"
+              emoji="🗓️"
               reminders={groupedReminders.later}
               onToggle={toggleReminder}
               onEdit={handleEdit}
@@ -767,17 +656,15 @@ export default function RemindersPage() {
               togglingIds={togglingIds}
               deletingIds={deletingIds}
               completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
+              dimmed
             />
           )}
 
-          {/* Snoozed */}
+          {/* Snoozed Section */}
           {groupedReminders.snoozed.length > 0 && (
             <ReminderSection
               title="Snoozed"
-              subtitle="Temporarily paused"
+              emoji="💤"
               reminders={groupedReminders.snoozed}
               onToggle={toggleReminder}
               onEdit={handleEdit}
@@ -787,18 +674,15 @@ export default function RemindersPage() {
               togglingIds={togglingIds}
               deletingIds={deletingIds}
               completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
               dimmed
             />
           )}
 
-          {/* Inactive */}
+          {/* Inactive Section */}
           {groupedReminders.inactive.length > 0 && (
             <ReminderSection
               title="Inactive"
-              subtitle="Disabled reminders"
+              emoji="⏸️"
               reminders={groupedReminders.inactive}
               onToggle={toggleReminder}
               onEdit={handleEdit}
@@ -808,14 +692,26 @@ export default function RemindersPage() {
               togglingIds={togglingIds}
               deletingIds={deletingIds}
               completingIds={completingIds}
-              batchMode={batchMode}
-              selectedIds={selectedIds}
-              onToggleSelection={toggleSelection}
               dimmed
             />
           )}
         </div>
       )}
+
+      {/* Add Reminder Button at Bottom (Requirement 23.5) */}
+      <div className="fixed bottom-24 left-0 right-0 px-4 pb-safe z-10 lg:bottom-8 lg:left-auto lg:right-8 lg:px-0">
+        <div className="max-w-md mx-auto lg:max-w-none lg:w-auto">
+          <GlassButton
+            variant="primary"
+            size="lg"
+            onClick={openAddModal}
+            className="w-full lg:w-auto gap-2 shadow-2xl"
+          >
+            <Icons.Plus className="w-5 h-5" />
+            Add Reminder
+          </GlassButton>
+        </div>
+      </div>
 
       {/* Add/Edit Reminder Modal */}
       {showModal && (
@@ -839,7 +735,7 @@ export default function RemindersPage() {
   );
 }
 
-// Snooze Modal Component
+// Snooze Modal Component with Glassmorphism
 function SnoozeModal({
   onClose,
   onSnooze,
@@ -866,67 +762,66 @@ function SnoozeModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-sm">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-foreground">Snooze Reminder</h2>
+    <GlassModal
+      isOpen={true}
+      onClose={onClose}
+      title="Snooze Reminder"
+      size="sm"
+    >
+      {!showCustom ? (
+        <div className="flex flex-col gap-2">
+          {SNOOZE_OPTIONS.map((option) => (
             <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"
+              key={option.label}
+              onClick={() => handleSnooze(option.minutes)}
+              className="w-full py-3 px-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-primary/20 hover:border-primary/30 hover:text-primary transition-all text-left font-medium touch-target"
             >
-              <Icons.Close className="w-4 h-4" />
+              {option.label}
             </button>
-          </div>
-
-          {!showCustom ? (
-            <div className="flex flex-col gap-2">
-              {SNOOZE_OPTIONS.map((option) => (
-                <button
-                  key={option.label}
-                  onClick={() => handleSnooze(option.minutes)}
-                  className="w-full py-3 px-4 rounded-xl bg-muted hover:bg-primary/10 hover:text-primary transition-colors text-left font-medium"
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Minutes
-                </label>
-                <input
-                  type="number"
-                  value={customMinutes}
-                  onChange={(e) => setCustomMinutes(e.target.value)}
-                  placeholder="Enter minutes"
-                  min="1"
-                  className="w-full px-4 py-3 rounded-xl bg-muted border-none focus:ring-2 focus:ring-primary outline-none"
-                  autoFocus
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setShowCustom(false)} className="flex-1">
-                  Back
-                </Button>
-                <Button onClick={handleCustomSnooze} className="flex-1" disabled={!customMinutes || parseInt(customMinutes) <= 0}>
-                  Snooze
-                </Button>
-              </div>
-            </div>
-          )}
+          ))}
         </div>
-      </Card>
-    </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Minutes
+            </label>
+            <GlassInput
+              type="number"
+              value={customMinutes}
+              onChange={(e) => setCustomMinutes(e.target.value)}
+              placeholder="Enter minutes"
+              min="1"
+              autoFocus
+            />
+          </div>
+          <div className="flex gap-3">
+            <GlassButton
+              variant="ghost"
+              onClick={() => setShowCustom(false)}
+              className="flex-1"
+            >
+              Back
+            </GlassButton>
+            <GlassButton
+              variant="primary"
+              onClick={handleCustomSnooze}
+              className="flex-1"
+              disabled={!customMinutes || parseInt(customMinutes) <= 0}
+            >
+              Snooze
+            </GlassButton>
+          </div>
+        </div>
+      )}
+    </GlassModal>
   );
 }
 
-// Reminder Section Component
+// Reminder Section Component with Glassmorphism
 function ReminderSection({
   title,
-  subtitle,
+  emoji,
   reminders,
   onToggle,
   onEdit,
@@ -936,14 +831,10 @@ function ReminderSection({
   togglingIds,
   deletingIds,
   completingIds,
-  batchMode,
-  selectedIds,
-  onToggleSelection,
-  variant,
   dimmed = false,
 }: {
   title: string;
-  subtitle: string;
+  emoji: string;
   reminders: ReminderWithTrigger[];
   onToggle: (id: string, currentEnabled: boolean) => void;
   onEdit: (reminder: Reminder) => void;
@@ -953,26 +844,16 @@ function ReminderSection({
   togglingIds: Set<string>;
   deletingIds: Set<string>;
   completingIds: Set<string>;
-  batchMode: boolean;
-  selectedIds: Set<string>;
-  onToggleSelection: (id: string) => void;
-  variant?: "overdue" | "today" | "tomorrow" | string;
   dimmed?: boolean;
 }) {
-  const getBadgeVariant = () => {
-    if (variant === "overdue") return "destructive";
-    if (variant === "today") return "default";
-    return "secondary";
-  };
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title}</h2>
-        <Badge variant={getBadgeVariant()} className="text-xs">
+        <span className="text-lg" role="img" aria-label={title}>{emoji}</span>
+        <h2 className="text-sm font-semibold text-foreground uppercase tracking-wide">{title}</h2>
+        <Badge variant="secondary" className="text-xs bg-white/10 backdrop-blur-sm">
           {reminders.length}
         </Badge>
-        <span className="text-xs text-muted-foreground">• {subtitle}</span>
       </div>
       <div className={`flex flex-col gap-3 ${dimmed ? 'opacity-60' : ''}`}>
         {reminders.map((reminder) => (
@@ -987,10 +868,6 @@ function ReminderSection({
             isToggling={togglingIds.has(reminder.id)}
             isDeleting={deletingIds.has(reminder.id)}
             isCompleting={completingIds.has(reminder.id)}
-            isOverdue={variant === "overdue"}
-            batchMode={batchMode}
-            isSelected={selectedIds.has(reminder.id)}
-            onToggleSelection={onToggleSelection}
           />
         ))}
       </div>
@@ -998,7 +875,7 @@ function ReminderSection({
   );
 }
 
-// Reminder Card Component
+// Reminder Card Component with GlassCard, checkbox, and emoji icon (Requirement 23.4)
 function ReminderCard({
   reminder,
   onToggle,
@@ -1009,10 +886,6 @@ function ReminderCard({
   isToggling,
   isDeleting,
   isCompleting,
-  isOverdue = false,
-  batchMode,
-  isSelected,
-  onToggleSelection,
 }: {
   reminder: ReminderWithTrigger;
   onToggle: (id: string, currentEnabled: boolean) => void;
@@ -1023,10 +896,6 @@ function ReminderCard({
   isToggling: boolean;
   isDeleting: boolean;
   isCompleting: boolean;
-  isOverdue?: boolean;
-  batchMode: boolean;
-  isSelected: boolean;
-  onToggleSelection: (id: string) => void;
 }) {
   const [showActions, setShowActions] = useState(false);
   const [swipeX, setSwipeX] = useState(0);
@@ -1035,22 +904,20 @@ function ReminderCard({
 
   const frontendType = backendToFrontendType[reminder.type];
   const config = typeConfig[frontendType];
-  const IconComponent = Icons[config.icon];
   const schedule = formatReminderSchedule(reminder);
   const timeUntil = formatTimeUntil(reminder.minutesUntilTrigger, reminder.isOverdue);
   const triggerTime = formatTriggerTime(reminder.nextTriggerTime);
+  const isOverdue = reminder.isOverdue;
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (batchMode) return;
     startXRef.current = e.touches[0].clientX;
     setIsSwiping(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (batchMode || !isSwiping) return;
+    if (!isSwiping) return;
     const currentX = e.touches[0].clientX;
     const diff = currentX - startXRef.current;
-    // Only allow left swipe
     if (diff < 0) {
       setSwipeX(Math.max(diff, -200));
     }
@@ -1069,7 +936,7 @@ function ReminderCard({
 
   const getStatusBadge = () => {
     if (reminder.isSnoozed) {
-      return <Badge variant="soft" className="text-xs">Snoozed</Badge>;
+      return <Badge variant="secondary" className="text-xs bg-yellow-500/20 text-yellow-600">Snoozed</Badge>;
     }
     if (!reminder.isActive) {
       return <Badge variant="outline" className="text-xs">Inactive</Badge>;
@@ -1087,20 +954,20 @@ function ReminderCard({
         <div className="absolute right-0 top-0 bottom-0 flex items-center gap-2 pr-4">
           <button
             onClick={() => { onComplete(reminder.id); setShowActions(false); setSwipeX(0); }}
-            className="w-12 h-12 rounded-xl bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors"
+            className="w-12 h-12 rounded-xl bg-green-500/90 backdrop-blur-sm text-white flex items-center justify-center hover:bg-green-600 transition-colors touch-target"
             disabled={isCompleting}
           >
             <Icons.Check className="w-5 h-5" />
           </button>
           <button
             onClick={() => { onSnooze(reminder.id); setShowActions(false); setSwipeX(0); }}
-            className="w-12 h-12 rounded-xl bg-yellow-500 text-white flex items-center justify-center hover:bg-yellow-600 transition-colors"
+            className="w-12 h-12 rounded-xl bg-yellow-500/90 backdrop-blur-sm text-white flex items-center justify-center hover:bg-yellow-600 transition-colors touch-target"
           >
             <Icons.Clock className="w-5 h-5" />
           </button>
           <button
             onClick={() => { onDelete(reminder.id); setShowActions(false); setSwipeX(0); }}
-            className="w-12 h-12 rounded-xl bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+            className="w-12 h-12 rounded-xl bg-red-500/90 backdrop-blur-sm text-white flex items-center justify-center hover:bg-red-600 transition-colors touch-target"
             disabled={isDeleting}
           >
             <Icons.Trash className="w-5 h-5" />
@@ -1108,13 +975,14 @@ function ReminderCard({
         </div>
       )}
 
-      {/* Card Content */}
-      <Card 
+      {/* GlassCard with checkbox and emoji icon (Requirement 23.4) */}
+      <GlassCard 
+        interactive
         className={`transition-all ${isDeleting ? 'opacity-50 scale-95' : ''} ${
-          isOverdue ? 'ring-2 ring-red-500/30 bg-red-50/50 dark:bg-red-950/20' : ''
-        } ${isSelected ? 'ring-2 ring-primary' : ''} ${
+          isOverdue ? 'ring-2 ring-red-500/30' : ''
+        } ${
           reminder.isActive && !reminder.isSnoozed && reminder.minutesUntilTrigger !== null && reminder.minutesUntilTrigger <= 60 && !isOverdue
-            ? 'animate-pulse-subtle'
+            ? 'ring-1 ring-primary/30'
             : ''
         }`}
         style={{ transform: `translateX(${swipeX}px)` }}
@@ -1122,149 +990,151 @@ function ReminderCard({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="p-4">
-          <div className="flex items-center gap-4">
-            {/* Checkbox for batch mode */}
-            {batchMode && (
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => onToggleSelection(reminder.id)}
-                className="w-5 h-5 rounded border-muted-foreground text-primary focus:ring-primary"
-              />
+        <div className="flex items-center gap-4">
+          {/* Checkbox for completing reminder (Requirement 23.4) */}
+          <button
+            onClick={() => onComplete(reminder.id)}
+            disabled={isCompleting || !reminder.isActive}
+            className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all touch-target ${
+              !reminder.isActive 
+                ? 'border-muted bg-muted/50 cursor-not-allowed' 
+                : 'border-primary/50 hover:border-primary hover:bg-primary/10'
+            }`}
+            title="Mark as complete"
+          >
+            {isCompleting && (
+              <Icons.Loader className="w-4 h-4 animate-spin text-primary" />
             )}
+          </button>
 
-            {/* Icon */}
-            <div className={`w-12 h-12 rounded-xl ${config.bgColor} flex items-center justify-center flex-shrink-0`}>
-              <IconComponent className={`w-6 h-6 ${config.iconColor}`} />
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-semibold text-foreground truncate">{reminder.title}</h3>
-                {getStatusBadge()}
-              </div>
-              {reminder.description && (
-                <p className="text-sm text-muted-foreground truncate">{reminder.description}</p>
-              )}
-              <div className="flex items-center gap-3 mt-1 flex-wrap">
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Icons.Clock className="w-3 h-3" />
-                  {schedule}
-                </span>
-                {reminder.isActive && !reminder.isSnoozed && reminder.nextTriggerTime && (
-                  <span className={`text-xs font-medium flex items-center gap-1 ${
-                    isOverdue
-                      ? 'text-red-500'
-                      : reminder.minutesUntilTrigger !== null && reminder.minutesUntilTrigger <= 60 
-                      ? 'text-primary' 
-                      : 'text-muted-foreground'
-                  }`}>
-                    <Icons.Reminders className="w-3 h-3" />
-                    {timeUntil}
-                    {triggerTime && !isOverdue && ` (${triggerTime})`}
-                  </span>
-                )}
-                {reminder.isSnoozed && reminder.snoozedUntil && (
-                  <span className="text-xs text-yellow-600 dark:text-yellow-500 flex items-center gap-1">
-                    <Icons.Clock className="w-3 h-3" />
-                    Until {new Date(reminder.snoozedUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            {!batchMode && (
-              <div className="flex items-center gap-2">
-                {/* Toggle Switch */}
-                <button
-                  onClick={() => onToggle(reminder.id, reminder.isActive)}
-                  disabled={isToggling || isDeleting}
-                  className={`relative w-12 h-7 rounded-full transition-colors ${
-                    reminder.isActive ? "bg-primary" : "bg-muted"
-                  } ${isToggling ? 'opacity-50' : ''}`}
-                  title={reminder.isActive ? "Disable reminder" : "Enable reminder"}
-                >
-                  <div
-                    className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                      reminder.isActive ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-
-                {/* More actions button */}
-                <button
-                  onClick={() => setShowActions(!showActions)}
-                  className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                  title="More actions"
-                >
-                  <Icons.MoreVertical className="w-4 h-4" />
-                </button>
-
-                {/* Edit button */}
-                <button
-                  onClick={() => onEdit(reminder)}
-                  disabled={isDeleting || isToggling}
-                  className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                  title="Edit reminder"
-                >
-                  <Icons.Settings className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+          {/* Emoji Icon (Requirement 23.4) */}
+          <div className={`w-12 h-12 rounded-xl ${config.bgColor} backdrop-blur-sm flex items-center justify-center flex-shrink-0`}>
+            <span className="text-2xl" role="img" aria-label={config.label}>{config.emoji}</span>
           </div>
 
-          {/* Quick Actions (visible when showActions is true on desktop) */}
-          {showActions && !batchMode && (
-            <div className="mt-4 pt-4 border-t border-border flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => { onComplete(reminder.id); setShowActions(false); }}
-                disabled={isCompleting}
-                className="flex-1 gap-2"
-              >
-                {isCompleting ? (
-                  <Icons.Loader className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Icons.Check className="w-4 h-4" />
-                )}
-                Complete
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => { onSnooze(reminder.id); setShowActions(false); }}
-                className="flex-1 gap-2"
-              >
-                <Icons.Clock className="w-4 h-4" />
-                Snooze
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => { onDelete(reminder.id); setShowActions(false); }}
-                disabled={isDeleting}
-                className="flex-1 gap-2"
-              >
-                {isDeleting ? (
-                  <Icons.Loader className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Icons.Trash className="w-4 h-4" />
-                )}
-                Delete
-              </Button>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-foreground truncate">{reminder.title}</h3>
+              {getStatusBadge()}
             </div>
-          )}
+            {reminder.description && (
+              <p className="text-sm text-muted-foreground truncate">{reminder.description}</p>
+            )}
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Icons.Clock className="w-3 h-3" />
+                {schedule}
+              </span>
+              {reminder.isActive && !reminder.isSnoozed && reminder.nextTriggerTime && (
+                <span className={`text-xs font-medium flex items-center gap-1 ${
+                  isOverdue
+                    ? 'text-red-500'
+                    : reminder.minutesUntilTrigger !== null && reminder.minutesUntilTrigger <= 60 
+                    ? 'text-primary' 
+                    : 'text-muted-foreground'
+                }`}>
+                  <Icons.Reminders className="w-3 h-3" />
+                  {timeUntil}
+                  {triggerTime && !isOverdue && ` (${triggerTime})`}
+                </span>
+              )}
+              {reminder.isSnoozed && reminder.snoozedUntil && (
+                <span className="text-xs text-yellow-600 dark:text-yellow-500 flex items-center gap-1">
+                  <Icons.Clock className="w-3 h-3" />
+                  Until {new Date(reminder.snoozedUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {/* Toggle Switch */}
+            <button
+              onClick={() => onToggle(reminder.id, reminder.isActive)}
+              disabled={isToggling || isDeleting}
+              className={`relative w-12 h-7 rounded-full transition-colors touch-target ${
+                reminder.isActive ? "bg-primary" : "bg-muted"
+              } ${isToggling ? 'opacity-50' : ''}`}
+              title={reminder.isActive ? "Disable reminder" : "Enable reminder"}
+            >
+              <div
+                className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                  reminder.isActive ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+
+            {/* More actions button */}
+            <button
+              onClick={() => setShowActions(!showActions)}
+              className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors touch-target"
+              title="More actions"
+            >
+              <Icons.MoreVertical className="w-4 h-4" />
+            </button>
+
+            {/* Edit button */}
+            <button
+              onClick={() => onEdit(reminder)}
+              disabled={isDeleting || isToggling}
+              className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors touch-target"
+              title="Edit reminder"
+            >
+              <Icons.Settings className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </Card>
+
+        {/* Quick Actions (visible when showActions is true on desktop) */}
+        {showActions && (
+          <div className="mt-4 pt-4 border-t border-white/10 flex gap-2">
+            <GlassButton
+              size="sm"
+              variant="ghost"
+              onClick={() => { onComplete(reminder.id); setShowActions(false); }}
+              disabled={isCompleting}
+              className="flex-1 gap-2"
+            >
+              {isCompleting ? (
+                <Icons.Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <Icons.Check className="w-4 h-4" />
+              )}
+              Complete
+            </GlassButton>
+            <GlassButton
+              size="sm"
+              variant="ghost"
+              onClick={() => { onSnooze(reminder.id); setShowActions(false); }}
+              className="flex-1 gap-2"
+            >
+              <Icons.Clock className="w-4 h-4" />
+              Snooze
+            </GlassButton>
+            <GlassButton
+              size="sm"
+              variant="danger"
+              onClick={() => { onDelete(reminder.id); setShowActions(false); }}
+              disabled={isDeleting}
+              className="flex-1 gap-2"
+            >
+              {isDeleting ? (
+                <Icons.Loader className="w-4 h-4 animate-spin" />
+              ) : (
+                <Icons.Trash className="w-4 h-4" />
+              )}
+              Delete
+            </GlassButton>
+          </div>
+        )}
+      </GlassCard>
     </div>
   );
 }
 
-// Add/Edit Reminder Modal
+// Add/Edit Reminder Modal with Glassmorphism
 function ReminderModal({
   onClose,
   onAdd,
@@ -1280,7 +1150,6 @@ function ReminderModal({
 }) {
   const isEditing = !!editingReminder;
   
-  // Get default title for a type
   const getDefaultTitle = (reminderType: FrontendReminderType): string => {
     const defaultTitles: Record<FrontendReminderType, string> = {
       feed: "Feeding Reminder",
@@ -1313,10 +1182,8 @@ function ReminderModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle type change - update title if it's still the default for the previous type
   const handleTypeChange = (newType: FrontendReminderType) => {
     const currentDefault = getDefaultTitle(type);
-    // If title is empty or matches the current type's default, update it
     if (!title || title === currentDefault) {
       setTitle(getDefaultTitle(newType));
     }
@@ -1393,235 +1260,234 @@ function ReminderModal({
   };
 
   const config = typeConfig[type];
-  const IconComponent = Icons[config.icon];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${config.bgColor} flex items-center justify-center`}>
-                <IconComponent className={`w-5 h-5 ${config.iconColor}`} />
-              </div>
-              <h2 className="text-xl font-bold text-foreground">
-                {isEditing ? "Edit Reminder" : "Add Reminder"}
-              </h2>
-            </div>
+    <GlassModal
+      isOpen={true}
+      onClose={onClose}
+      title={isEditing ? "Edit Reminder" : "Add Reminder"}
+      size="lg"
+    >
+      {/* Type Icon Header with Emoji */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className={`w-12 h-12 rounded-xl ${config.bgColor} backdrop-blur-sm flex items-center justify-center`}>
+          <span className="text-2xl">{config.emoji}</span>
+        </div>
+        <span className="text-sm font-medium text-muted-foreground">{config.label} Reminder</span>
+      </div>
+
+      {error && (
+        <GlassCard variant="danger" size="sm" className="mb-4">
+          <div className="flex items-center gap-2 text-destructive text-sm">
+            <Icons.AlertCircle className="w-4 h-4" />
+            {error}
+          </div>
+        </GlassCard>
+      )}
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* Type Selection with Emoji Icons */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Type</label>
+          <div className="grid grid-cols-5 gap-2">
+            {(Object.keys(typeConfig) as FrontendReminderType[]).map((t) => {
+              const tConfig = typeConfig[t];
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => handleTypeChange(t)}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all touch-target ${
+                    type === t
+                      ? "border-primary bg-primary/10"
+                      : "border-white/10 bg-white/5 hover:border-primary/30 hover:bg-white/10"
+                  }`}
+                >
+                  <span className="text-xl">{tConfig.emoji}</span>
+                  <span className="text-xs font-medium capitalize">{t}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Title */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Title</label>
+          <GlassInput
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Reminder name"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Description <span className="text-muted-foreground font-normal">(optional)</span>
+          </label>
+          <GlassInput
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Additional details..."
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Schedule Type Toggle */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Schedule</label>
+          <div className="flex gap-2 p-1 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
             <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"
+              type="button"
+              onClick={() => setScheduleType("interval")}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all touch-target ${
+                scheduleType === "interval"
+                  ? "bg-white/20 shadow text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+              }`}
             >
-              <Icons.Close className="w-4 h-4" />
+              Interval
+            </button>
+            <button
+              type="button"
+              onClick={() => setScheduleType("scheduled")}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all touch-target ${
+                scheduleType === "scheduled"
+                  ? "bg-white/20 shadow text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/10"
+              }`}
+            >
+              Specific Times
             </button>
           </div>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2">
-              <Icons.AlertCircle className="w-4 h-4" />
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Type Selection */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Type</label>
-              <div className="grid grid-cols-5 gap-2">
-                {(Object.keys(typeConfig) as FrontendReminderType[]).map((t) => {
-                  const tConfig = typeConfig[t];
-                  const TIcon = Icons[tConfig.icon];
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => handleTypeChange(t)}
-                      className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
-                        type === t
-                          ? "border-primary bg-primary/10"
-                          : "border-transparent bg-muted hover:border-primary/30"
-                      }`}
-                    >
-                      <TIcon className={`w-5 h-5 ${type === t ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className="text-xs font-medium capitalize">{t}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Title</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Reminder name"
-                className="w-full px-4 py-3 rounded-xl bg-muted border-none focus:ring-2 focus:ring-primary outline-none"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Description <span className="text-muted-foreground font-normal">(optional)</span>
-              </label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Additional details..."
-                className="w-full px-4 py-3 rounded-xl bg-muted border-none focus:ring-2 focus:ring-primary outline-none"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Schedule Type Toggle */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Schedule</label>
-              <div className="flex gap-2 p-1 bg-muted rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setScheduleType("interval")}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                    scheduleType === "interval"
-                      ? "bg-white shadow text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Interval
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setScheduleType("scheduled")}
-                  className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                    scheduleType === "scheduled"
-                      ? "bg-white shadow text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Specific Times
-                </button>
-              </div>
-            </div>
-
-            {/* Interval Settings */}
-            {scheduleType === "interval" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Repeat Every</label>
-                  <div className="flex gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={intervalHours}
-                          onChange={(e) => setIntervalHours(e.target.value)}
-                          min="0"
-                          max="24"
-                          className="w-full px-4 py-3 rounded-xl bg-muted border-none focus:ring-2 focus:ring-primary outline-none"
-                          disabled={isSubmitting}
-                        />
-                        <span className="text-sm text-muted-foreground">hours</span>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={intervalMinutes}
-                          onChange={(e) => setIntervalMinutes(e.target.value)}
-                          min="0"
-                          max="59"
-                          className="w-full px-4 py-3 rounded-xl bg-muted border-none focus:ring-2 focus:ring-primary outline-none"
-                          disabled={isSubmitting}
-                        />
-                        <span className="text-sm text-muted-foreground">min</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Based on last entry option */}
-                <label className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={basedOnLastEntry}
-                    onChange={(e) => setBasedOnLastEntry(e.target.checked)}
-                    className="w-5 h-5 rounded border-muted-foreground text-primary focus:ring-primary"
-                    disabled={isSubmitting}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Based on last entry</p>
-                    <p className="text-xs text-muted-foreground">
-                      Start countdown from the last logged {type} entry
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
-
-            {/* Scheduled Times */}
-            {scheduleType === "scheduled" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Times</label>
-                <div className="space-y-2">
-                  {scheduledTimes.map((time, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="time"
-                        value={time}
-                        onChange={(e) => updateScheduledTime(index, e.target.value)}
-                        className="flex-1 px-4 py-3 rounded-xl bg-muted border-none focus:ring-2 focus:ring-primary outline-none"
-                        disabled={isSubmitting}
-                      />
-                      {scheduledTimes.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeScheduledTime(index)}
-                          className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center"
-                          disabled={isSubmitting}
-                        >
-                          <Icons.Close className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addScheduledTime}
-                    className="w-full py-2 rounded-xl border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-2"
-                    disabled={isSubmitting}
-                  >
-                    <Icons.Plus className="w-4 h-4" />
-                    Add Time
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Submit Buttons */}
-            <div className="flex gap-3 mt-2">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button type="submit" className="flex-1" disabled={isSubmitting || !title.trim()}>
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    {isEditing ? "Saving..." : "Adding..."}
-                  </div>
-                ) : (
-                  isEditing ? "Save Changes" : "Add Reminder"
-                )}
-              </Button>
-            </div>
-          </form>
         </div>
-      </Card>
-    </div>
+
+        {/* Interval Settings */}
+        {scheduleType === "interval" && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Repeat Every</label>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <GlassInput
+                      type="number"
+                      value={intervalHours}
+                      onChange={(e) => setIntervalHours(e.target.value)}
+                      min="0"
+                      max="24"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">hours</span>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <GlassInput
+                      type="number"
+                      value={intervalMinutes}
+                      onChange={(e) => setIntervalMinutes(e.target.value)}
+                      min="0"
+                      max="59"
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">min</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Based on last entry option */}
+            <label className="flex items-center gap-3 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 cursor-pointer hover:bg-white/10 transition-colors">
+              <input
+                type="checkbox"
+                checked={basedOnLastEntry}
+                onChange={(e) => setBasedOnLastEntry(e.target.checked)}
+                className="w-5 h-5 rounded border-white/20 text-primary focus:ring-primary bg-white/10"
+                disabled={isSubmitting}
+              />
+              <div>
+                <p className="text-sm font-medium text-foreground">Based on last entry</p>
+                <p className="text-xs text-muted-foreground">
+                  Start countdown from the last logged {type} entry
+                </p>
+              </div>
+            </label>
+          </div>
+        )}
+
+        {/* Scheduled Times */}
+        {scheduleType === "scheduled" && (
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Times</label>
+            <div className="space-y-2">
+              {scheduledTimes.map((time, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <GlassInput
+                    type="time"
+                    value={time}
+                    onChange={(e) => updateScheduledTime(index, e.target.value)}
+                    disabled={isSubmitting}
+                    className="flex-1"
+                  />
+                  {scheduledTimes.length > 1 && (
+                    <GlassButton
+                      type="button"
+                      variant="danger"
+                      size="icon"
+                      onClick={() => removeScheduledTime(index)}
+                      disabled={isSubmitting}
+                    >
+                      <Icons.Close className="w-4 h-4" />
+                    </GlassButton>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addScheduledTime}
+                className="w-full py-3 rounded-xl border-2 border-dashed border-white/20 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex items-center justify-center gap-2 touch-target"
+                disabled={isSubmitting}
+              >
+                <Icons.Plus className="w-4 h-4" />
+                Add Time
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Submit Buttons */}
+        <div className="flex gap-3 mt-2">
+          <GlassButton
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </GlassButton>
+          <GlassButton
+            type="submit"
+            variant="primary"
+            className="flex-1"
+            disabled={isSubmitting || !title.trim()}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <Icons.Loader className="w-4 h-4 animate-spin" />
+                {isEditing ? "Saving..." : "Adding..."}
+              </div>
+            ) : (
+              isEditing ? "Save Changes" : "Add Reminder"
+            )}
+          </GlassButton>
+        </div>
+      </form>
+    </GlassModal>
   );
 }

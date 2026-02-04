@@ -2,13 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { MobileContainer } from "@/components/layout/mobile-container";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
 import { api } from "@/lib/api-client";
 import { useAuth } from "@/components/auth-provider";
 import { toast } from "sonner";
-import { Loader2, UserPlus, CheckCircle, XCircle, AlertCircle, Clock } from "lucide-react";
+import { Icons } from "@/components/icons";
+import { 
+  Loader2, 
+  UserPlus, 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle, 
+  Clock,
+  Baby,
+  Heart
+} from "lucide-react";
+
+/**
+ * Accept Invitation Page with Glassmorphism Styling
+ * 
+ * @requirements 22.4 - Display welcome card with inviter name and accept button
+ * Uses GlassCard, GlassButton components on mesh gradient background
+ */
 
 interface InvitationInfo {
   valid: boolean;
@@ -103,82 +119,96 @@ export default function AcceptInvitationPage() {
   // Show loading state while validating invitation
   if (isValidating) {
     return (
-      <MobileContainer>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">Validating invitation...</p>
+      <div className="min-h-screen flex items-center justify-center bg-mesh p-4">
+        <GlassCard className="w-full max-w-md text-center" size="lg">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
+              <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
+            </div>
+            <div>
+              <h2 className="text-xl font-heading font-semibold text-foreground">
+                Validating Invitation
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Please wait while we verify your invitation...
+              </p>
+            </div>
           </div>
-        </div>
-      </MobileContainer>
+        </GlassCard>
+      </div>
     );
   }
 
   // Show error state if invitation is invalid
   if (invitationInfo && !invitationInfo.valid) {
     return (
-      <MobileContainer>
-        <div className="p-6 space-y-6 animate-slide-up min-h-screen flex items-center justify-center">
-          <div className="w-full max-w-md">
-            <Card className="border-0 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-                  {invitationInfo.status === 'expired' ? (
-                    <Clock className="w-8 h-8 text-red-600 dark:text-red-400" />
-                  ) : (
-                    <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
-                  )}
-                </div>
-                <CardTitle className="text-2xl">
-                  {invitationInfo.status === 'expired' ? 'Invitation Expired' : 
-                   invitationInfo.status === 'accepted' ? 'Already Accepted' :
-                   invitationInfo.status === 'revoked' ? 'Invitation Revoked' :
-                   'Invalid Invitation'}
-                </CardTitle>
-                <CardDescription>
-                  {invitationInfo.error || 'This invitation is no longer valid'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {invitationInfo.babyName && (
-                  <div className="p-4 bg-white/50 dark:bg-black/20 rounded-xl">
-                    <p className="text-sm text-muted-foreground">
-                      This invitation was for <span className="font-medium text-foreground">{invitationInfo.babyName}</span>
-                      {invitationInfo.inviterName && (
-                        <> from <span className="font-medium text-foreground">{invitationInfo.inviterName}</span></>
-                      )}
-                    </p>
-                  </div>
+      <div className="min-h-screen flex items-center justify-center bg-mesh p-4">
+        <GlassCard className="w-full max-w-md" size="lg" variant="danger">
+          {/* Header with Error Icon */}
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-destructive to-destructive/80 flex items-center justify-center shadow-lg shadow-destructive/30">
+                {invitationInfo.status === 'expired' ? (
+                  <Clock className="w-8 h-8 text-destructive-foreground" />
+                ) : (
+                  <XCircle className="w-8 h-8 text-destructive-foreground" />
                 )}
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/")}
-                  className="w-full"
-                  size="lg"
-                >
-                  Go to Home
-                </Button>
-                {invitationInfo.status === 'expired' && (
-                  <p className="text-xs text-center text-muted-foreground">
-                    Please ask the primary caregiver to send a new invitation
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+            <h1 className="text-2xl font-heading font-semibold text-foreground">
+              {invitationInfo.status === 'expired' ? 'Invitation Expired' : 
+               invitationInfo.status === 'accepted' ? 'Already Accepted' :
+               invitationInfo.status === 'revoked' ? 'Invitation Revoked' :
+               'Invalid Invitation'}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {invitationInfo.error || 'This invitation is no longer valid'}
+            </p>
           </div>
-        </div>
-      </MobileContainer>
+
+          <div className="space-y-4">
+            {/* Info about the invitation */}
+            {invitationInfo.babyName && (
+              <div className="p-4 bg-white/5 dark:bg-black/10 rounded-xl border border-white/10">
+                <p className="text-sm text-muted-foreground">
+                  This invitation was for <span className="font-medium text-foreground">{invitationInfo.babyName}</span>
+                  {invitationInfo.inviterName && (
+                    <> from <span className="font-medium text-foreground">{invitationInfo.inviterName}</span></>
+                  )}
+                </p>
+              </div>
+            )}
+
+            <GlassButton
+              variant="default"
+              onClick={() => router.push("/")}
+              className="w-full"
+            >
+              Go to Home
+            </GlassButton>
+
+            {invitationInfo.status === 'expired' && (
+              <p className="text-xs text-center text-muted-foreground">
+                Please ask the primary caregiver to send a new invitation
+              </p>
+            )}
+          </div>
+        </GlassCard>
+      </div>
     );
   }
 
   // Show loading state while checking authentication
   if (authLoading) {
     return (
-      <MobileContainer>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </MobileContainer>
+      <div className="min-h-screen flex items-center justify-center bg-mesh p-4">
+        <GlassCard className="w-full max-w-md text-center" size="lg">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Checking authentication...</p>
+          </div>
+        </GlassCard>
+      </div>
     );
   }
 
@@ -187,148 +217,197 @@ export default function AcceptInvitationPage() {
     return null;
   }
 
-  return (
-    <MobileContainer>
-      <div className="p-6 space-y-6 animate-slide-up min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-md">
-          {success ? (
-            <Card className="border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
-                </div>
-                <CardTitle className="text-2xl">Invitation Accepted!</CardTitle>
-                <CardDescription>
-                  You&apos;ve successfully joined as a caregiver
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Redirecting you to the dashboard...
-                </p>
-                <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-0 bg-card/50">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                  <UserPlus className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                </div>
-                <CardTitle className="text-2xl">Caregiver Invitation</CardTitle>
-                <CardDescription>
-                  {invitationInfo?.inviterName ? (
-                    <>{invitationInfo.inviterName} has invited you to help care for <span className="font-medium">{invitationInfo.babyName}</span></>
-                  ) : (
-                    <>You&apos;ve been invited to become a caregiver</>
-                  )}
-                </CardDescription>
-              </CardHeader>
+  // Success state
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-mesh p-4">
+        <GlassCard className="w-full max-w-md" size="lg" variant="featured">
+          {/* Header with Success Icon */}
+          <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+                <CheckCircle className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-heading font-semibold text-foreground">
+              Invitation Accepted!
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              You&apos;ve successfully joined as a caregiver
+            </p>
+          </div>
 
-              <CardContent className="space-y-4">
-                {/* Info Card */}
-                <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 rounded-xl">
-                  <div className="flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                        What you&apos;ll be able to do:
-                      </p>
-                      <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                        <li>• Log baby activities (feeding, sleep, diapers, etc.)</li>
-                        <li>• View all tracking data and insights</li>
-                        <li>• Add memories and milestones</li>
-                        <li>• Receive reminders and notifications</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email mismatch warning */}
-                {user && invitationInfo && user.email.toLowerCase() !== invitationInfo.inviteeEmail.toLowerCase() && (
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900 rounded-xl">
-                    <div className="flex gap-3">
-                      <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">
-                          Email mismatch
-                        </p>
-                        <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                          This invitation was sent to <span className="font-medium">{invitationInfo.inviteeEmail}</span>, 
-                          but you&apos;re logged in as <span className="font-medium">{user.email}</span>. 
-                          You may need to log in with the correct account.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl">
-                    <div className="flex gap-3">
-                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">
-                          Error
-                        </p>
-                        <p className="text-xs text-red-700 dark:text-red-300">
-                          {error}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex flex-col gap-3 pt-2">
-                  <Button
-                    onClick={handleAccept}
-                    disabled={isAccepting || isDeclining}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isAccepting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Accepting...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        Accept Invitation
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={handleDecline}
-                    disabled={isAccepting || isDeclining}
-                    className="w-full"
-                    size="lg"
-                  >
-                    {isDeclining ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Declining...
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Decline
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                <p className="text-xs text-center text-muted-foreground pt-2">
-                  By accepting, you agree to help care for this baby&apos;s profile
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+          <div className="text-center space-y-4">
+            <div className="p-4 bg-white/5 dark:bg-black/10 rounded-xl border border-white/10">
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Heart className="w-4 h-4 text-pink-500" />
+                <span>You can now help care for <span className="font-medium text-foreground">{invitationInfo?.babyName}</span></span>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Redirecting you to the dashboard...</span>
+            </div>
+          </div>
+        </GlassCard>
       </div>
-    </MobileContainer>
+    );
+  }
+
+  // Main invitation acceptance view
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-mesh p-4">
+      <GlassCard className="w-full max-w-md" size="lg">
+        {/* Header with Welcome Message - Requirement 22.4 */}
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
+              <UserPlus className="w-8 h-8 text-primary-foreground" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-heading font-semibold text-foreground">
+            Caregiver Invitation
+          </h1>
+          {/* Welcome card with inviter name - Requirement 22.4 */}
+          <p className="text-muted-foreground mt-1">
+            {invitationInfo?.inviterName ? (
+              <><span className="font-medium text-foreground">{invitationInfo.inviterName}</span> has invited you to help care for <span className="font-medium text-foreground">{invitationInfo.babyName}</span></>
+            ) : (
+              <>You&apos;ve been invited to become a caregiver</>
+            )}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {/* Baby Info Card */}
+          {invitationInfo?.babyName && (
+            <div className="p-4 bg-white/5 dark:bg-black/10 rounded-xl border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center shadow-md">
+                  <Baby className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">{invitationInfo.babyName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {invitationInfo.inviterName && `Invited by ${invitationInfo.inviterName}`}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Info Card - What you'll be able to do */}
+          <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">
+                  What you&apos;ll be able to do:
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-primary" />
+                    Log baby activities (feeding, sleep, diapers, etc.)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-primary" />
+                    View all tracking data and insights
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-primary" />
+                    Add memories and milestones
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-1 h-1 rounded-full bg-primary" />
+                    Receive reminders and notifications
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Email mismatch warning */}
+          {user && invitationInfo && user.email.toLowerCase() !== invitationInfo.inviteeEmail.toLowerCase() && (
+            <div className="p-4 bg-yellow-500/10 dark:bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100 mb-1">
+                    Email mismatch
+                  </p>
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                    This invitation was sent to <span className="font-medium">{invitationInfo.inviteeEmail}</span>, 
+                    but you&apos;re logged in as <span className="font-medium">{user.email}</span>. 
+                    You may need to log in with the correct account.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error message */}
+          {error && (
+            <div className="p-4 bg-destructive/10 rounded-xl border border-destructive/20">
+              <div className="flex gap-3">
+                <XCircle className="w-5 h-5 text-destructive shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-destructive mb-1">
+                    Error
+                  </p>
+                  <p className="text-xs text-destructive/80">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons - Requirement 22.4 */}
+          <div className="flex flex-col gap-3 pt-2">
+            <GlassButton
+              variant="primary"
+              onClick={handleAccept}
+              disabled={isAccepting || isDeclining}
+              className="w-full"
+            >
+              {isAccepting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Accepting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Accept Invitation
+                </>
+              )}
+            </GlassButton>
+            
+            <GlassButton
+              variant="ghost"
+              onClick={handleDecline}
+              disabled={isAccepting || isDeclining}
+              className="w-full"
+            >
+              {isDeclining ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Declining...
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Decline
+                </>
+              )}
+            </GlassButton>
+          </div>
+
+          <p className="text-xs text-center text-muted-foreground pt-2">
+            By accepting, you agree to help care for this baby&apos;s profile
+          </p>
+        </div>
+      </GlassCard>
+    </div>
   );
 }

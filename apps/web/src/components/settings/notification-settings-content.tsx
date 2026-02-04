@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/glass-select";
 
 interface NotificationSettings {
   pushEnabled: boolean;
@@ -59,89 +58,129 @@ export function NotificationSettingsContent() {
           <p className="font-medium text-sm">Push Notifications</p>
           <p className="text-xs text-muted-foreground">Instant alerts on your device</p>
         </div>
-        <Switch
-          checked={settings.pushEnabled}
-          onCheckedChange={(checked) => updateSetting('pushEnabled', checked)}
-        />
+        <button
+          onClick={() => updateSetting('pushEnabled', !settings.pushEnabled)}
+          className={`relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+            settings.pushEnabled ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/10'
+          }`}
+          role="switch"
+          aria-checked={settings.pushEnabled}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              settings.pushEnabled ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
       </div>
 
       {/* Email Notifications */}
-      <div className="flex items-center justify-between py-2 border-t border-border/30">
+      <div className="flex items-center justify-between py-2 border-t border-white/10">
         <div>
           <p className="font-medium text-sm">Email Notifications</p>
           <p className="text-xs text-muted-foreground">Daily summaries via email</p>
         </div>
-        <Switch
-          checked={settings.emailEnabled}
-          onCheckedChange={(checked) => updateSetting('emailEnabled', checked)}
-        />
+        <button
+          onClick={() => updateSetting('emailEnabled', !settings.emailEnabled)}
+          className={`relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+            settings.emailEnabled ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/10'
+          }`}
+          role="switch"
+          aria-checked={settings.emailEnabled}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              settings.emailEnabled ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
       </div>
 
       {/* Sound */}
-      <div className="flex items-center justify-between py-2 border-t border-border/30">
+      <div className="flex items-center justify-between py-2 border-t border-white/10">
         <div>
           <p className="font-medium text-sm">Sound Alerts</p>
           <p className="text-xs text-muted-foreground">Play sound for notifications</p>
         </div>
-        <Switch
-          checked={settings.soundEnabled}
-          onCheckedChange={(checked) => updateSetting('soundEnabled', checked)}
-        />
+        <button
+          onClick={() => updateSetting('soundEnabled', !settings.soundEnabled)}
+          className={`relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+            settings.soundEnabled ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/10'
+          }`}
+          role="switch"
+          aria-checked={settings.soundEnabled}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              settings.soundEnabled ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
       </div>
 
       {/* Sound Selection */}
       {settings.soundEnabled && (
-        <div className="pl-4 border-l-2 border-amber-200 dark:border-amber-800">
+        <div className="pl-4 border-l-2 border-primary/30">
           <label className="block text-xs font-medium text-muted-foreground mb-1.5">
             Sound Type
           </label>
-          <Select
+          <GlassSelect
             value={settings.notificationSound}
             onValueChange={(value) => updateSetting('notificationSound', value)}
           >
-            <SelectTrigger className="h-9 rounded-lg bg-muted/50 border-0">
-              <SelectValue placeholder="Select sound" />
-            </SelectTrigger>
-            <SelectContent>
+            <GlassSelectTrigger className="h-9">
+              <GlassSelectValue placeholder="Select sound" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
               {NOTIFICATION_SOUNDS.map(sound => (
-                <SelectItem key={sound.id} value={sound.id}>{sound.name}</SelectItem>
+                <GlassSelectItem key={sound.id} value={sound.id}>{sound.name}</GlassSelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </GlassSelectContent>
+          </GlassSelect>
         </div>
       )}
 
       {/* Quiet Hours */}
-      <div className="flex items-center justify-between py-2 border-t border-border/30">
+      <div className="flex items-center justify-between py-2 border-t border-white/10">
         <div>
           <p className="font-medium text-sm">Quiet Hours</p>
           <p className="text-xs text-muted-foreground">Mute during specific hours</p>
         </div>
-        <Switch
-          checked={settings.quietHoursEnabled}
-          onCheckedChange={(checked) => updateSetting('quietHoursEnabled', checked)}
-        />
+        <button
+          onClick={() => updateSetting('quietHoursEnabled', !settings.quietHoursEnabled)}
+          className={`relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+            settings.quietHoursEnabled ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/10'
+          }`}
+          role="switch"
+          aria-checked={settings.quietHoursEnabled}
+        >
+          <span
+            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+              settings.quietHoursEnabled ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
       </div>
 
       {settings.quietHoursEnabled && (
-        <div className="pl-4 border-l-2 border-amber-200 dark:border-amber-800">
+        <div className="pl-4 border-l-2 border-primary/30">
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">From</label>
-              <Input
+              <GlassInput
                 type="time"
                 value={settings.quietHoursStart}
                 onChange={(e) => updateSetting('quietHoursStart', e.target.value)}
-                className="h-9 rounded-lg bg-muted/50 border-0"
+                className="h-9"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1.5">To</label>
-              <Input
+              <GlassInput
                 type="time"
                 value={settings.quietHoursEnd}
                 onChange={(e) => updateSetting('quietHoursEnd', e.target.value)}
-                className="h-9 rounded-lg bg-muted/50 border-0"
+                className="h-9"
               />
             </div>
           </div>

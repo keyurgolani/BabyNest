@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Moon, Clock, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { api, WakeWindowTimerResponse } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -95,19 +96,17 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
 
   if (loading) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
-        <div className="h-48 bg-muted/50 rounded-xl animate-pulse" />
-      </Card>
+      <GlassCard className={className}>
+        <div className="h-48 bg-white/20 dark:bg-white/10 rounded-xl animate-pulse" />
+      </GlassCard>
     );
   }
 
   if (!wakeWindow || !wakeWindow.hasSleepHistory) {
     return (
-      <Card className={cn("p-4 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
+      <GlassCard className={className}>
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
-            <Moon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+          <IconBadge color="sleep" icon={Moon} />
           <div>
             <h4 className="font-semibold text-foreground text-sm">Wake Window</h4>
             <p className="text-xs text-muted-foreground">No sleep data</p>
@@ -116,7 +115,7 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
         <p className="text-sm text-muted-foreground">
           Log a sleep session to start tracking wake windows.
         </p>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -137,13 +136,11 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
   );
 
   return (
-    <Card className={cn("p-4 border-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30", className)}>
+    <GlassCard className={className}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
-            <Moon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
+          <IconBadge color="sleep" icon={Moon} />
           <div>
             <h4 className="font-semibold text-foreground text-sm">Wake Window</h4>
             <p className="text-xs text-muted-foreground">Current awake time</p>
@@ -175,7 +172,7 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
           <span>Recommended: {recommended.min}-{recommended.max}m</span>
           <span>{Math.round(progressPercent)}%</span>
         </div>
-        <div className="h-3 bg-white/50 dark:bg-black/20 rounded-full overflow-hidden">
+        <div className="h-3 bg-white/20 dark:bg-white/5 rounded-full overflow-hidden">
           <div
             className={cn(
               "h-full transition-all duration-500 rounded-full",
@@ -192,7 +189,7 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg">
+        <div className="bg-white/20 dark:bg-white/5 p-3 rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp className="w-3 h-3 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Recommended</span>
@@ -201,7 +198,7 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
             {recommended.min}-{recommended.max}m
           </div>
         </div>
-        <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg">
+        <div className="bg-white/20 dark:bg-white/5 p-3 rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <Clock className="w-3 h-3 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Next Sleep</span>
@@ -213,7 +210,7 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
       </div>
 
       {/* Insight */}
-      <div className="bg-blue-100/50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200/50 dark:border-blue-800/50">
+      <div className="bg-[var(--color-sleep)]/10 p-3 rounded-xl border border-[var(--color-sleep)]/20">
         <p className="text-sm text-foreground leading-relaxed">
           {statusInfo.status === "well-rested" && (
             <>💡 Baby is well-rested. Good time for activities and play.</>
@@ -226,6 +223,6 @@ export function WakeWindowTimer({ className }: WakeWindowTimerProps) {
           )}
         </p>
       </div>
-    </Card>
+    </GlassCard>
   );
 }

@@ -1,9 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
 import { Icons } from "@/components/icons";
+
+/**
+ * DeleteBabyModal Component
+ *
+ * A confirmation modal for deleting a baby profile with glassmorphism styling.
+ * Uses GlassModal wrapper, GlassButton danger variant for delete action,
+ * and GlassInput for confirmation text.
+ *
+ * @requirements 18.5
+ */
 
 interface DeleteBabyModalProps {
   babyName: string;
@@ -32,100 +43,110 @@ export function DeleteBabyModal({ babyName, onClose, onConfirm }: DeleteBabyModa
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={true}
+      onClose={onClose}
+      showCloseButton={false}
+      closeOnBackdropClick={!isDeleting}
+      closeOnEscape={!isDeleting}
+      size="default"
     >
-      <Card variant="default" className="w-full max-w-md animate-scale-in shadow-2xl">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600">
-                <Icons.AlertCircle className="w-5 h-5" />
+      {/* Header with icon and title */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+          <Icons.AlertCircle className="w-6 h-6" />
+        </div>
+        <div className="flex-1">
+          <h2 className="font-heading font-bold text-xl text-destructive">
+            Delete Baby Profile
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            This action cannot be undone
+          </p>
+        </div>
+        <GlassButton
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          disabled={isDeleting}
+          className="rounded-full"
+          aria-label="Close modal"
+        >
+          <Icons.Close className="w-5 h-5" />
+        </GlassButton>
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Warning content */}
+      <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/30 mb-6">
+        <p className="text-sm text-destructive mb-4">
+          You are about to permanently delete <strong>{babyName}&apos;s</strong> profile and all associated data including:
+        </p>
+        <ul className="text-sm text-destructive/80 space-y-1 ml-4 list-disc">
+          <li>All feeding records</li>
+          <li>All sleep records</li>
+          <li>All diaper records</li>
+          <li>All growth measurements</li>
+          <li>All milestones</li>
+          <li>All memories and photos</li>
+        </ul>
+      </div>
+
+      {/* Confirmation input */}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Type <strong className="text-destructive">{babyName}</strong> to confirm:
+          </label>
+          <GlassInput
+            type="text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder={babyName}
+            disabled={isDeleting}
+            error={confirmText.length > 0 && confirmText !== babyName}
+            className="bg-white/5"
+          />
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-3 pt-2">
+          <GlassButton 
+            type="button" 
+            variant="default" 
+            onClick={onClose} 
+            className="flex-1" 
+            disabled={isDeleting}
+          >
+            Cancel
+          </GlassButton>
+          <GlassButton 
+            type="button"
+            variant="danger"
+            className="flex-1" 
+            disabled={confirmText !== babyName || isDeleting}
+            onClick={handleDelete}
+          >
+            {isDeleting ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Deleting...
               </div>
-              <div>
-                <CardTitle className="text-xl text-red-600">Delete Baby Profile</CardTitle>
-                <CardDescription>This action cannot be undone</CardDescription>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
-          </div>
-        </CardHeader>
-
-        <CardContent className="pt-0">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 mb-6">
-            <p className="text-sm text-red-700 dark:text-red-400 mb-4">
-              You are about to permanently delete <strong>{babyName}&apos;s</strong> profile and all associated data including:
-            </p>
-            <ul className="text-sm text-red-600 dark:text-red-400/80 space-y-1 ml-4 list-disc">
-              <li>All feeding records</li>
-              <li>All sleep records</li>
-              <li>All diaper records</li>
-              <li>All growth measurements</li>
-              <li>All milestones</li>
-              <li>All memories and photos</li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Type <strong>{babyName}</strong> to confirm:
-              </label>
-              <input
-                type="text"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder={babyName}
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-red-500 outline-none transition-shadow text-foreground placeholder:text-muted-foreground"
-                disabled={isDeleting}
-              />
-            </div>
-
-            <div className="flex gap-3">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose} 
-                className="flex-1 rounded-xl" 
-                disabled={isDeleting}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="button"
-                variant="destructive"
-                className="flex-1 rounded-xl" 
-                disabled={confirmText !== babyName || isDeleting}
-                onClick={handleDelete}
-              >
-                {isDeleting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Deleting...
-                  </div>
-                ) : (
-                  <>
-                    <Icons.Trash className="w-4 h-4 mr-2" />
-                    Delete Forever
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            ) : (
+              <>
+                <Icons.Trash className="w-4 h-4 mr-2" />
+                Delete Forever
+              </>
+            )}
+          </GlassButton>
+        </div>
+      </div>
+    </GlassModal>
   );
 }

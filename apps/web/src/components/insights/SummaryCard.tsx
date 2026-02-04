@@ -1,6 +1,6 @@
 import React from "react";
 import { Heart, Sparkles, AlertTriangle, TrendingUp, CheckCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { cn } from "@/lib/utils";
 
 export type HealthStatus = "excellent" | "good" | "fair" | "needs-attention";
@@ -55,9 +55,9 @@ export function SummaryCard({ data, babyName }: SummaryCardProps) {
   const StatusIcon = config.icon;
 
   return (
-    <Card className={cn("overflow-hidden border-0 bg-gradient-to-br", config.bgLight)}>
+    <GlassCard className={cn("overflow-hidden border-0 bg-gradient-to-br", config.bgLight)}>
       {/* Header with Status */}
-      <div className={cn("p-4 bg-gradient-to-r text-white", config.bg)}>
+      <div className={cn("p-4 -m-4 mb-4 bg-gradient-to-r text-white", config.bg)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -78,7 +78,7 @@ export function SummaryCard({ data, babyName }: SummaryCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-4">
+      <div className="space-y-4">
         {/* Highlights */}
         {data.highlights.length > 0 && (
           <div>
@@ -116,7 +116,7 @@ export function SummaryCard({ data, babyName }: SummaryCardProps) {
         )}
 
         {/* Footer */}
-        <div className="pt-3 border-t border-muted flex items-center justify-between text-xs text-muted-foreground">
+        <div className="pt-3 border-t border-white/20 dark:border-white/10 flex items-center justify-between text-xs text-muted-foreground">
           <span>Last updated: {new Date(data.lastUpdated).toLocaleString()}</span>
           {data.aiGenerated && (
             <span className="flex items-center gap-1">
@@ -126,6 +126,6 @@ export function SummaryCard({ data, babyName }: SummaryCardProps) {
           )}
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 }

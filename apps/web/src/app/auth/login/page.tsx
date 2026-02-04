@@ -5,12 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { api } from "@/lib/api-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Icons } from "@/components/icons";
 import { Eye, EyeOff } from "lucide-react";
+
+/**
+ * Login Page with Glassmorphism Styling
+ * 
+ * @requirements 22.1 - Centered GlassCard on mesh gradient background
+ * @requirements 22.2 - Logo, email/password GlassInput fields, and primary GlassButton
+ */
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -48,81 +54,120 @@ function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
+    <GlassCard className="w-full max-w-md" size="lg">
+      {/* Header with Logo */}
+      <div className="text-center mb-6">
+        {/* Logo - Requirement 22.2 */}
         <div className="flex justify-center mb-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/30">
             <Icons.Diaper className="w-10 h-10 text-primary-foreground" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-heading">Welcome back</CardTitle>
-        <CardDescription>Sign in to your BabyNest account</CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg">
-              {error}
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+        <h1 className="text-2xl font-heading font-semibold text-foreground">
+          Welcome back
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Sign in to your BabyNest account
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-xl border border-destructive/20">
+            {error}
+          </div>
+        )}
+
+        {/* Email Input - Requirement 22.2 */}
+        <div className="space-y-2">
+          <label 
+            htmlFor="email" 
+            className="text-sm font-medium text-foreground"
+          >
+            Email
+          </label>
+          <GlassInput
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        {/* Password Input - Requirement 22.2 */}
+        <div className="space-y-2">
+          <label 
+            htmlFor="password" 
+            className="text-sm font-medium text-foreground"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <GlassInput
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="email"
+              autoComplete="current-password"
+              className="pr-12"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-white/10"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+            </button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
-          </Button>
-          <p className="text-sm text-muted-foreground text-center">
-            Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="text-primary hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </CardFooter>
+        </div>
+
+        {/* Submit Button - Requirement 22.2 */}
+        <GlassButton 
+          type="submit" 
+          variant="primary" 
+          className="w-full"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Icons.Spinner className="w-4 h-4 mr-2 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign In"
+          )}
+        </GlassButton>
+
+        {/* Sign Up Link */}
+        <p className="text-sm text-muted-foreground text-center pt-2">
+          Don&apos;t have an account?{" "}
+          <Link 
+            href="/auth/signup" 
+            className="text-primary hover:underline font-medium"
+          >
+            Sign up
+          </Link>
+        </p>
       </form>
-    </Card>
+    </GlassCard>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    // Requirement 22.1: Centered GlassCard on mesh gradient background
+    <div className="min-h-screen flex items-center justify-center bg-mesh p-4">
       <Suspense fallback={
         <div className="flex items-center justify-center">
           <Icons.Spinner className="h-8 w-8 animate-spin text-primary" />

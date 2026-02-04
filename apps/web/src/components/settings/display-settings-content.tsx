@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/glass-select";
 import { Sun, Moon, Monitor } from "lucide-react";
 
 interface DisplaySettings {
@@ -85,10 +86,10 @@ export function DisplaySettingsContent() {
               key={id}
               onClick={() => updateSetting('theme', id as DisplaySettings['theme'])}
               className={cn(
-                "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
+                "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all backdrop-blur-sm",
                 settings.theme === id
-                  ? "border-primary bg-primary/5"
-                  : "border-transparent bg-muted/50 hover:bg-muted"
+                  ? "border-primary bg-primary/10 shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]"
+                  : "border-white/10 bg-white/5 hover:bg-white/10"
               )}
             >
               <Icon className={cn("w-5 h-5", settings.theme === id ? "text-primary" : "text-muted-foreground")} />
@@ -104,27 +105,29 @@ export function DisplaySettingsContent() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-2">Language</label>
-          <select
-            value={settings.language}
-            onChange={(e) => updateSetting('language', e.target.value)}
-            className="w-full h-9 px-3 rounded-lg bg-muted/50 border-0 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-          >
-            {LANGUAGES.map(lang => (
-              <option key={lang.id} value={lang.id}>{lang.name}</option>
-            ))}
-          </select>
+          <GlassSelect value={settings.language} onValueChange={(value) => updateSetting('language', value)}>
+            <GlassSelectTrigger className="h-9">
+              <GlassSelectValue placeholder="Select language" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
+              {LANGUAGES.map(lang => (
+                <GlassSelectItem key={lang.id} value={lang.id}>{lang.name}</GlassSelectItem>
+              ))}
+            </GlassSelectContent>
+          </GlassSelect>
         </div>
         <div>
           <label className="block text-xs font-medium text-muted-foreground mb-2">Date Format</label>
-          <select
-            value={settings.dateFormat}
-            onChange={(e) => updateSetting('dateFormat', e.target.value)}
-            className="w-full h-9 px-3 rounded-lg bg-muted/50 border-0 text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-          >
-            {DATE_FORMATS.map(format => (
-              <option key={format.id} value={format.id}>{format.name}</option>
-            ))}
-          </select>
+          <GlassSelect value={settings.dateFormat} onValueChange={(value) => updateSetting('dateFormat', value)}>
+            <GlassSelectTrigger className="h-9">
+              <GlassSelectValue placeholder="Select format" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
+              {DATE_FORMATS.map(format => (
+                <GlassSelectItem key={format.id} value={format.id}>{format.name}</GlassSelectItem>
+              ))}
+            </GlassSelectContent>
+          </GlassSelect>
         </div>
       </div>
 
@@ -138,10 +141,10 @@ export function DisplaySettingsContent() {
                 key={format}
                 onClick={() => updateSetting('timeFormat', format)}
                 className={cn(
-                  "h-9 rounded-lg text-xs font-medium transition-all",
+                  "h-9 rounded-xl text-xs font-medium transition-all backdrop-blur-sm border",
                   settings.timeFormat === format
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/50 hover:bg-muted text-foreground"
+                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
+                    : "bg-white/5 hover:bg-white/10 text-foreground border-white/10"
                 )}
               >
                 {format === '12h' ? '12h' : '24h'}
@@ -157,10 +160,10 @@ export function DisplaySettingsContent() {
                 key={unit}
                 onClick={() => updateSetting('units', unit)}
                 className={cn(
-                  "h-9 rounded-lg text-xs font-medium transition-all",
+                  "h-9 rounded-xl text-xs font-medium transition-all backdrop-blur-sm border",
                   settings.units === unit
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted/50 hover:bg-muted text-foreground"
+                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
+                    : "bg-white/5 hover:bg-white/10 text-foreground border-white/10"
                 )}
               >
                 {unit === 'metric' ? 'Metric' : 'Imperial'}

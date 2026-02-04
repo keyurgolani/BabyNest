@@ -1,26 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Icons } from "@/components/icons";
 import { api } from "@/lib/api-client";
 import { toast } from "sonner";
+import { Mail, UserPlus, Shield } from "lucide-react";
+
+/**
+ * InviteCaregiverModal Component
+ *
+ * A modal for inviting caregivers to help care for a baby with glassmorphism styling.
+ * Uses GlassModal wrapper, GlassInput for email input, and GlassButton for actions.
+ *
+ * @requirements 18.5
+ */
 
 interface InviteCaregiverModalProps {
+  /** The ID of the baby to invite a caregiver for */
   babyId: string;
+  /** The name of the baby (displayed in the modal) */
   babyName: string;
+  /** Whether the modal is open */
   open: boolean;
+  /** Callback when the modal should close */
   onClose: () => void;
+  /** Callback when the invitation is successfully sent */
   onSuccess: () => void;
 }
 
-export function InviteCaregiverModal({ babyId, babyName, open, onClose, onSuccess }: InviteCaregiverModalProps) {
+export function InviteCaregiverModal({ 
+  babyId, 
+  babyName, 
+  open, 
+  onClose, 
+  onSuccess 
+}: InviteCaregiverModalProps) {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Reset form state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setEmail("");
+      setError(null);
+      setIsSubmitting(false);
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,84 +89,107 @@ export function InviteCaregiverModal({ babyId, babyName, open, onClose, onSucces
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
-              <Icons.Mail className="w-5 h-5" />
-            </div>
-            <div>
-              <DialogTitle>Invite Caregiver</DialogTitle>
-              <DialogDescription>
-                Invite someone to help care for {babyName}
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+  const isFormValid = email && email.includes("@");
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+  return (
+    <GlassModal
+      isOpen={open}
+      onClose={handleClose}
+      title="Invite Caregiver"
+      size="default"
+      closeOnBackdropClick={!isSubmitting}
+      closeOnEscape={!isSubmitting}
+    >
+      <div className="space-y-6">
+        {/* Header with Icon and Description */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+            <UserPlus className="w-5 h-5" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Invite someone to help care for {babyName}
+          </p>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm flex items-center gap-2">
+            <Icons.AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Invitation Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email Input */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
+            <label 
+              htmlFor="caregiver-email"
+              className="block text-sm font-medium text-foreground"
+            >
+              Email Address
+            </label>
+            <GlassInput
+              id="caregiver-email"
               type="email"
-              placeholder="caregiver@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="caregiver@example.com"
               disabled={isSubmitting}
               autoFocus
-              className="w-full"
+              autoComplete="email"
+              error={email.length > 0 && !email.includes("@")}
             />
             <p className="text-xs text-muted-foreground">
               They will receive an email with an invitation link
             </p>
           </div>
 
-          <div className="p-3 bg-muted/50 rounded-lg space-y-2">
-            <p className="text-xs font-medium text-foreground">Default Role: Secondary Caregiver</p>
-            <p className="text-xs text-muted-foreground">
+          {/* Role Information Card */}
+          <div className="p-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-xl space-y-2">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">
+                Default Role: Secondary Caregiver
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Secondary caregivers can log activities and view all data, but cannot manage caregivers or delete the baby profile.
             </p>
           </div>
 
-          {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-lg text-red-700 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
+          {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
+            <GlassButton 
+              type="button" 
+              variant="default" 
+              onClick={handleClose} 
+              className="flex-1" 
               disabled={isSubmitting}
-              className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !email}
-              className="flex-1"
+            </GlassButton>
+            <GlassButton 
+              type="submit" 
+              variant="primary"
+              className="flex-1" 
+              disabled={isSubmitting || !isFormValid}
             >
               {isSubmitting ? (
-                <>
-                  <Icons.Loader className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                  <span>Sending...</span>
+                </div>
               ) : (
-                <>
-                  <Icons.Mail className="w-4 h-4 mr-2" />
-                  Send Invitation
-                </>
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  <span>Send Invitation</span>
+                </div>
               )}
-            </Button>
+            </GlassButton>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </GlassModal>
   );
 }

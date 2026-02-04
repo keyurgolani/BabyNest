@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import Link from "next/link";
-import { ChevronLeft, Syringe } from "lucide-react";
+import { Syringe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
+import { LogFormWrapper } from "@/components/log/log-form-wrapper";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const COMMON_VACCINES = [
   "DTaP",
@@ -61,114 +63,143 @@ export default function VaccinationLogPage() {
 
   return (
     <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/log" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Log Vaccination</h1>
-        </div>
-
-        {/* Desktop: Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Vaccine Name */}
-          <Card className="p-5 space-y-4 border-0 bg-gradient-to-br from-card to-muted/20">
-            <div className="space-y-2">
-              <label htmlFor="vaccine-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Vaccine Name</label>
-              <input
-                id="vaccine-name"
-                name="vaccine-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. DTaP, MMR, Polio"
-                className="w-full h-12 rounded-xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 px-4 text-foreground placeholder:text-muted-foreground/50 outline-none transition-all"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_VACCINES.map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setName(v)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    name === v
-                      ? "bg-blue-500 text-white"
-                      : "bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25"
-                  )}
+      <div className="p-4 pb-32">
+        <LogFormWrapper
+          title="Log Vaccination"
+          backHref="/log"
+          showCard={false}
+        >
+          <div className="space-y-6">
+            {/* Vaccine Name Card */}
+            <GlassCard size="lg" className="space-y-4">
+              <div className="space-y-2">
+                <label 
+                  htmlFor="vaccine-name" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                 >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </Card>
+                  Vaccine Name
+                </label>
+                <GlassInput
+                  id="vaccine-name"
+                  name="vaccine-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. DTaP, MMR, Polio"
+                  className="h-12"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {COMMON_VACCINES.map((v) => (
+                  <GlassButton
+                    key={v}
+                    type="button"
+                    variant={name === v ? "primary" : "default"}
+                    size="sm"
+                    onClick={() => setName(v)}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-bold",
+                      name === v
+                        ? "bg-blue-500 hover:bg-blue-600"
+                        : "bg-blue-500/15 text-blue-600 dark:text-blue-400 hover:bg-blue-500/25"
+                    )}
+                  >
+                    {v}
+                  </GlassButton>
+                ))}
+              </div>
+            </GlassCard>
 
-          {/* Provider & Location */}
-          <Card className="p-5 space-y-4 border-0 bg-gradient-to-br from-card to-muted/20">
-            <div className="space-y-2">
-              <label htmlFor="healthcare-provider" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Healthcare Provider</label>
-              <input
-                id="healthcare-provider"
-                name="healthcare-provider"
-                type="text"
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                placeholder="e.g. Dr. Smith"
-                className="w-full h-12 rounded-xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 px-4 text-foreground placeholder:text-muted-foreground/50 outline-none transition-all"
-              />
+            {/* Desktop: Provider & Location Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Provider Card */}
+              <GlassCard size="lg" className="space-y-2">
+                <label 
+                  htmlFor="healthcare-provider" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                >
+                  Healthcare Provider
+                </label>
+                <GlassInput
+                  id="healthcare-provider"
+                  name="healthcare-provider"
+                  type="text"
+                  value={provider}
+                  onChange={(e) => setProvider(e.target.value)}
+                  placeholder="e.g. Dr. Smith"
+                  className="h-12"
+                />
+              </GlassCard>
+
+              {/* Location Card */}
+              <GlassCard size="lg" className="space-y-2">
+                <label 
+                  htmlFor="vaccination-location" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                >
+                  Location
+                </label>
+                <GlassInput
+                  id="vaccination-location"
+                  name="vaccination-location"
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. City Pediatric Clinic"
+                  className="h-12"
+                />
+              </GlassCard>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="vaccination-location" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Location</label>
-              <input
-                id="vaccination-location"
-                name="vaccination-location"
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. City Pediatric Clinic"
-                className="w-full h-12 rounded-xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 px-4 text-foreground placeholder:text-muted-foreground/50 outline-none transition-all"
-              />
-            </div>
-          </Card>
-        </div>
+            {/* Desktop: Date and Notes Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date Card */}
+              <GlassCard size="lg" className="space-y-2">
+                <span 
+                  id="date-administered-label" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                >
+                  Date Administered
+                </span>
+                <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+              </GlassCard>
 
-        {/* Desktop: Date and Notes Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Date */}
-          <div className="space-y-2">
-            <span id="date-administered-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Date Administered</span>
-            <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+              {/* Notes Card */}
+              <GlassCard size="lg" className="space-y-2">
+                <label 
+                  htmlFor="vaccination-notes" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                >
+                  Notes
+                </label>
+                <GlassTextarea
+                  id="vaccination-notes"
+                  name="vaccination-notes"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Any reactions or side effects..."
+                  className="min-h-[80px]"
+                  rows={2}
+                />
+              </GlassCard>
+            </div>
+
+            {/* Spacer for fixed button */}
+            <div className="h-5" />
           </div>
+        </LogFormWrapper>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <label htmlFor="vaccination-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
-            <textarea
-              id="vaccination-notes"
-              name="vaccination-notes"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Any reactions or side effects..."
-              className="w-full rounded-2xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 p-4 text-sm resize-none outline-none transition-all placeholder:text-muted-foreground/50"
-              rows={2}
-            />
-          </div>
-        </div>
-
-        {/* Spacer for fixed button */}
-        <div className="h-5" />
-
-        {/* Save Button */}
+        {/* Save Button - Fixed at bottom */}
         <div className="fixed bottom-32 left-4 right-4 z-50">
-          <Button
+          <GlassButton
             onClick={handleSave}
             disabled={!name.trim() || isLoading}
-            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-blue-500/20 bg-blue-500 hover:bg-blue-600 text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+            variant="primary"
+            size="lg"
+            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-blue-500/20 bg-blue-500 hover:bg-blue-600 text-white"
           >
             {isLoading ? "Saving..." : <><Syringe className="w-5 h-5 mr-2" /> Save Vaccination</>}
-          </Button>
+          </GlassButton>
         </div>
       </div>
     </MobileContainer>

@@ -1,10 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { MobileContainer } from "@/components/layout/mobile-container";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { FilterPills, FilterOption } from "@/components/ui/filter-pills";
+import { PageHeader } from "@/components/ui/page-header";
+import {
+  GlassSelect,
+  GlassSelectContent,
+  GlassSelectItem,
+  GlassSelectTrigger,
+  GlassSelectValue,
+} from "@/components/ui/glass-select";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { api, ScheduledReport, CreateScheduledReportDto, ReportFrequency } from "@/lib/api-client";
@@ -154,6 +163,13 @@ const daysOfWeek = [
 
 type TabType = 'generate' | 'scheduled' | 'history';
 
+// Tab options for FilterPills
+const tabOptions: FilterOption[] = [
+  { value: 'generate', label: 'Generate', icon: Zap },
+  { value: 'scheduled', label: 'Scheduled', icon: CalendarClock },
+  { value: 'history', label: 'History', icon: History },
+];
+
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<TabType>('generate');
   const [selectedReportType, setSelectedReportType] = useState<ReportType>('comprehensive');
@@ -272,9 +288,6 @@ export default function ReportsPage() {
         
         // Handle mapping differences
         if (selectedReportType === 'development') category = 'milestone';
-        // 'health' is a composite in UI but we'll map to 'symptom' for now as a primary health indicator,
-        // or we could use 'doctor_visit'. For now let's use 'symptom' and maybe later API supports 'health'
-        // which aggregates all health data.
         if (selectedReportType === 'health') category = 'symptom';
         
         blob = await api.export.downloadCSV(category, {
@@ -406,621 +419,585 @@ export default function ReportsPage() {
   };
 
   return (
-    <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up">
-        {/* Page Header */}
-        <div className="flex items-center gap-4">
+    <div className="p-4 space-y-6 animate-slide-up">
+      {/* Page Header with glassmorphism styling */}
+      <PageHeader
+        title="Reports"
+        subtitle="Generate & schedule medical reports"
+        action={
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
             <FileText className="w-7 h-7" />
           </div>
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-heading font-bold text-foreground">Reports</h1>
-            <p className="text-muted-foreground text-sm">Generate & schedule medical reports</p>
-          </div>
-        </div>
+        }
+      />
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 p-1 bg-muted rounded-xl">
-          <Button
-            variant="ghost"
-            onClick={() => setActiveTab('generate')}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all h-auto",
-              activeTab === 'generate'
-                ? "bg-background text-foreground shadow-sm hover:bg-background"
-                : "text-muted-foreground hover:text-foreground hover:bg-transparent"
-            )}
-          >
-            <Zap className="w-4 h-4" />
-            Generate
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setActiveTab('scheduled')}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all h-auto",
-              activeTab === 'scheduled'
-                ? "bg-background text-foreground shadow-sm hover:bg-background"
-                : "text-muted-foreground hover:text-foreground hover:bg-transparent"
-            )}
-          >
-            <CalendarClock className="w-4 h-4" />
-            Scheduled
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setActiveTab('history')}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all h-auto",
-              activeTab === 'history'
-                ? "bg-background text-foreground shadow-sm hover:bg-background"
-                : "text-muted-foreground hover:text-foreground hover:bg-transparent"
-            )}
-          >
-            <History className="w-4 h-4" />
-            History
-          </Button>
-        </div>
+      {/* Tab Navigation using FilterPills */}
+      <FilterPills
+        options={tabOptions}
+        selected={activeTab}
+        onChange={(value) => setActiveTab(value as TabType)}
+        className="justify-center"
+      />
 
-        {/* Generate Tab */}
-        {activeTab === 'generate' && (
-          <div className="space-y-6">
-            {/* Quick Generate Buttons */}
-            <Card variant="glass" className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-yellow-500" />
-                  Quick Generate
-                </CardTitle>
-                <CardDescription>Select a time period for your report</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-4 gap-2">
-                  {(['daily', 'weekly', 'monthly', 'custom'] as QuickPreset[]).map((preset) => (
-                    <Button
-                      key={preset}
-                      variant="ghost"
-                      onClick={() => applyQuickPreset(preset)}
-                      className={cn(
-                        "py-3 px-2 rounded-xl text-sm font-medium transition-all h-auto",
-                        quickPreset === preset
-                          ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:text-primary-foreground"
-                          : "bg-muted hover:bg-muted/80 text-foreground"
-                      )}
-                    >
-                      {preset.charAt(0).toUpperCase() + preset.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-                
-                {/* Date Range Picker */}
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">Start Date</label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => {
-                        setStartDate(e.target.value);
-                        setQuickPreset('custom');
-                      }}
-                      max={endDate}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground">End Date</label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => {
-                        setEndDate(e.target.value);
-                        setQuickPreset('custom');
-                      }}
-                      min={startDate}
-                      max={currentDate}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Report Types */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Report Type</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {reportTypes.map((type) => (
-                  <Button
-                    key={type.id}
-                    variant="ghost"
-                    onClick={() => setSelectedReportType(type.id)}
-                    className={cn(
-                      "p-4 rounded-xl border-2 transition-all flex flex-col items-start h-auto",
-                      selectedReportType === type.id
-                        ? "border-primary bg-primary/5 shadow-sm hover:bg-primary/10"
-                        : "border-transparent bg-muted/50 hover:bg-muted"
-                    )}
+      {/* Generate Tab */}
+      {activeTab === 'generate' && (
+        <div className="space-y-6">
+          {/* Quick Generate Buttons */}
+          <GlassCard>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-500" />
+                <h3 className="text-lg font-semibold text-foreground">Quick Generate</h3>
+              </div>
+              <p className="text-sm text-muted-foreground">Select a time period for your report</p>
+              
+              <div className="grid grid-cols-4 gap-2">
+                {(['daily', 'weekly', 'monthly', 'custom'] as QuickPreset[]).map((preset) => (
+                  <GlassButton
+                    key={preset}
+                    variant={quickPreset === preset ? "primary" : "default"}
+                    onClick={() => applyQuickPreset(preset)}
+                    className="py-3 px-2 text-sm"
                   >
+                    {preset.charAt(0).toUpperCase() + preset.slice(1)}
+                  </GlassButton>
+                ))}
+              </div>
+              
+              {/* Date Range Picker with GlassInput */}
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">Start Date</label>
+                  <GlassInput
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setQuickPreset('custom');
+                    }}
+                    max={endDate}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground">End Date</label>
+                  <GlassInput
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setQuickPreset('custom');
+                    }}
+                    min={startDate}
+                    max={currentDate}
+                  />
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Report Types */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Report Type</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {reportTypes.map((type) => (
+                <GlassCard
+                  key={type.id}
+                  interactive
+                  variant={selectedReportType === type.id ? "featured" : "default"}
+                  size="sm"
+                  onClick={() => setSelectedReportType(type.id)}
+                  className={cn(
+                    "cursor-pointer",
+                    selectedReportType === type.id && "ring-2 ring-primary/30"
+                  )}
+                >
+                  <div className="flex flex-col items-start">
                     <div className={`w-10 h-10 rounded-lg ${type.bgColor} flex items-center justify-center ${type.color} mb-3`}>
                       {type.icon}
                     </div>
                     <h4 className="font-medium text-foreground text-sm">{type.name}</h4>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 text-left whitespace-normal">{type.description}</p>
-                  </Button>
-                ))}
-              </div>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 text-left">{type.description}</p>
+                  </div>
+                </GlassCard>
+              ))}
             </div>
+          </div>
 
-            {/* Error Message */}
-            {downloadError && (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm flex items-center gap-3">
+          {/* Error Message */}
+          {downloadError && (
+            <GlassCard variant="danger" size="sm">
+              <div className="flex items-center gap-3 text-destructive">
                 <Icons.AlertCircle className="w-5 h-5 flex-shrink-0" />
-                {downloadError}
+                <span className="text-sm">{downloadError}</span>
               </div>
-            )}
+            </GlassCard>
+          )}
 
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowPreview(true)}
-                  variant="outline"
-                  className="flex-1 gap-2"
-                >
-                  <Eye className="w-4 h-4" />
-                  Preview
-                </Button>
-                <Button
-                  onClick={handleDownloadPDF}
-                  disabled={isDownloading}
-                  variant="glow"
-                  className="flex-1 gap-2"
-                >
-                  {isDownloading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      Download PDF
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {/* Additional Export Options */}
-              <div className="grid grid-cols-3 gap-2">
-                <Button
-                  onClick={handleDownloadCSV}
-                  disabled={isDownloadingCSV}
-                  variant="soft"
-                  size="sm"
-                  className="gap-2"
-                >
-                  {isDownloadingCSV ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <FileSpreadsheet className="w-3 h-3" />
-                  )}
-                  CSV
-                </Button>
-                <Button
-                  onClick={() => window.print()}
-                  variant="soft"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Printer className="w-3 h-3" />
-                  Print
-                </Button>
-                <Button
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: 'Baby Report',
-                        text: `Baby report from ${startDate} to ${endDate}`,
-                      });
-                    }
-                  }}
-                  variant="soft"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Share2 className="w-3 h-3" />
-                  Share
-                </Button>
-              </div>
-            </div>
-
-            {/* Email Report */}
-            <Card variant="default" className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-blue-500">
-                    <Mail className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-foreground text-sm">Email Report</h4>
-                    <p className="text-xs text-muted-foreground">Send directly to doctor or nurse</p>
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <Input
-                    type="email"
-                    value={emailAddress}
-                    onChange={(e) => setEmailAddress(e.target.value)}
-                    placeholder="doctor@example.com"
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={handleSendEmail}
-                    disabled={!emailAddress || isSendingEmail}
-                    variant="soft"
-                    size="icon"
-                    className="h-10 w-10"
-                  >
-                    {isSendingEmail ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Scheduled Tab */}
-        {activeTab === 'scheduled' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Your Schedules</h3>
-              <Button onClick={() => setShowAddModal(true)} variant="glow" size="sm" className="gap-2">
-                <Icons.Plus className="w-4 h-4" />
-                New Schedule
-              </Button>
-            </div>
-
-            {/* Error Message */}
-            {scheduledError && (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm flex items-center gap-3">
-                <Icons.AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <span className="flex-1">{scheduledError}</span>
-                <button onClick={() => setScheduledError(null)} className="p-1 hover:bg-destructive/10 rounded">
-                  <Icons.Close className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {loadingScheduled ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : scheduledReports.length === 0 ? (
-              <Card variant="glass" className="overflow-hidden">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
-                    <CalendarClock className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-heading font-semibold text-foreground mb-2">No scheduled reports</h3>
-                  <p className="text-muted-foreground mb-6 max-w-xs text-sm">
-                    Set up automatic report delivery to your email
-                  </p>
-                  <Button onClick={() => setShowAddModal(true)} variant="glow" className="gap-2">
-                    <Icons.Plus className="w-4 h-4" />
-                    Create Schedule
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {scheduledReports.map((report) => {
-                  const isToggling = togglingIds.has(report.id);
-                  const isDeleting = deletingIds.has(report.id);
-
-                  return (
-                    <Card 
-                      key={report.id} 
-                      variant="default" 
-                      className={`overflow-hidden transition-opacity ${isDeleting ? 'opacity-50' : ''}`}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center flex-shrink-0">
-                            <FileText className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium text-foreground truncate">{report.name}</h4>
-                              {!report.isActive && (
-                                <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-                                  Paused
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground truncate">{report.email}</p>
-                            <p className="text-xs text-primary font-medium mt-1">{formatSchedule(report)}</p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => toggleScheduledReport(report.id, report.isActive)}
-                              disabled={isToggling || isDeleting}
-                              className={`relative w-10 h-6 rounded-full transition-all ${
-                                report.isActive ? "bg-primary" : "bg-muted"
-                              } ${isToggling ? 'opacity-50' : ''}`}
-                            >
-                              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                                report.isActive ? "translate-x-5" : "translate-x-1"
-                              }`} />
-                            </button>
-                            <button
-                              onClick={() => setEditingReport(report)}
-                              disabled={isDeleting}
-                              className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"
-                            >
-                              <Icons.Settings className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteScheduledReport(report.id)}
-                              disabled={isDeleting || isToggling}
-                              className="w-8 h-8 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/50 flex items-center justify-center text-muted-foreground hover:text-red-500"
-                            >
-                              {isDeleting ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex gap-4 text-xs text-muted-foreground border-t border-muted/50 mt-3 pt-3">
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Last: {formatDate(report.lastSentAt)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            Next: {formatDate(report.nextScheduledAt)}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* History Tab */}
-        {activeTab === 'history' && (
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Past Reports</h3>
-            
-            {pastReports.length === 0 ? (
-              <Card variant="glass" className="overflow-hidden">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4 text-muted-foreground">
-                    <History className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-heading font-semibold text-foreground mb-2">No reports yet</h3>
-                  <p className="text-muted-foreground mb-6 max-w-xs text-sm">
-                    Generated reports will appear here
-                  </p>
-                  <Button onClick={() => setActiveTab('generate')} variant="soft" className="gap-2">
-                    <Zap className="w-4 h-4" />
-                    Generate Report
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {pastReports.map((report) => {
-                  const typeConfig = getReportTypeConfig(report.reportType);
-                  return (
-                    <Card key={report.id} variant="default" className="overflow-hidden">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`w-10 h-10 rounded-xl ${typeConfig.bgColor} flex items-center justify-center flex-shrink-0 ${typeConfig.color}`}>
-                            {typeConfig.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-foreground">{report.name}</h4>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(report.dateRange.start).toLocaleDateString()} - {new Date(report.dateRange.end).toLocaleDateString()}
-                            </p>
-                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                              <span>{typeConfig.name}</span>
-                              <span>•</span>
-                              <span>{report.size}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Download className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-red-500">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Preview Modal */}
-        {showPreview && (
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-            onClick={(e) => e.target === e.currentTarget && setShowPreview(false)}
-          >
-            <Card variant="aurora-static" className="w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl animate-scale-in">
-              <CardHeader className="pb-4 border-b border-primary/10">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-xl ${getReportTypeConfig(selectedReportType).bgColor} flex items-center justify-center ${getReportTypeConfig(selectedReportType).color}`}>
-                      {getReportTypeConfig(selectedReportType).icon}
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Report Preview</CardTitle>
-                      <CardDescription className="mt-1">{getReportTypeConfig(selectedReportType).name}</CardDescription>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowPreview(false)}
-                    className="w-9 h-9 rounded-lg bg-muted/50 flex items-center justify-center hover:bg-muted transition-colors"
-                  >
-                    <Icons.Close className="w-4 h-4" />
-                  </button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                {/* Report Header Info */}
-                <div className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Date Range</h4>
-                      <p className="text-foreground font-medium">
-                        {startDate ? new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">to</p>
-                      <p className="text-foreground font-medium">
-                        {endDate ? new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm text-muted-foreground mb-1">Report Type</h4>
-                      <p className="text-foreground font-medium">{getReportTypeConfig(selectedReportType).name}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{getReportTypeConfig(selectedReportType).description}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Included Sections */}
-                <div>
-                  <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-primary" />
-                    Included Sections
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedReportType === 'comprehensive' ? (
-                      reportTypes.slice(0, 5).map(type => (
-                        <div key={type.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                          <div className={`w-8 h-8 rounded-lg ${type.bgColor} flex items-center justify-center ${type.color}`}>
-                            {type.icon}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium text-sm text-foreground">{type.name}</p>
-                            <p className="text-xs text-muted-foreground">{type.description}</p>
-                          </div>
-                          <Icons.Check className="w-5 h-5 text-green-500" />
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className={`w-8 h-8 rounded-lg ${getReportTypeConfig(selectedReportType).bgColor} flex items-center justify-center ${getReportTypeConfig(selectedReportType).color}`}>
-                          {getReportTypeConfig(selectedReportType).icon}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm text-foreground">{getReportTypeConfig(selectedReportType).name}</p>
-                          <p className="text-xs text-muted-foreground">{getReportTypeConfig(selectedReportType).description}</p>
-                        </div>
-                        <Icons.Check className="w-5 h-5 text-green-500" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Report Features */}
-                <div>
-                  <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    Report Features
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
-                      <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Activity Summaries</p>
-                        <p className="text-xs text-muted-foreground">Detailed counts & totals</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
-                      <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Visual Charts</p>
-                        <p className="text-xs text-muted-foreground">Graphs & trends</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
-                      <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Key Statistics</p>
-                        <p className="text-xs text-muted-foreground">Averages & patterns</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30">
-                      <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Medical Format</p>
-                        <p className="text-xs text-muted-foreground">Doctor-friendly</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4 border-t border-primary/10">
-                  <Button variant="outline" onClick={() => setShowPreview(false)} className="flex-1">
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="glow" 
-                    onClick={() => { 
-                      setShowPreview(false); 
-                      handleDownloadPDF(); 
-                    }} 
-                    className="flex-1 gap-2"
-                  >
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <GlassButton
+                onClick={() => setShowPreview(true)}
+                variant="default"
+                className="flex-1 gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                Preview
+              </GlassButton>
+              <GlassButton
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                variant="primary"
+                className="flex-1 gap-2"
+              >
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
                     <Download className="w-4 h-4" />
                     Download PDF
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                  </>
+                )}
+              </GlassButton>
+            </div>
 
-        {/* Add/Edit Scheduled Report Modal */}
-        {(showAddModal || editingReport) && (
-          <ScheduledReportModal
-            report={editingReport || undefined}
-            onClose={() => {
-              setShowAddModal(false);
-              setEditingReport(null);
-            }}
-            onSave={editingReport 
-              ? (data) => handleEditScheduledReport(editingReport.id, data)
-              : handleAddScheduledReport
-            }
-          />
-        )}
-      </div>
-    </MobileContainer>
+            {/* Additional Export Options */}
+            <div className="grid grid-cols-3 gap-2">
+              <GlassButton
+                onClick={handleDownloadCSV}
+                disabled={isDownloadingCSV}
+                variant="ghost"
+                size="sm"
+                className="gap-2"
+              >
+                {isDownloadingCSV ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <FileSpreadsheet className="w-3 h-3" />
+                )}
+                CSV
+              </GlassButton>
+              <GlassButton
+                onClick={() => window.print()}
+                variant="ghost"
+                size="sm"
+                className="gap-2"
+              >
+                <Printer className="w-3 h-3" />
+                Print
+              </GlassButton>
+              <GlassButton
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'Baby Report',
+                      text: `Baby report from ${startDate} to ${endDate}`,
+                    });
+                  }
+                }}
+                variant="ghost"
+                size="sm"
+                className="gap-2"
+              >
+                <Share2 className="w-3 h-3" />
+                Share
+              </GlassButton>
+            </div>
+          </div>
+
+          {/* Email Report */}
+          <GlassCard>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center text-blue-500">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-foreground text-sm">Email Report</h4>
+                  <p className="text-xs text-muted-foreground">Send directly to doctor or nurse</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <GlassInput
+                  type="email"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
+                  placeholder="doctor@example.com"
+                  className="flex-1"
+                />
+                <GlassButton
+                  onClick={handleSendEmail}
+                  disabled={!emailAddress || isSendingEmail}
+                  variant="primary"
+                  size="icon"
+                >
+                  {isSendingEmail ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </GlassButton>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* Scheduled Tab */}
+      {activeTab === 'scheduled' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Your Schedules</h3>
+            <GlassButton onClick={() => setShowAddModal(true)} variant="primary" size="sm" className="gap-2">
+              <Icons.Plus className="w-4 h-4" />
+              New Schedule
+            </GlassButton>
+          </div>
+
+          {/* Error Message */}
+          {scheduledError && (
+            <GlassCard variant="danger" size="sm">
+              <div className="flex items-center gap-3 text-destructive">
+                <Icons.AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="flex-1 text-sm">{scheduledError}</span>
+                <GlassButton 
+                  onClick={() => setScheduledError(null)} 
+                  variant="ghost" 
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <Icons.Close className="w-4 h-4" />
+                </GlassButton>
+              </div>
+            </GlassCard>
+          )}
+
+          {loadingScheduled ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : scheduledReports.length === 0 ? (
+            <GlassCard className="overflow-hidden">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+                  <CalendarClock className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-heading font-semibold text-foreground mb-2">No scheduled reports</h3>
+                <p className="text-muted-foreground mb-6 max-w-xs text-sm">
+                  Set up automatic report delivery to your email
+                </p>
+                <GlassButton onClick={() => setShowAddModal(true)} variant="primary" className="gap-2">
+                  <Icons.Plus className="w-4 h-4" />
+                  Create Schedule
+                </GlassButton>
+              </div>
+            </GlassCard>
+          ) : (
+            <div className="space-y-3">
+              {scheduledReports.map((report) => {
+                const isToggling = togglingIds.has(report.id);
+                const isDeleting = deletingIds.has(report.id);
+
+                return (
+                  <GlassCard 
+                    key={report.id} 
+                    className={cn("transition-opacity", isDeleting && "opacity-50")}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-foreground truncate">{report.name}</h4>
+                          {!report.isActive && (
+                            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+                              Paused
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{report.email}</p>
+                        <p className="text-xs text-primary font-medium mt-1">{formatSchedule(report)}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleScheduledReport(report.id, report.isActive)}
+                          disabled={isToggling || isDeleting}
+                          className={cn(
+                            "relative w-10 h-6 rounded-full transition-all",
+                            report.isActive ? "bg-primary" : "bg-muted",
+                            isToggling && "opacity-50"
+                          )}
+                        >
+                          <div className={cn(
+                            "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform",
+                            report.isActive ? "translate-x-5" : "translate-x-1"
+                          )} />
+                        </button>
+                        <GlassButton
+                          onClick={() => setEditingReport(report)}
+                          disabled={isDeleting}
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                        >
+                          <Icons.Settings className="w-4 h-4" />
+                        </GlassButton>
+                        <GlassButton
+                          onClick={() => deleteScheduledReport(report.id)}
+                          disabled={isDeleting || isToggling}
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:text-red-500"
+                        >
+                          {isDeleting ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </GlassButton>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 text-xs text-muted-foreground border-t border-white/10 mt-3 pt-3">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        Last: {formatDate(report.lastSentAt)}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Next: {formatDate(report.nextScheduledAt)}
+                      </span>
+                    </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* History Tab */}
+      {activeTab === 'history' && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Past Reports</h3>
+          
+          {pastReports.length === 0 ? (
+            <GlassCard className="overflow-hidden">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4 text-muted-foreground">
+                  <History className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-heading font-semibold text-foreground mb-2">No reports yet</h3>
+                <p className="text-muted-foreground mb-6 max-w-xs text-sm">
+                  Generated reports will appear here
+                </p>
+                <GlassButton onClick={() => setActiveTab('generate')} variant="default" className="gap-2">
+                  <Zap className="w-4 h-4" />
+                  Generate Report
+                </GlassButton>
+              </div>
+            </GlassCard>
+          ) : (
+            <div className="space-y-3">
+              {pastReports.map((report) => {
+                const typeConfig = getReportTypeConfig(report.reportType);
+                return (
+                  <GlassCard key={report.id}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-xl ${typeConfig.bgColor} flex items-center justify-center flex-shrink-0 ${typeConfig.color}`}>
+                        {typeConfig.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-foreground">{report.name}</h4>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(report.dateRange.start).toLocaleDateString()} - {new Date(report.dateRange.end).toLocaleDateString()}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                          <span>{typeConfig.name}</span>
+                          <span>•</span>
+                          <span>{report.size}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <GlassButton variant="ghost" size="icon" className="h-8 w-8">
+                          <Download className="w-4 h-4" />
+                        </GlassButton>
+                        <GlassButton variant="ghost" size="icon" className="h-8 w-8 hover:text-red-500">
+                          <Trash2 className="w-4 h-4" />
+                        </GlassButton>
+                      </div>
+                    </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Preview Modal using GlassModal */}
+      <GlassModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        title="Report Preview"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Report Header Info */}
+          <div className="flex items-start gap-3 mb-4">
+            <div className={`w-12 h-12 rounded-xl ${getReportTypeConfig(selectedReportType).bgColor} flex items-center justify-center ${getReportTypeConfig(selectedReportType).color}`}>
+              {getReportTypeConfig(selectedReportType).icon}
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">{getReportTypeConfig(selectedReportType).name}</h3>
+              <p className="text-sm text-muted-foreground">{getReportTypeConfig(selectedReportType).description}</p>
+            </div>
+          </div>
+
+          <GlassCard variant="featured" size="sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">Date Range</h4>
+                <p className="text-foreground font-medium">
+                  {startDate ? new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
+                </p>
+                <p className="text-sm text-muted-foreground">to</p>
+                <p className="text-foreground font-medium">
+                  {endDate ? new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-1">Report Type</h4>
+                <p className="text-foreground font-medium">{getReportTypeConfig(selectedReportType).name}</p>
+                <p className="text-xs text-muted-foreground mt-1">{getReportTypeConfig(selectedReportType).description}</p>
+              </div>
+            </div>
+          </GlassCard>
+
+          {/* Included Sections */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              Included Sections
+            </h4>
+            <div className="space-y-2">
+              {selectedReportType === 'comprehensive' ? (
+                reportTypes.slice(0, 5).map(type => (
+                  <GlassCard key={type.id} size="sm" interactive className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg ${type.bgColor} flex items-center justify-center ${type.color}`}>
+                      {type.icon}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm text-foreground">{type.name}</p>
+                      <p className="text-xs text-muted-foreground">{type.description}</p>
+                    </div>
+                    <Icons.Check className="w-5 h-5 text-green-500" />
+                  </GlassCard>
+                ))
+              ) : (
+                <GlassCard size="sm" className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-lg ${getReportTypeConfig(selectedReportType).bgColor} flex items-center justify-center ${getReportTypeConfig(selectedReportType).color}`}>
+                    {getReportTypeConfig(selectedReportType).icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-foreground">{getReportTypeConfig(selectedReportType).name}</p>
+                    <p className="text-xs text-muted-foreground">{getReportTypeConfig(selectedReportType).description}</p>
+                  </div>
+                  <Icons.Check className="w-5 h-5 text-green-500" />
+                </GlassCard>
+              )}
+            </div>
+          </div>
+
+          {/* Report Features */}
+          <div>
+            <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              Report Features
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <GlassCard size="sm" className="flex items-start gap-2">
+                <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Activity Summaries</p>
+                  <p className="text-xs text-muted-foreground">Detailed counts & totals</p>
+                </div>
+              </GlassCard>
+              <GlassCard size="sm" className="flex items-start gap-2">
+                <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Visual Charts</p>
+                  <p className="text-xs text-muted-foreground">Graphs & trends</p>
+                </div>
+              </GlassCard>
+              <GlassCard size="sm" className="flex items-start gap-2">
+                <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Key Statistics</p>
+                  <p className="text-xs text-muted-foreground">Averages & patterns</p>
+                </div>
+              </GlassCard>
+              <GlassCard size="sm" className="flex items-start gap-2">
+                <Icons.Check className="w-4 h-4 text-green-500 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Medical Format</p>
+                  <p className="text-xs text-muted-foreground">Doctor-friendly</p>
+                </div>
+              </GlassCard>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-white/10">
+            <GlassButton variant="default" onClick={() => setShowPreview(false)} className="flex-1">
+              Cancel
+            </GlassButton>
+            <GlassButton 
+              variant="primary" 
+              onClick={() => { 
+                setShowPreview(false); 
+                handleDownloadPDF(); 
+              }} 
+              className="flex-1 gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download PDF
+            </GlassButton>
+          </div>
+        </div>
+      </GlassModal>
+
+      {/* Add/Edit Scheduled Report Modal using GlassModal */}
+      <GlassModal
+        isOpen={showAddModal || !!editingReport}
+        onClose={() => {
+          setShowAddModal(false);
+          setEditingReport(null);
+        }}
+        title={editingReport ? "Edit Schedule" : "New Schedule"}
+        size="default"
+      >
+        <ScheduledReportForm
+          report={editingReport || undefined}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingReport(null);
+          }}
+          onSave={editingReport 
+            ? (data) => handleEditScheduledReport(editingReport.id, data)
+            : handleAddScheduledReport
+          }
+        />
+      </GlassModal>
+    </div>
   );
 }
 
-// Scheduled Report Modal Component
-function ScheduledReportModal({
+// Scheduled Report Form Component with glassmorphism styling
+function ScheduledReportForm({
   report,
   onClose,
   onSave,
@@ -1071,143 +1048,143 @@ function ScheduledReportModal({
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <Card variant="default" className="w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <CalendarClock className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-lg">{isEditing ? "Edit Schedule" : "New Schedule"}</CardTitle>
-                <CardDescription>{isEditing ? "Update settings" : "Set up automatic delivery"}</CardDescription>
-              </div>
-            </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80">
-              <Icons.Close className="w-4 h-4" />
-            </button>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Report Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Weekly Summary"
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="doctor@example.com"
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Frequency</label>
-              <div className="grid grid-cols-3 gap-2">
-                {frequencyOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setFrequency(option.value)}
-                    className={`p-3 rounded-xl border-2 transition-all ${
-                      frequency === option.value
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-muted bg-muted/50 hover:border-primary/50"
-                    }`}
-                    disabled={isSubmitting}
-                  >
-                    <span className="text-sm font-medium">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <GlassCard variant="danger" size="sm">
+          <span className="text-sm">{error}</span>
+        </GlassCard>
+      )}
 
-            {frequency === "weekly" && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Day of Week</label>
-                <select
-                  value={dayOfWeek}
-                  onChange={(e) => setDayOfWeek(parseInt(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none"
-                  disabled={isSubmitting}
-                >
-                  {daysOfWeek.map((day) => (
-                    <option key={day.value} value={day.value}>{day.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {frequency === "monthly" && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Day of Month</label>
-                <select
-                  value={dayOfMonth}
-                  onChange={(e) => setDayOfMonth(parseInt(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none"
-                  disabled={isSubmitting}
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>{day}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium mb-2">Time</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-muted/50">
-              <label className="text-sm font-medium">Active</label>
-              <button
-                type="button"
-                onClick={() => setIsActive(!isActive)}
-                disabled={isSubmitting}
-                className={`relative w-10 h-6 rounded-full transition-all ${isActive ? "bg-primary" : "bg-muted"}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${isActive ? "translate-x-5" : "translate-x-1"}`} />
-              </button>
-            </div>
-            <div className="flex gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1" disabled={isSubmitting}>
-                Cancel
-              </Button>
-              <Button type="submit" variant="glow" className="flex-1" disabled={isSubmitting || !name.trim() || !email.trim()}>
-                {isSubmitting ? (
-                  <><Loader2 className="w-4 h-4 animate-spin mr-2" />{isEditing ? "Saving..." : "Creating..."}</>
-                ) : (
-                  isEditing ? "Save Changes" : "Create Schedule"
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">Report Name</label>
+        <GlassInput
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="e.g., Weekly Summary"
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">Email Address</label>
+        <GlassInput
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="doctor@example.com"
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">Frequency</label>
+        <div className="grid grid-cols-3 gap-2">
+          {frequencyOptions.map((option) => (
+            <GlassButton
+              key={option.value}
+              type="button"
+              onClick={() => setFrequency(option.value)}
+              variant={frequency === option.value ? "primary" : "default"}
+              disabled={isSubmitting}
+              className="py-3"
+            >
+              {option.label}
+            </GlassButton>
+          ))}
+        </div>
+      </div>
+
+      {frequency === "weekly" && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Day of Week</label>
+          <GlassSelect value={dayOfWeek.toString()} onValueChange={(val) => setDayOfWeek(parseInt(val))}>
+            <GlassSelectTrigger>
+              <GlassSelectValue placeholder="Select day" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
+              {daysOfWeek.map((day) => (
+                <GlassSelectItem key={day.value} value={day.value.toString()}>
+                  {day.label}
+                </GlassSelectItem>
+              ))}
+            </GlassSelectContent>
+          </GlassSelect>
+        </div>
+      )}
+
+      {frequency === "monthly" && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium">Day of Month</label>
+          <GlassSelect value={dayOfMonth.toString()} onValueChange={(val) => setDayOfMonth(parseInt(val))}>
+            <GlassSelectTrigger>
+              <GlassSelectValue placeholder="Select day" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                <GlassSelectItem key={day} value={day.toString()}>
+                  {day}
+                </GlassSelectItem>
+              ))}
+            </GlassSelectContent>
+          </GlassSelect>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">Time</label>
+        <GlassInput
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <GlassCard size="sm" className="flex items-center justify-between">
+        <label className="text-sm font-medium">Active</label>
+        <button
+          type="button"
+          onClick={() => setIsActive(!isActive)}
+          disabled={isSubmitting}
+          className={cn(
+            "relative w-10 h-6 rounded-full transition-all",
+            isActive ? "bg-primary" : "bg-muted"
+          )}
+        >
+          <div className={cn(
+            "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform",
+            isActive ? "translate-x-5" : "translate-x-1"
+          )} />
+        </button>
+      </GlassCard>
+
+      <div className="flex gap-3 pt-4">
+        <GlassButton 
+          type="button" 
+          variant="default" 
+          onClick={onClose} 
+          className="flex-1" 
+          disabled={isSubmitting}
+        >
+          Cancel
+        </GlassButton>
+        <GlassButton 
+          type="submit" 
+          variant="primary" 
+          className="flex-1" 
+          disabled={isSubmitting || !name.trim() || !email.trim()}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              {isEditing ? "Saving..." : "Creating..."}
+            </>
+          ) : (
+            isEditing ? "Save Changes" : "Create Schedule"
+          )}
+        </GlassButton>
+      </div>
+    </form>
   );
 }

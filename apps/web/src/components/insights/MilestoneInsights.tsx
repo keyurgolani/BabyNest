@@ -1,6 +1,7 @@
 import React from "react";
 import { Award, CheckCircle, Clock, Target, Sparkles } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 
 export interface Milestone {
@@ -79,9 +80,7 @@ export function MilestoneInsights({ milestones, babyAgeMonths }: MilestoneInsigh
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-violet-500/30">
-          <Award className="w-5 h-5" />
-        </div>
+        <IconBadge color="memory" icon={Award} size="default" gradient />
         <div>
           <h3 className="font-semibold text-foreground">Milestone Insights</h3>
           <p className="text-xs text-muted-foreground">
@@ -91,7 +90,7 @@ export function MilestoneInsights({ milestones, babyAgeMonths }: MilestoneInsigh
       </div>
 
       {/* Progress Summary */}
-      <Card className="p-4 border-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
+      <GlassCard size="sm" className="border-0 bg-gradient-to-br from-violet-50/80 to-purple-50/80 dark:from-violet-950/30 dark:to-purple-950/30">
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">{achieved.length}</div>
@@ -106,7 +105,7 @@ export function MilestoneInsights({ milestones, babyAgeMonths }: MilestoneInsigh
             <div className="text-xs text-muted-foreground">Upcoming</div>
           </div>
         </div>
-      </Card>
+      </GlassCard>
 
       {/* In Progress Milestones */}
       {inProgress.length > 0 && (
@@ -162,9 +161,9 @@ function MilestoneCard({ milestone }: { milestone: Milestone }) {
   const StatusIcon = status.icon;
 
   return (
-    <Card className={cn("p-3 border", status.bg, status.border)}>
+    <GlassCard size="sm" className={cn("border-l-4", status.bg, status.border)}>
       <div className="flex items-start gap-3">
-        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0", category.bg)}>
+        <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 backdrop-blur-sm", category.bg)}>
           {category.emoji}
         </div>
         <div className="flex-1 min-w-0">
@@ -185,12 +184,12 @@ function MilestoneCard({ milestone }: { milestone: Milestone }) {
             )}
           </div>
           {milestone.tips && (
-            <p className="text-xs text-muted-foreground mt-2 p-2 bg-white/50 dark:bg-black/20 rounded">
+            <p className="text-xs text-muted-foreground mt-2 p-2 bg-white/50 dark:bg-black/20 rounded-xl backdrop-blur-sm">
               💡 {milestone.tips}
             </p>
           )}
         </div>
       </div>
-    </Card>
+    </GlassCard>
   );
 }

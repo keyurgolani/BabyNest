@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Pill, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Button } from "@/components/ui/button";
 import { api, MedicationResponse } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
@@ -79,18 +79,44 @@ export function UpcomingMedications() {
 
   if (loading) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-purple-100 via-pink-100 to-fuchsia-100 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-fuchsia-950/40 shadow-[0_8px_24px_rgba(168,85,247,0.2),0_0_40px_rgba(168,85,247,0.15)]">
-        <div className="h-32 bg-purple-300/30 dark:bg-purple-700/20 rounded-xl animate-pulse" />
-      </Card>
+      <GlassCard size="default" className="relative overflow-hidden">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 rounded-2xl flex items-center justify-center shadow-lg">
+            <Pill className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div className="space-y-1">
+            <div className="h-5 w-24 bg-white/10 rounded animate-pulse" />
+            <div className="h-3 w-20 bg-white/10 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-3 rounded-xl bg-white/5 border border-white/10 animate-pulse">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-4 w-28 bg-white/10 rounded" />
+                    <div className="h-5 w-14 bg-white/10 rounded-full" />
+                  </div>
+                  <div className="h-3 w-36 bg-white/10 rounded" />
+                  <div className="h-3 w-24 bg-white/10 rounded" />
+                </div>
+                <div className="h-8 w-16 bg-white/10 rounded-lg flex-shrink-0" />
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+      </GlassCard>
     );
   }
 
   if (medications.length === 0) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-purple-100 via-pink-100 to-fuchsia-100 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-fuchsia-950/40 shadow-[0_8px_24px_rgba(168,85,247,0.2),0_0_40px_rgba(168,85,247,0.15)]">
+      <GlassCard size="default">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800/60 dark:to-pink-800/60 rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
-            <Pill className="w-6 h-6 text-purple-700 dark:text-purple-300" />
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 rounded-2xl flex items-center justify-center shadow-lg">
+            <Pill className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
             <h4 className="font-bold text-foreground">Medications</h4>
@@ -100,17 +126,17 @@ export function UpcomingMedications() {
         <p className="text-sm text-muted-foreground">
           All medications are up to date.
         </p>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-purple-100 via-pink-100 to-fuchsia-100 dark:from-purple-950/40 dark:via-pink-950/40 dark:to-fuchsia-950/40 shadow-[0_8px_24px_rgba(168,85,247,0.2),0_0_40px_rgba(168,85,247,0.15)] hover:shadow-[0_12px_32px_rgba(168,85,247,0.3),0_0_60px_rgba(168,85,247,0.2)]">
+    <GlassCard size="default" className="hover:shadow-2xl transition-shadow duration-300">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-200 to-pink-200 dark:from-purple-800/60 dark:to-pink-800/60 rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(168,85,247,0.3)]">
-            <Pill className="w-6 h-6 text-purple-700 dark:text-purple-300" />
+          <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 dark:from-purple-500/30 dark:to-pink-500/30 rounded-2xl flex items-center justify-center shadow-lg">
+            <Pill className="w-6 h-6 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
             <h4 className="font-bold text-foreground">Medications</h4>
@@ -127,7 +153,7 @@ export function UpcomingMedications() {
           return (
             <div
               key={med.id}
-              className="bg-white/50 dark:bg-black/20 p-3 rounded-lg border border-purple-200/50 dark:border-purple-800/50"
+              className="bg-white/30 dark:bg-white/5 p-3 rounded-xl border border-white/20 dark:border-white/10 backdrop-blur-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -140,10 +166,10 @@ export function UpcomingMedications() {
                         className={cn(
                           "px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap",
                           timeInfo.isDue
-                            ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+                            ? "bg-red-500/20 text-red-700 dark:text-red-300"
                             : timeInfo.isSoon
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
-                            : "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300"
+                            ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                            : "bg-green-500/20 text-green-700 dark:text-green-300"
                         )}
                       >
                         {timeInfo.isDue && <AlertCircle className="w-3 h-3 inline mr-1" />}
@@ -171,7 +197,7 @@ export function UpcomingMedications() {
                   variant="outline"
                   onClick={() => handleMarkTaken(med.id)}
                   disabled={markingTaken === med.id}
-                  className="shrink-0 h-8 px-3 bg-white dark:bg-black/40 hover:bg-purple-100 dark:hover:bg-purple-900/50 border-purple-200 dark:border-purple-800"
+                  className="shrink-0 h-8 px-3 bg-white/30 dark:bg-white/10 hover:bg-white/50 dark:hover:bg-white/20 border-white/30 dark:border-white/20 backdrop-blur-sm"
                 >
                   {markingTaken === med.id ? (
                     <span className="text-xs">...</span>
@@ -187,6 +213,6 @@ export function UpcomingMedications() {
           );
         })}
       </div>
-    </Card>
+    </GlassCard>
   );
 }

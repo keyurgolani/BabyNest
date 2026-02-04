@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -113,17 +113,17 @@ export function InsightHistoryCard({ onViewInsight }: InsightHistoryCardProps) {
   const getInsightColor = (type: InsightType) => {
     switch (type) {
       case "weekly_summary":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
       case "sleep_prediction":
-        return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400";
+        return "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20";
       case "anomaly":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
       case "daily_summary":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400";
+        return "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
       case "trend":
-        return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400";
+        return "bg-purple-500/10 text-purple-500 border border-purple-500/20";
       default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
+        return "bg-white/10 text-muted-foreground border border-white/10";
     }
   };
 
@@ -146,42 +146,41 @@ export function InsightHistoryCard({ onViewInsight }: InsightHistoryCardProps) {
 
   if (loading) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30">
+      <GlassCard className="p-4">
         <div className="space-y-4">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/30 dark:to-gray-950/30">
+    <GlassCard className="p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <History className="w-5 h-5 text-slate-600 dark:text-slate-400" />
           <h3 className="font-semibold text-foreground">Insight History</h3>
         </div>
-        <Button
-          variant="outline"
+        <GlassButton
+          variant="default"
           size="sm"
           onClick={() => handleGenerateInsight("weekly_summary")}
           disabled={generating}
-          className="gap-1"
         >
           {generating ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin mr-1" />
           ) : (
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-1" />
           )}
           Generate
-        </Button>
+        </GlassButton>
       </div>
 
       {error && (
-        <div className="p-3 mb-4 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-sm">
+        <div className="p-3 mb-4 rounded-xl bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-500 text-sm">
           {error}
         </div>
       )}
@@ -200,7 +199,7 @@ export function InsightHistoryCard({ onViewInsight }: InsightHistoryCardProps) {
             <button
               key={insight.id}
               onClick={() => onViewInsight?.(insight)}
-              className="w-full p-3 rounded-lg bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group"
+              className="w-full p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all text-left group"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -215,7 +214,7 @@ export function InsightHistoryCard({ onViewInsight }: InsightHistoryCardProps) {
                       <span className="font-medium text-sm text-foreground truncate">
                         {getInsightLabel(insight.type)}
                       </span>
-                      <Badge variant="secondary" className="text-xs shrink-0">
+                      <Badge variant="secondary" className="text-xs shrink-0 bg-white/10 border-white/10">
                         {formatDate(insight.generatedAt)}
                       </Badge>
                     </div>
@@ -230,6 +229,6 @@ export function InsightHistoryCard({ onViewInsight }: InsightHistoryCardProps) {
           ))}
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }

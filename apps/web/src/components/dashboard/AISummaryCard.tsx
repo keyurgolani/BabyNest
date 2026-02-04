@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Sparkles, AlertTriangle, TrendingUp, TrendingDown, Minus, RefreshCw, ChevronRight } from "lucide-react";
 import { api, TrendInsightsResponse } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -66,92 +66,115 @@ export function AISummaryCard() {
 
   if (loading) {
     return (
-      <Card className="bg-gradient-to-br from-violet-100 via-purple-100 to-fuchsia-100 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-fuchsia-950/40 border-violet-300/50 dark:border-violet-700/30 shadow-[0_8px_24px_rgba(139,92,246,0.2),0_0_40px_rgba(139,92,246,0.15)]">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-600 dark:text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
-            AI Health Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 animate-pulse">
-            <div className="h-4 bg-violet-300/50 dark:bg-violet-700/30 rounded-lg w-3/4" />
-            <div className="h-4 bg-violet-300/50 dark:bg-violet-700/30 rounded-lg w-full" />
-            <div className="h-4 bg-violet-300/50 dark:bg-violet-700/30 rounded-lg w-5/6" />
-            <div className="h-4 bg-violet-300/50 dark:bg-violet-700/30 rounded-lg w-2/3" />
+      <GlassCard variant="featured" size="lg" className="relative overflow-hidden">
+        <div className="pb-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
+              AI Health Summary
+            </h3>
+            <div className="h-4 w-24 bg-primary/10 rounded animate-pulse" />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="space-y-4">
+          {/* AI Summary text skeleton */}
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-primary/10 rounded animate-pulse" />
+            <div className="h-4 w-5/6 bg-primary/10 rounded animate-pulse" />
+            <div className="h-4 w-4/5 bg-primary/10 rounded animate-pulse" />
+          </div>
+          {/* Highlights skeleton */}
+          <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+            <div className="h-3 w-20 bg-primary/10 rounded mb-2 animate-pulse" />
+            <div className="space-y-1">
+              <div className="h-3 w-full bg-primary/10 rounded animate-pulse" />
+              <div className="h-3 w-3/4 bg-primary/10 rounded animate-pulse" />
+            </div>
+          </div>
+          {/* Key trends grid skeleton */}
+          <div className="space-y-2">
+            <div className="h-3 w-20 bg-primary/10 rounded animate-pulse" />
+            <div className="grid grid-cols-2 gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="p-2 rounded-lg bg-white/5 border border-white/10 animate-pulse">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <div className="w-3 h-3 bg-primary/10 rounded" />
+                    <div className="h-3 w-16 bg-primary/10 rounded" />
+                  </div>
+                  <div className="h-3 w-20 bg-primary/10 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+      </GlassCard>
     );
   }
 
   // Show friendly empty state for new users
   if (!insights || (insights.insights?.length === 0 && !insights.aiSummary)) {
     return (
-      <Card className="bg-gradient-to-br from-violet-100 via-purple-100 to-fuchsia-100 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-fuchsia-950/40 border-violet-300/50 dark:border-violet-700/30 shadow-[0_8px_24px_rgba(139,92,246,0.2),0_0_40px_rgba(139,92,246,0.15)]">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-600 dark:text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
+      <GlassCard variant="featured" size="lg">
+        <div className="pb-3">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
             AI Health Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-200 to-purple-200 dark:from-violet-800/50 dark:to-purple-800/50 flex items-center justify-center mx-auto mb-3 shadow-[0_4px_16px_rgba(139,92,246,0.3)]">
-              <Sparkles className="w-7 h-7 text-violet-600 dark:text-violet-300" />
-            </div>
-            <p className="text-sm font-semibold text-foreground mb-1">Ready to analyze</p>
-            <p className="text-xs text-muted-foreground mb-3">
-              Log some activities to unlock AI-powered insights about your baby&apos;s patterns
-            </p>
-            <Link href="/quick-log">
-              <Button variant="soft" size="sm" className="text-violet-700 bg-violet-200/50 hover:bg-violet-200 dark:bg-violet-800/30 dark:hover:bg-violet-800/50">
-                Start Logging
-              </Button>
-            </Link>
+          </h3>
+        </div>
+        <div className="text-center py-4">
+          <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-3 shadow-[0_4px_16px_rgba(139,92,246,0.3)]">
+            <Sparkles className="w-7 h-7 text-primary" />
           </div>
-        </CardContent>
-      </Card>
+          <p className="text-sm font-semibold text-foreground mb-1">Ready to analyze</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            Log some activities to unlock AI-powered insights about your baby&apos;s patterns
+          </p>
+          <Link href="/quick-log">
+            <Button variant="soft" size="sm" className="text-primary bg-primary/20 hover:bg-primary/30">
+              Start Logging
+            </Button>
+          </Link>
+        </div>
+      </GlassCard>
     );
   }
 
   if (error) {
     return (
-      <Card className="bg-gradient-to-br from-violet-100 via-purple-100 to-fuchsia-100 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-fuchsia-950/40 border-violet-300/50 dark:border-violet-700/30 shadow-[0_8px_24px_rgba(139,92,246,0.2),0_0_40px_rgba(139,92,246,0.15)]">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-600 dark:text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
+      <GlassCard variant="featured" size="lg">
+        <div className="pb-3">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
             AI Health Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-3">{error}</p>
-            <Button variant="outline" size="sm" onClick={fetchInsights}>
-              <RefreshCw className="w-3 h-3 mr-2" />
-              Retry
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </h3>
+        </div>
+        <div className="text-center py-4">
+          <p className="text-sm text-muted-foreground mb-3">{error}</p>
+          <Button variant="outline" size="sm" onClick={fetchInsights}>
+            <RefreshCw className="w-3 h-3 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </GlassCard>
     );
   }
 
   return (
-    <Card className="bg-gradient-to-br from-violet-100 via-purple-100 to-fuchsia-100 dark:from-violet-950/40 dark:via-purple-950/40 dark:to-fuchsia-950/40 border-violet-300/50 dark:border-violet-700/30 shadow-[0_8px_24px_rgba(139,92,246,0.2),0_0_40px_rgba(139,92,246,0.15)] hover:shadow-[0_12px_32px_rgba(139,92,246,0.3),0_0_60px_rgba(139,92,246,0.2)]">
-      <CardHeader className="pb-3">
+    <GlassCard variant="featured" size="lg" className="hover:shadow-2xl transition-shadow duration-200">
+      <div className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-600 dark:text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
             AI Health Summary
-          </CardTitle>
-          <Link href="/insights" className="text-xs text-violet-700 dark:text-violet-300 font-semibold hover:underline flex items-center gap-1">
+          </h3>
+          <Link href="/insights" className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
             More Insights
             <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+      <div className="space-y-4">
         {/* AI Summary Text - Collapsible on Mobile */}
         {insights?.aiSummary && (
           <div className="relative">
@@ -167,7 +190,7 @@ export function AISummaryCard() {
               variant="ghost" 
               size="sm" 
               onClick={() => setIsExpanded(!isExpanded)}
-              className="md:hidden w-full mt-1 h-6 text-xs text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/30"
+              className="md:hidden w-full mt-1 h-6 text-xs text-primary hover:bg-primary/10"
             >
               {isExpanded ? (
                 <span className="flex items-center gap-1">Show Less <ChevronRight className="w-3 h-3 rotate-270" /></span>
@@ -224,19 +247,19 @@ export function AISummaryCard() {
         {insights?.insights && insights.insights.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground">Key Trends</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               {insights.insights.slice(0, 4).map((insight, i) => (
                 <div
                   key={i}
-                  className="p-2 md:p-3 rounded-lg bg-white/50 dark:bg-black/20 border border-violet-200/50 dark:border-violet-800/20"
+                  className="p-2 md:p-3 rounded-lg bg-[var(--glass-bg)] border border-[var(--glass-border)]"
                 >
                   <div className="flex items-center gap-1.5 mb-1">
                     {getTrendIcon(insight.trend)}
-                    <span className="text-[10px] md:text-xs font-medium truncate">
+                    <span className="text-xs font-medium truncate">
                       {insight.category}
                     </span>
                   </div>
-                  <p className={cn("text-[10px] md:text-xs", getTrendColor(insight.trend))}>
+                  <p className={cn("text-xs leading-snug", getTrendColor(insight.trend))}>
                     {insight.title}
                   </p>
                 </div>
@@ -244,7 +267,7 @@ export function AISummaryCard() {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </GlassCard>
   );
 }

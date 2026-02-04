@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Utensils, Clock, TrendingUp, Sparkles } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 import { api, FeedingStatisticsResponse } from "@/lib/api-client";
 
@@ -113,29 +114,27 @@ export function FeedingPrediction({ prediction: propPrediction, loading: propLoa
 
   if (loading) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-100 dark:from-orange-950/40 dark:via-amber-950/40 dark:to-yellow-950/40 shadow-[0_8px_24px_rgba(251,146,60,0.2),0_0_40px_rgba(251,146,60,0.15)]">
-        <div className="h-32 bg-orange-300/30 dark:bg-orange-700/20 rounded-xl animate-pulse" />
-      </Card>
+      <GlassCard>
+        <div className="h-32 bg-white/20 dark:bg-white/10 rounded-xl animate-pulse" />
+      </GlassCard>
     );
   }
 
   if (!prediction) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-100 dark:from-orange-950/40 dark:via-amber-950/40 dark:to-yellow-950/40 shadow-[0_8px_24px_rgba(251,146,60,0.2),0_0_40px_rgba(251,146,60,0.15)]">
+      <GlassCard>
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-orange-200 to-amber-200 dark:from-orange-800/60 dark:to-amber-800/60 rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(251,146,60,0.3)]">
-            <Utensils className="w-6 h-6 text-orange-700 dark:text-orange-300" />
-          </div>
+          <IconBadge color="feed" icon={Utensils} size="lg" gradient />
           <div>
             <h4 className="font-bold text-foreground">Next Feeding</h4>
             <p className="text-xs text-muted-foreground font-medium">AI-powered prediction</p>
           </div>
         </div>
         <div className="flex flex-col items-center justify-center py-4 text-center">
-          <Utensils className="w-10 h-10 text-orange-400 dark:text-orange-600 mb-2" />
+          <Utensils className="w-10 h-10 text-[var(--color-feed)]/60 mb-2" />
           <p className="text-sm text-muted-foreground font-medium">Log feedings to unlock predictions</p>
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -167,13 +166,11 @@ export function FeedingPrediction({ prediction: propPrediction, loading: propLoa
   const patternStyle = patternConfig[prediction.pattern];
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-orange-100 via-amber-100 to-yellow-100 dark:from-orange-950/40 dark:via-amber-950/40 dark:to-yellow-950/40 shadow-[0_8px_24px_rgba(251,146,60,0.2),0_0_40px_rgba(251,146,60,0.15)] hover:shadow-[0_12px_32px_rgba(251,146,60,0.3),0_0_60px_rgba(251,146,60,0.2)]">
+    <GlassCard interactive>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-orange-200 to-amber-200 dark:from-orange-800/60 dark:to-amber-800/60 rounded-2xl flex items-center justify-center shadow-[0_4px_16px_rgba(251,146,60,0.3)]">
-            <Utensils className="w-6 h-6 text-orange-700 dark:text-orange-300" />
-          </div>
+          <IconBadge color="feed" icon={Utensils} size="lg" gradient />
           <div>
             <h4 className="font-bold text-foreground">Next Feeding</h4>
             <p className="text-xs text-muted-foreground font-medium">AI-powered prediction</p>
@@ -195,10 +192,10 @@ export function FeedingPrediction({ prediction: propPrediction, loading: propLoa
           className={cn(
             "px-3 py-1.5 rounded-full text-sm font-medium",
             isDue
-              ? "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300"
+              ? "bg-red-500/20 text-red-700 dark:text-red-300"
               : isSoon
-              ? "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
-              : "bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300"
+              ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+              : "bg-green-500/20 text-green-700 dark:text-green-300"
           )}
         >
           {isDue ? "Due Now" : isSoon ? `Soon (${prediction.minutesUntilFeeding}m)` : `in ${prediction.minutesUntilFeeding}m`}
@@ -213,7 +210,7 @@ export function FeedingPrediction({ prediction: propPrediction, loading: propLoa
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg">
+        <div className="bg-white/20 dark:bg-white/5 p-3 rounded-xl">
           <div className="flex items-center gap-2 mb-1">
             <Clock className="w-3 h-3 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">Avg Interval</span>
@@ -223,7 +220,7 @@ export function FeedingPrediction({ prediction: propPrediction, loading: propLoa
           </div>
         </div>
         {prediction.recommendedAmount && (
-          <div className="bg-white/50 dark:bg-black/20 p-3 rounded-lg">
+          <div className="bg-white/20 dark:bg-white/5 p-3 rounded-xl">
             <div className="flex items-center gap-2 mb-1">
               <Utensils className="w-3 h-3 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Recommended</span>
@@ -234,17 +231,17 @@ export function FeedingPrediction({ prediction: propPrediction, loading: propLoa
       </div>
 
       {/* Insight */}
-      <div className="bg-orange-100/50 dark:bg-orange-900/20 p-3 rounded-lg border border-orange-200/50 dark:border-orange-800/50">
+      <div className="bg-[var(--color-feed)]/10 p-3 rounded-xl border border-[var(--color-feed)]/20">
         <p className="text-sm text-foreground leading-relaxed">
           💡 {prediction.insight}
         </p>
       </div>
 
       {/* Last Feeding */}
-      <div className="mt-3 pt-3 border-t border-orange-200/50 dark:border-orange-800/50 text-xs text-muted-foreground">
+      <div className="mt-3 pt-3 border-t border-white/10 text-xs text-muted-foreground">
         Last feeding: {new Date(prediction.lastFeedingTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       </div>
-    </Card>
+    </GlassCard>
   );
 }
 

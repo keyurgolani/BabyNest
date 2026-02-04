@@ -1,45 +1,70 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Icons } from "@/components/icons";
 import { InsightConfigCard, InsightHistoryCard } from "@/components/insights";
 
+/**
+ * AiInsightsSettingsModal Component
+ *
+ * A modal for configuring AI insights generation settings with glassmorphism styling.
+ * Uses GlassModal wrapper, switch components for toggles, and GlassButton for actions.
+ * 
+ * The modal contains:
+ * - InsightConfigCard: Configure insight generation schedule and enable/disable auto-generation
+ * - InsightHistoryCard: View and generate AI insights history
+ *
+ * @requirements 18.5
+ */
+
 interface AiInsightsSettingsModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Callback when the modal should close */
   onClose: () => void;
 }
 
-export function AiInsightsSettingsModal({ onClose }: AiInsightsSettingsModalProps) {
+export function AiInsightsSettingsModal({ isOpen, onClose }: AiInsightsSettingsModalProps) {
   return (
-    <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="AI Insights"
+      size="lg"
     >
-      <Card variant="default" className="w-full max-w-lg animate-scale-in shadow-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-600">
-                <Icons.Insights className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">AI Insights Settings</CardTitle>
-                <CardDescription>Configure insight generation schedule</CardDescription>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
+      <div className="space-y-6">
+        {/* Header Icon and Description */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400">
+            <Icons.Insights className="w-5 h-5" />
           </div>
-        </CardHeader>
+          <p className="text-sm text-muted-foreground">
+            Configure AI-powered insights and view generation history
+          </p>
+        </div>
 
-        <CardContent className="pt-0 space-y-4">
-          <InsightConfigCard />
-          <InsightHistoryCard />
-        </CardContent>
-      </Card>
-    </div>
+        {/* Insight Configuration Card */}
+        <InsightConfigCard />
+
+        {/* Insight History Card */}
+        <InsightHistoryCard />
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
+          <GlassButton
+            type="button"
+            variant="primary"
+            onClick={onClose}
+            className="flex-1"
+          >
+            <div className="flex items-center gap-2">
+              <Icons.Check className="w-4 h-4" />
+              <span>Done</span>
+            </div>
+          </GlassButton>
+        </div>
+      </div>
+    </GlassModal>
   );
 }

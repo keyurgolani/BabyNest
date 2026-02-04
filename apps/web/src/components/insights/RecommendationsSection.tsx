@@ -1,7 +1,8 @@
 import React from "react";
 import { Lightbulb, ExternalLink, Clock, Star, ChevronRight } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 
 export interface Recommendation {
@@ -85,9 +86,7 @@ export function RecommendationsSection({ recommendations, onLearnMore }: Recomme
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-500 flex items-center justify-center text-white shadow-lg shadow-amber-500/30">
-          <Lightbulb className="w-5 h-5" />
-        </div>
+        <IconBadge color="memory" icon={Lightbulb} size="default" gradient />
         <div>
           <h3 className="font-semibold text-foreground">Personalized Recommendations</h3>
           <p className="text-xs text-muted-foreground">
@@ -104,9 +103,9 @@ export function RecommendationsSection({ recommendations, onLearnMore }: Recomme
           const PriorityIcon = priority.icon;
 
           return (
-            <Card key={rec.id} className="p-4 border-0 bg-muted/30 hover:bg-muted/50 transition-colors">
+            <GlassCard key={rec.id} size="sm" interactive className="border-0">
               <div className="flex items-start gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0", category.bg)}>
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 backdrop-blur-sm", category.bg)}>
                   {category.emoji}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -118,7 +117,7 @@ export function RecommendationsSection({ recommendations, onLearnMore }: Recomme
                     {rec.description}
                   </p>
                   <div className="flex items-center gap-3 mt-3">
-                    <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", category.bg, category.color)}>
+                    <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full backdrop-blur-sm", category.bg, category.color)}>
                       {category.label}
                     </span>
                     {rec.estimatedTime && (
@@ -128,7 +127,7 @@ export function RecommendationsSection({ recommendations, onLearnMore }: Recomme
                       </span>
                     )}
                     {rec.learnMoreUrl && (
-                      <Button
+                      <GlassButton
                         variant="ghost"
                         size="sm"
                         className="h-6 text-xs px-2 text-primary"
@@ -136,13 +135,13 @@ export function RecommendationsSection({ recommendations, onLearnMore }: Recomme
                       >
                         Learn More
                         <ExternalLink className="w-3 h-3 ml-1" />
-                      </Button>
+                      </GlassButton>
                     )}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
               </div>
-            </Card>
+            </GlassCard>
           );
         })}
       </div>

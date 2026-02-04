@@ -1,6 +1,7 @@
 import React from "react";
 import { TrendingUp, Ruler, Weight, Circle } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 
 export interface GrowthMeasurement {
@@ -21,9 +22,9 @@ interface GrowthTrackerProps {
 export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProps) {
   if (measurements.length === 0) {
     return (
-      <Card className="p-6 border-0 bg-muted/30">
+      <GlassCard className="border-0">
         <div className="text-center">
-          <div className="w-14 h-14 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
+          <div className="w-14 h-14 bg-white/20 dark:bg-white/10 rounded-full flex items-center justify-center mx-auto mb-3 backdrop-blur-sm">
             <Ruler className="w-7 h-7 text-muted-foreground" />
           </div>
           <h4 className="font-semibold text-foreground mb-1">No Growth Data Yet</h4>
@@ -31,7 +32,7 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
             Start tracking weight, height, and head circumference to see growth trends.
           </p>
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
@@ -65,9 +66,7 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/30">
-          <TrendingUp className="w-5 h-5" />
-        </div>
+        <IconBadge color="growth" icon={TrendingUp} size="default" gradient />
         <div>
           <h3 className="font-semibold text-foreground">Growth Tracking</h3>
           <p className="text-xs text-muted-foreground">
@@ -80,7 +79,7 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
       <div className="grid grid-cols-1 gap-3">
         {/* Weight */}
         {latest.weight && (
-          <Card className="p-4 border-0 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+          <GlassCard size="sm" className="border-0 bg-gradient-to-br from-blue-50/80 to-cyan-50/80 dark:from-blue-950/30 dark:to-cyan-950/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-xl flex items-center justify-center">
@@ -125,12 +124,12 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
                 </div>
               </div>
             )}
-          </Card>
+          </GlassCard>
         )}
 
         {/* Height */}
         {latest.height && (
-          <Card className="p-4 border-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
+          <GlassCard size="sm" className="border-0 bg-gradient-to-br from-purple-50/80 to-pink-50/80 dark:from-purple-950/30 dark:to-pink-950/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-xl flex items-center justify-center">
@@ -175,12 +174,12 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
                 </div>
               </div>
             )}
-          </Card>
+          </GlassCard>
         )}
 
         {/* Head Circumference */}
         {latest.headCircumference && (
-          <Card className="p-4 border-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+          <GlassCard size="sm" className="border-0 bg-gradient-to-br from-amber-50/80 to-orange-50/80 dark:from-amber-950/30 dark:to-orange-950/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/50 rounded-xl flex items-center justify-center">
@@ -220,13 +219,13 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
                 </div>
               </div>
             )}
-          </Card>
+          </GlassCard>
         )}
       </div>
 
       {/* Growth Velocity Indicator */}
       {weightChange && (
-        <Card className="p-4 border-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+        <GlassCard size="sm" className="border-0 bg-gradient-to-br from-green-50/80 to-emerald-50/80 dark:from-green-950/30 dark:to-emerald-950/30">
           <div className="flex items-center gap-3">
             <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
             <div>
@@ -236,7 +235,7 @@ export function GrowthTracker({ measurements, babyAgeMonths }: GrowthTrackerProp
               </p>
             </div>
           </div>
-        </Card>
+        </GlassCard>
       )}
     </div>
   );

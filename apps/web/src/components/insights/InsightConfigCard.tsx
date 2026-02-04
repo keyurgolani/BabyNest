@@ -1,17 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassSelect, GlassSelectContent, GlassSelectItem, GlassSelectTrigger, GlassSelectValue } from "@/components/ui/glass-select";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   api,
   InsightConfigResponse,
@@ -137,31 +130,31 @@ export function InsightConfigCard({ onConfigChange }: InsightConfigCardProps) {
 
   if (loading) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
+      <GlassCard className="p-4">
         <div className="space-y-4">
           <Skeleton className="h-6 w-40" />
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-8 w-32" />
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30">
+    <GlassCard className="p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-violet-600 dark:text-violet-400" />
           <h3 className="font-semibold text-foreground">AI Insight Settings</h3>
         </div>
         {success && (
-          <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm animate-fade-in">
+          <div className="flex items-center gap-1 text-green-500 text-sm animate-fade-in">
             <Check className="w-4 h-4" />
             <span>Saved</span>
           </div>
         )}
         {error && (
-          <div className="flex items-center gap-1 text-red-600 dark:text-red-400 text-sm">
+          <div className="flex items-center gap-1 text-red-500 text-sm">
             <AlertCircle className="w-4 h-4" />
             <span>{error}</span>
           </div>
@@ -178,42 +171,52 @@ export function InsightConfigCard({ onConfigChange }: InsightConfigCardProps) {
               Automatically generate AI insights on schedule
             </p>
           </div>
-          <Switch
+          <button
             id="insights-enabled"
-            checked={config?.isEnabled ?? true}
-            onCheckedChange={handleEnabledChange}
+            onClick={() => handleEnabledChange(!config?.isEnabled)}
             disabled={saving}
-          />
+            className={`relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+              config?.isEnabled ? 'bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.4)]' : 'bg-white/10'
+            } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+            role="switch"
+            aria-checked={config?.isEnabled ?? true}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                config?.isEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
         </div>
 
         <div className="space-y-2">
           <Label className="text-sm font-medium">Generation Frequency</Label>
-          <Select
+          <GlassSelect
             value={config?.cadence ?? "weekly"}
             onValueChange={(value) => handleCadenceChange(value as InsightCadence)}
             disabled={saving || !config?.isEnabled}
           >
-            <SelectTrigger className={cn(
+            <GlassSelectTrigger className={cn(
               "w-full",
               !config?.isEnabled && "opacity-50"
             )}>
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
+              <GlassSelectValue placeholder="Select frequency" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
               {cadenceOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
+                <GlassSelectItem key={option.value} value={option.value}>
                   <div className="flex flex-col">
                     <span>{option.label}</span>
                     <span className="text-xs text-muted-foreground">{option.description}</span>
                   </div>
-                </SelectItem>
+                </GlassSelectItem>
               ))}
-            </SelectContent>
-          </Select>
+            </GlassSelectContent>
+          </GlassSelect>
         </div>
 
         {config?.isEnabled && config?.nextGeneration && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-100/50 dark:bg-violet-900/20">
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-violet-500/10 backdrop-blur-sm border border-violet-500/20">
             <Clock className="w-4 h-4 text-violet-600 dark:text-violet-400" />
             <div className="text-sm">
               <span className="text-muted-foreground">Next insight: </span>
@@ -230,6 +233,6 @@ export function InsightConfigCard({ onConfigChange }: InsightConfigCardProps) {
           </p>
         )}
       </div>
-    </Card>
+    </GlassCard>
   );
 }

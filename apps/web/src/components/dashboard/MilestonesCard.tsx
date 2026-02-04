@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Award, ChevronRight, Star } from "lucide-react";
 import { api, MilestonesByCategoryResponse, MilestoneWithStatus } from "@/lib/api-client";
 import Link from "next/link";
@@ -51,15 +51,15 @@ export function MilestonesCard() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "motor":
-        return "bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400";
+        return "bg-blue-500/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400";
       case "cognitive":
-        return "bg-purple-100 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400";
+        return "bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-400";
       case "social":
-        return "bg-pink-100 text-pink-600 dark:bg-pink-950/40 dark:text-pink-400";
+        return "bg-pink-500/20 text-pink-600 dark:bg-pink-500/30 dark:text-pink-400";
       case "language":
-        return "bg-green-100 text-green-600 dark:bg-green-950/40 dark:text-green-400";
+        return "bg-green-500/20 text-green-600 dark:bg-green-500/30 dark:text-green-400";
       default:
-        return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+        return "bg-gray-500/20 text-gray-600 dark:bg-gray-500/30 dark:text-gray-400";
     }
   };
 
@@ -90,45 +90,62 @@ export function MilestonesCard() {
 
   if (loading) {
     return (
-      <Card className="animate-pulse shadow-[0_8px_24px_rgba(244,162,97,0.15),0_0_40px_rgba(244,162,97,0.1)]">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
-            Next Milestones
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl" />
-            ))}
+      <GlassCard className="relative overflow-hidden">
+        <div className="pb-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold flex items-center gap-2">
+              <Award className="w-5 h-5 text-amber-500 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+              Next Milestones
+            </h3>
+            <div className="h-4 w-16 bg-white/10 rounded animate-pulse" />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 animate-pulse">
+              <div className="w-12 h-12 rounded-xl bg-white/10" />
+              <div className="flex-1 space-y-1">
+                <div className="h-4 w-36 bg-white/10 rounded" />
+                <div className="h-3 w-28 bg-white/10 rounded" />
+              </div>
+              <div className="h-6 w-14 bg-white/10 rounded-lg" />
+            </div>
+          ))}
+          {/* Progress bar skeleton */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-3 w-24 bg-white/10 rounded animate-pulse" />
+              <div className="h-4 w-8 bg-white/10 rounded animate-pulse" />
+            </div>
+            <div className="h-3 w-full bg-white/10 rounded-full animate-pulse" />
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+      </GlassCard>
     );
   }
 
   const upcomingMilestones = getUpcomingMilestones();
 
   return (
-    <Card className="shadow-[0_8px_24px_rgba(244,162,97,0.15),0_0_40px_rgba(244,162,97,0.1)] hover:shadow-[0_12px_32px_rgba(244,162,97,0.25),0_0_60px_rgba(244,162,97,0.15)]">
-      <CardHeader className="pb-3">
+    <GlassCard className="hover:shadow-2xl transition-shadow duration-200">
+      <div className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold flex items-center gap-2">
+          <h3 className="text-base font-semibold flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-500 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             Next Milestones
-          </CardTitle>
+          </h3>
           <Link href="/milestones" className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5">
             View All
             <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         {upcomingMilestones.length === 0 ? (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-200 to-amber-200 dark:from-yellow-800/50 dark:to-amber-800/50 flex items-center justify-center mx-auto mb-3 shadow-[0_4px_16px_rgba(251,191,36,0.3)]">
-              <Star className="w-8 h-8 text-yellow-600 dark:text-yellow-300" />
+          <div className="text-center py-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-3 shadow-[0_4px_16px_rgba(251,191,36,0.3)]">
+              <Star className="w-7 h-7 text-amber-500" />
             </div>
             <p className="text-sm font-semibold text-foreground mb-1">
               All milestones achieved! 🎉
@@ -142,11 +159,11 @@ export function MilestonesCard() {
             {upcomingMilestones.map((milestone) => (
               <div
                 key={milestone.definition.id}
-                className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-muted/40 to-muted/20 hover:from-muted/60 hover:to-muted/40 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                className="flex items-center gap-3 p-3 rounded-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg-hover)] transition-all duration-200"
               >
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-md",
+                    "w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg",
                     getCategoryColor(milestone.category)
                   )}
                 >
@@ -172,7 +189,7 @@ export function MilestonesCard() {
             ))}
 
             {milestones && (
-              <div className="mt-4 pt-4 border-t border-border/50">
+              <div className="mt-4 pt-4 border-t border-[var(--glass-border)]">
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                   <span className="font-medium">
                     {milestones.summary.achievedCount} of{" "}
@@ -187,7 +204,7 @@ export function MilestonesCard() {
                     %
                   </span>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden shadow-inner">
+                <div className="h-3 bg-[var(--glass-bg)] rounded-full overflow-hidden border border-[var(--glass-border)]">
                   <div
                     className="h-full bg-gradient-to-r from-primary via-secondary to-primary rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(244,162,97,0.5)]"
                     style={{
@@ -203,7 +220,7 @@ export function MilestonesCard() {
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </GlassCard>
   );
 }

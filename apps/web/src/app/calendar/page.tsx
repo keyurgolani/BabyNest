@@ -3,9 +3,17 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { MobileContainer } from "@/components/layout/mobile-container";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+import { 
+  GlassSelect, 
+  GlassSelectTrigger, 
+  GlassSelectContent, 
+  GlassSelectItem, 
+  GlassSelectValue 
+} from "@/components/ui/glass-select";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api-client";
 import {
@@ -30,8 +38,6 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Icons } from "@/components/icons";
 
@@ -54,18 +60,20 @@ interface DayData {
   isToday: boolean;
 }
 
-const ENTRY_TYPES: { type: EntryType; label: string; color: string; icon: typeof Moon }[] = [
-  { type: 'feeding', label: 'Feeding', color: 'bg-orange-500', icon: Utensils },
-  { type: 'sleep', label: 'Sleep', color: 'bg-indigo-500', icon: Moon },
-  { type: 'diaper', label: 'Diaper', color: 'bg-green-500', icon: Droplets },
-  { type: 'activity', label: 'Activity', color: 'bg-cyan-500', icon: Activity },
-  { type: 'growth', label: 'Growth', color: 'bg-emerald-500', icon: Scale },
-  { type: 'symptom', label: 'Symptom', color: 'bg-red-500', icon: Thermometer },
-  { type: 'medication', label: 'Medication', color: 'bg-blue-500', icon: Pill },
-  { type: 'vaccination', label: 'Vaccination', color: 'bg-teal-500', icon: Syringe },
-  { type: 'doctor_visit', label: 'Doctor Visit', color: 'bg-purple-500', icon: Stethoscope },
-  { type: 'memory', label: 'Memory', color: 'bg-amber-500', icon: Camera },
-  { type: 'milestone', label: 'Milestone', color: 'bg-pink-500', icon: Star },
+// Activity type colors mapped to CSS variables for glassmorphism design
+// Requirements 23.1, 23.2: Color-coded events by type using activity colors
+const ENTRY_TYPES: { type: EntryType; label: string; colorVar: string; bgClass: string; icon: typeof Moon }[] = [
+  { type: 'feeding', label: 'Feeding', colorVar: 'var(--color-feed)', bgClass: 'bg-[var(--color-feed)]', icon: Utensils },
+  { type: 'sleep', label: 'Sleep', colorVar: 'var(--color-sleep)', bgClass: 'bg-[var(--color-sleep)]', icon: Moon },
+  { type: 'diaper', label: 'Diaper', colorVar: 'var(--color-diaper)', bgClass: 'bg-[var(--color-diaper)]', icon: Droplets },
+  { type: 'activity', label: 'Activity', colorVar: 'var(--color-activity)', bgClass: 'bg-[var(--color-activity)]', icon: Activity },
+  { type: 'growth', label: 'Growth', colorVar: 'var(--color-growth)', bgClass: 'bg-[var(--color-growth)]', icon: Scale },
+  { type: 'symptom', label: 'Symptom', colorVar: 'var(--color-health)', bgClass: 'bg-[var(--color-health)]', icon: Thermometer },
+  { type: 'medication', label: 'Medication', colorVar: 'var(--color-nursing)', bgClass: 'bg-[var(--color-nursing)]', icon: Pill },
+  { type: 'vaccination', label: 'Vaccination', colorVar: 'var(--color-activity)', bgClass: 'bg-[var(--color-activity)]', icon: Syringe },
+  { type: 'doctor_visit', label: 'Doctor Visit', colorVar: 'var(--color-nursing)', bgClass: 'bg-[var(--color-nursing)]', icon: Stethoscope },
+  { type: 'memory', label: 'Memory', colorVar: 'var(--color-memory)', bgClass: 'bg-[var(--color-memory)]', icon: Camera },
+  { type: 'milestone', label: 'Milestone', colorVar: 'var(--color-nursing)', bgClass: 'bg-[var(--color-nursing)]', icon: Star },
 ];
 
 export default function CalendarPage() {
@@ -786,100 +794,99 @@ export default function CalendarPage() {
   return (
     <MobileContainer>
       <div className="p-4 space-y-4 pb-32 h-full flex flex-col">
-        {/* Header */}
+        {/* Header with glassmorphism styling */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-heading font-bold text-foreground">Calendar</h1>
             <p className="text-sm text-muted-foreground">View all logged activities</p>
           </div>
-          <Button variant="outline" size="sm" onClick={goToToday}>
+          <GlassButton variant="default" size="sm" onClick={goToToday}>
             Today
-          </Button>
+          </GlassButton>
         </div>
 
-        {/* Search and Filter Bar */}
+        {/* Search and Filter Bar with glassmorphism */}
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+            <GlassInput
               placeholder="Search entries..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-background/50"
+              className="pl-9"
             />
             {searchQuery && (
-              <Button
+              <GlassButton
                 variant="ghost"
                 size="icon"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 min-h-0 min-w-0"
               >
                 <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-              </Button>
+              </GlassButton>
             )}
           </div>
-          <Button
-            variant={showFilters || activeFilters.size > 0 ? "default" : "outline"}
+          <GlassButton
+            variant={showFilters || activeFilters.size > 0 ? "primary" : "default"}
             size="icon"
             onClick={() => setShowFilters(!showFilters)}
+            className="relative"
           >
             <Filter className="w-4 h-4" />
             {activeFilters.size > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-primary text-[10px] rounded-full flex items-center justify-center font-bold">
                 {activeFilters.size}
               </span>
             )}
-          </Button>
+          </GlassButton>
         </div>
 
-        {/* Filter Pills */}
+        {/* Filter Pills with glassmorphism styling */}
         {showFilters && (
-          <div className="flex flex-wrap gap-2">
-            {ENTRY_TYPES.map(({ type, label, color, icon: Icon }) => (
-              <Button
-                key={type}
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleFilter(type)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all h-auto",
-                  activeFilters.has(type)
-                    ? `${color} text-white hover:text-white hover:opacity-90`
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                )}
-              >
-                <Icon className="w-3 h-3" />
-                {label}
-              </Button>
-            ))}
-            {activeFilters.size > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="px-3 py-1.5 rounded-full text-xs font-medium text-red-500 hover:bg-red-500/10 hover:text-red-600 h-auto"
-              >
-                Clear all
-              </Button>
-            )}
-          </div>
+          <GlassCard size="sm" className="overflow-x-auto">
+            <div className="flex flex-wrap gap-2">
+              {ENTRY_TYPES.map(({ type, label, bgClass, icon: Icon }) => (
+                <button
+                  key={type}
+                  onClick={() => toggleFilter(type)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
+                    activeFilters.has(type)
+                      ? `${bgClass} text-white shadow-lg`
+                      : "bg-white/10 text-foreground hover:bg-white/20 border border-white/20"
+                  )}
+                >
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </button>
+              ))}
+              {activeFilters.size > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium text-red-500 hover:bg-red-500/10 hover:text-red-600 transition-all"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+          </GlassCard>
         )}
 
-        {/* Month Navigation */}
+        {/* Month Navigation with glassmorphism */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={goToPreviousMonth}>
+          <GlassButton variant="ghost" size="icon" onClick={goToPreviousMonth}>
             <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <h2 className="text-lg font-semibold">
+          </GlassButton>
+          <h2 className="text-lg font-semibold font-heading">
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
-          <Button variant="ghost" size="icon" onClick={goToNextMonth}>
+          <GlassButton variant="ghost" size="icon" onClick={goToNextMonth}>
             <ChevronRight className="w-5 h-5" />
-          </Button>
+          </GlassButton>
         </div>
 
-        {/* Calendar Grid */}
-        <Card className="flex-1 p-2 border-0 bg-card/50 overflow-hidden flex flex-col">
+        {/* Calendar Grid with glassmorphism - Requirements 23.1, 23.2 */}
+        <GlassCard className="flex-1 p-2 overflow-hidden flex flex-col">
           {/* Day Headers */}
           <div className="grid grid-cols-7 gap-1 mb-1">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
@@ -891,8 +898,20 @@ export default function CalendarPage() {
 
           {/* Calendar Days */}
           {isLoading ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+            <div className="grid grid-cols-7 gap-1 flex-1">
+              {Array.from({ length: 35 }).map((_, i) => (
+                <div 
+                  key={i} 
+                  className="relative p-1 rounded-xl min-h-[60px] bg-white/5 border border-white/10 overflow-hidden"
+                >
+                  <div className="h-5 w-5 bg-white/10 rounded-full mx-auto mb-1 animate-pulse" />
+                  <div className="space-y-0.5">
+                    <div className="h-1.5 w-full bg-white/10 rounded-full animate-pulse" />
+                    <div className="h-1.5 w-3/4 bg-white/10 rounded-full animate-pulse" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+                </div>
+              ))}
             </div>
           ) : (
             <div className="grid grid-cols-7 gap-1 flex-1">
@@ -906,17 +925,18 @@ export default function CalendarPage() {
                     key={index}
                     onClick={() => day.entries.length > 0 && setSelectedDay(day.date)}
                     className={cn(
-                      "relative p-1 rounded-lg text-left transition-all min-h-[60px] flex flex-col overflow-hidden",
-                      day.isCurrentMonth ? "bg-muted/30" : "bg-transparent opacity-40",
-                      day.isToday && "ring-2 ring-primary",
-                      day.entries.length > 0 && "hover:bg-muted/50 cursor-pointer"
+                      "relative p-1 rounded-xl text-left transition-all min-h-[60px] flex flex-col overflow-hidden",
+                      day.isCurrentMonth 
+                        ? "bg-white/5 hover:bg-white/10 border border-white/10" 
+                        : "bg-transparent opacity-40",
+                      day.isToday && "ring-2 ring-primary shadow-[0_0_10px_var(--primary)]",
+                      day.entries.length > 0 && "cursor-pointer"
                     )}
                   >
                     {/* Memory Photo Background */}
                     {hasMemories && (
-                      <div className="absolute inset-0 z-0 overflow-hidden rounded-lg">
+                      <div className="absolute inset-0 z-0 overflow-hidden rounded-xl">
                         {memoryEntries.length === 1 ? (
-                          // Single memory - full background
                           <div className="w-full h-full relative">
                             <Image
                               src={memoryEntries[0].details.photoUrl as string}
@@ -926,10 +946,9 @@ export default function CalendarPage() {
                               className="object-cover"
                               unoptimized
                             />
-                            <div className="absolute inset-0 bg-black/40" />
+                            <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]" />
                           </div>
                         ) : memoryEntries.length === 2 ? (
-                          // Two memories - split vertically
                           <div className="w-full h-full flex">
                             {memoryEntries.slice(0, 2).map((entry, i) => (
                               <div key={i} className="flex-1 relative">
@@ -945,7 +964,6 @@ export default function CalendarPage() {
                             ))}
                           </div>
                         ) : memoryEntries.length === 3 ? (
-                          // Three memories - one large, two small
                           <div className="w-full h-full flex gap-0.5">
                             <div className="flex-1 relative">
                               <Image
@@ -973,7 +991,6 @@ export default function CalendarPage() {
                             </div>
                           </div>
                         ) : (
-                          // Four or more memories - 2x2 grid
                           <div className="w-full h-full grid grid-cols-2 gap-0.5">
                             {memoryEntries.slice(0, 4).map((entry, i) => (
                               <div key={i} className="relative">
@@ -1004,7 +1021,7 @@ export default function CalendarPage() {
                       {day.date.getDate()}
                     </span>
                     
-                    {/* Entry dots */}
+                    {/* Entry dots with activity colors - Requirement 23.2 */}
                     {day.entries.length > 0 && (
                       <div className="flex flex-wrap gap-0.5 mt-1 relative z-10">
                         {day.entries.slice(0, 6).map((entry, i) => {
@@ -1013,8 +1030,8 @@ export default function CalendarPage() {
                             <div
                               key={i}
                               className={cn(
-                                "w-2 h-2 rounded-full",
-                                config.color,
+                                "w-2 h-2 rounded-full shadow-sm",
+                                config.bgClass,
                                 hasMemories && "ring-1 ring-white/50"
                               )}
                               title={entry.title}
@@ -1036,20 +1053,20 @@ export default function CalendarPage() {
               })}
             </div>
           )}
-        </Card>
+        </GlassCard>
 
-        {/* Legend */}
+        {/* Legend with activity colors */}
         <div className="flex flex-wrap gap-2 justify-center">
-          {ENTRY_TYPES.slice(0, 6).map(({ type, label, color }) => (
+          {ENTRY_TYPES.slice(0, 6).map(({ type, label, bgClass }) => (
             <div key={type} className="flex items-center gap-1">
-              <div className={cn("w-2 h-2 rounded-full", color)} />
+              <div className={cn("w-2 h-2 rounded-full shadow-sm", bgClass)} />
               <span className="text-[10px] text-muted-foreground">{label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Day Detail Modal */}
+      {/* Day Detail Modal with glassmorphism */}
       {selectedDay && (
         <DayDetailModal
           date={selectedDay}
@@ -1070,7 +1087,7 @@ export default function CalendarPage() {
         />
       )}
 
-      {/* Entry Detail Modal */}
+      {/* Entry Detail Modal with glassmorphism */}
       {selectedEntry && (
         <EntryDetailModal
           entry={selectedEntry}
@@ -1082,12 +1099,12 @@ export default function CalendarPage() {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog with glassmorphism */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-xl">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
@@ -1100,7 +1117,7 @@ export default function CalendarPage() {
           </DialogHeader>
 
           {deletingEntry && (
-            <div className="p-3 bg-muted/50 rounded-lg">
+            <GlassCard size="sm" className="bg-white/5">
               <p className="text-sm font-medium text-foreground">{deletingEntry.title}</p>
               {deletingEntry.subtitle && (
                 <p className="text-xs text-muted-foreground">{deletingEntry.subtitle}</p>
@@ -1108,22 +1125,22 @@ export default function CalendarPage() {
               <p className="text-xs text-muted-foreground mt-1">
                 {deletingEntry.timestamp.toLocaleString()}
               </p>
-            </div>
+            </GlassCard>
           )}
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
+            <GlassButton
               type="button"
-              variant="outline"
+              variant="default"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
               className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
+            </GlassButton>
+            <GlassButton
               type="button"
-              variant="destructive"
+              variant="danger"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
               className="flex-1"
@@ -1139,7 +1156,7 @@ export default function CalendarPage() {
                   Delete
                 </>
               )}
-            </Button>
+            </GlassButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1162,7 +1179,7 @@ export default function CalendarPage() {
 }
 
 
-// Day Detail Modal - Shows all entries for a selected day
+// Day Detail Modal - Shows all entries for a selected day with glassmorphism
 function DayDetailModal({
   date,
   entries,
@@ -1179,28 +1196,28 @@ function DayDetailModal({
   onSelectEntry: (entry: CalendarEntry) => void;
   onEdit: (entry: CalendarEntry) => void;
   onDelete: (entry: CalendarEntry) => void;
-  getEntryConfig: (type: EntryType) => { type: EntryType; label: string; color: string; icon: typeof Moon };
+  getEntryConfig: (type: EntryType) => { type: EntryType; label: string; colorVar: string; bgClass: string; icon: typeof Moon };
   formatTime: (date: Date) => string;
 }) {
   // Sort entries by time
   const sortedEntries = [...entries].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <Card 
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <GlassCard 
         className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 border-b flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-lg">
+            <h3 className="font-semibold text-lg font-heading">
               {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
             </h3>
             <p className="text-sm text-muted-foreground">{entries.length} entries</p>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <GlassButton variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />
-          </Button>
+          </GlassButton>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -1210,13 +1227,13 @@ function DayDetailModal({
             return (
               <div
                 key={entry.id}
-                className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
               >
                 <button
                   onClick={() => onSelectEntry(entry)}
                   className="flex items-center gap-3 flex-1 min-w-0 text-left"
                 >
-                  <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", config.color)}>
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-lg", config.bgClass)}>
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1230,41 +1247,42 @@ function DayDetailModal({
                   </span>
                 </button>
                 <div className="flex gap-1">
-                  <Button
+                  <GlassButton
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
                       onEdit(entry);
                     }}
-                    className="h-8 w-8 p-0 hover:bg-muted"
+                    className="h-8 w-8 min-h-0 min-w-0"
                     title="Edit entry"
                   >
                     <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
-                  </Button>
-                  <Button
+                  </GlassButton>
+                  <GlassButton
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDelete(entry);
                     }}
-                    className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    className="h-8 w-8 min-h-0 min-w-0 hover:bg-red-500/10"
                     title="Delete entry"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
-                  </Button>
+                    <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500" />
+                  </GlassButton>
                 </div>
               </div>
             );
           })}
         </div>
-      </Card>
+      </GlassCard>
     </div>
   );
 }
 
-// Entry Detail Modal - Shows full details of a single entry
+
+// Entry Detail Modal - Shows full details of a single entry with glassmorphism
 function EntryDetailModal({
   entry,
   onClose,
@@ -1277,7 +1295,7 @@ function EntryDetailModal({
   onClose: () => void;
   onEdit: (entry: CalendarEntry) => void;
   onDelete: (entry: CalendarEntry) => void;
-  getEntryConfig: (type: EntryType) => { type: EntryType; label: string; color: string; icon: typeof Moon };
+  getEntryConfig: (type: EntryType) => { type: EntryType; label: string; colorVar: string; bgClass: string; icon: typeof Moon };
   formatTime: (date: Date) => string;
 }) {
   const config = getEntryConfig(entry.type);
@@ -1305,27 +1323,33 @@ function EntryDetailModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <Card 
-        className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <GlassCard 
+        className="w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col p-0"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={cn("p-4 flex items-center gap-3", config.color)}>
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+        {/* Header with activity color */}
+        <div className={cn("p-4 flex items-center gap-3", config.bgClass)}>
+          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <Icon className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1 text-white">
-            <h3 className="font-semibold text-lg">{entry.title}</h3>
+            <h3 className="font-semibold text-lg font-heading">{entry.title}</h3>
             {entry.subtitle && <p className="text-sm opacity-90">{entry.subtitle}</p>}
           </div>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={onClose}>
+          <GlassButton 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/20 min-h-0 min-w-0 h-10 w-10" 
+            onClick={onClose}
+          >
             <X className="w-5 h-5" />
-          </Button>
+          </GlassButton>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-b">
+            <div className="flex items-center justify-between py-2 border-b border-white/10">
               <span className="text-sm text-muted-foreground">Date & Time</span>
               <span className="text-sm font-medium">
                 {entry.timestamp.toLocaleDateString('en-US', { 
@@ -1348,7 +1372,7 @@ function EntryDetailModal({
                 .trim();
               
               return (
-                <div key={key} className="flex items-center justify-between py-2 border-b last:border-0">
+                <div key={key} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
                   <span className="text-sm text-muted-foreground">{label}</span>
                   <span className="text-sm font-medium text-right max-w-[60%] truncate">
                     {formatValue(key, value)}
@@ -1359,31 +1383,31 @@ function EntryDetailModal({
           </div>
         </div>
         
-        <div className="p-4 border-t flex gap-2">
-          <Button 
-            variant="outline" 
+        <div className="p-4 border-t border-white/10 flex gap-2">
+          <GlassButton 
+            variant="default" 
             className="flex-1"
             onClick={() => onEdit(entry)}
           >
             <Edit2 className="w-4 h-4 mr-2" />
             Edit
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+          </GlassButton>
+          <GlassButton 
+            variant="danger" 
+            className="flex-1"
             onClick={() => onDelete(entry)}
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete
-          </Button>
+          </GlassButton>
         </div>
-      </Card>
+      </GlassCard>
     </div>
   );
 }
 
 
-// Edit Entry Modal Component
+// Edit Entry Modal Component with glassmorphism
 interface EditEntryModalProps {
   entry: CalendarEntry;
   open: boolean;
@@ -1393,11 +1417,7 @@ interface EditEntryModalProps {
 }
 
 function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEntryModalProps) {
-  // Initialize form data directly from entry.details, will reset when entry.id changes
   const [formData, setFormData] = useState<Record<string, unknown>>(() => entry.details || {});
-
-  // Use a key on the Dialog component instead of useEffect to reset state
-  // This is handled by the parent component passing entry.id as key
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1429,49 +1449,47 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="breastfeeding">Breastfeeding</SelectItem>
-                  <SelectItem value="bottle">Bottle</SelectItem>
-                  <SelectItem value="pumping">Pumping</SelectItem>
-                  <SelectItem value="solid">Solid Food</SelectItem>
-                </SelectContent>
-              </Select>
+              <GlassSelect value={getString("type")} onValueChange={(value) => updateField("type", value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Select type" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="breastfeeding">Breastfeeding</GlassSelectItem>
+                  <GlassSelectItem value="bottle">Bottle</GlassSelectItem>
+                  <GlassSelectItem value="pumping">Pumping</GlassSelectItem>
+                  <GlassSelectItem value="solid">Solid Food</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             {formData.type === "breastfeeding" && (
-              <>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="leftDuration">Left Duration (min)</Label>
-                    <Input
-                      id="leftDuration"
-                      type="number"
-                      value={getValue("leftDuration")}
-                      onChange={(e) => updateField("leftDuration", e.target.value ? parseInt(e.target.value) : null)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="rightDuration">Right Duration (min)</Label>
-                    <Input
-                      id="rightDuration"
-                      type="number"
-                      value={getValue("rightDuration")}
-                      onChange={(e) => updateField("rightDuration", e.target.value ? parseInt(e.target.value) : null)}
-                    />
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="leftDuration">Left Duration (min)</Label>
+                  <GlassInput
+                    id="leftDuration"
+                    type="number"
+                    value={getValue("leftDuration")}
+                    onChange={(e) => updateField("leftDuration", e.target.value ? parseInt(e.target.value) : null)}
+                  />
                 </div>
-              </>
+                <div className="space-y-2">
+                  <Label htmlFor="rightDuration">Right Duration (min)</Label>
+                  <GlassInput
+                    id="rightDuration"
+                    type="number"
+                    value={getValue("rightDuration")}
+                    onChange={(e) => updateField("rightDuration", e.target.value ? parseInt(e.target.value) : null)}
+                  />
+                </div>
+              </div>
             )}
 
             {formData.type === "bottle" && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="amount">Amount (ml)</Label>
-                  <Input
+                  <GlassInput
                     id="amount"
                     type="number"
                     value={getValue("amount")}
@@ -1480,25 +1498,25 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bottleType">Bottle Type</Label>
-                  <Select value={getString("bottleType")} onValueChange={(value) => updateField("bottleType", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="formula">Formula</SelectItem>
-                      <SelectItem value="breastMilk">Breast Milk</SelectItem>
-                      <SelectItem value="water">Water</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <GlassSelect value={getString("bottleType")} onValueChange={(value) => updateField("bottleType", value)}>
+                    <GlassSelectTrigger>
+                      <GlassSelectValue placeholder="Select bottle type" />
+                    </GlassSelectTrigger>
+                    <GlassSelectContent>
+                      <GlassSelectItem value="formula">Formula</GlassSelectItem>
+                      <GlassSelectItem value="breastMilk">Breast Milk</GlassSelectItem>
+                      <GlassSelectItem value="water">Water</GlassSelectItem>
+                    </GlassSelectContent>
+                  </GlassSelect>
                 </div>
               </>
             )}
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1511,20 +1529,20 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="sleepType">Type</Label>
-              <Select value={getString("sleepType")} onValueChange={(value) => updateField("sleepType", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="nap">Nap</SelectItem>
-                  <SelectItem value="night">Night Sleep</SelectItem>
-                </SelectContent>
-              </Select>
+              <GlassSelect value={getString("sleepType")} onValueChange={(value) => updateField("sleepType", value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Select type" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="nap">Nap</GlassSelectItem>
+                  <GlassSelectItem value="night">Night Sleep</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="startTime">Start Time</Label>
-              <Input
+              <GlassInput
                 id="startTime"
                 type="datetime-local"
                 value={formData.startTime ? new Date(String(formData.startTime)).toISOString().slice(0, 16) : ""}
@@ -1534,7 +1552,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="endTime">End Time</Label>
-              <Input
+              <GlassInput
                 id="endTime"
                 type="datetime-local"
                 value={formData.endTime ? new Date(String(formData.endTime)).toISOString().slice(0, 16) : ""}
@@ -1544,23 +1562,23 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="quality">Quality</Label>
-              <Select value={getString("quality")} onValueChange={(value) => updateField("quality", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select quality" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="poor">Poor</SelectItem>
-                </SelectContent>
-              </Select>
+              <GlassSelect value={getString("quality")} onValueChange={(value) => updateField("quality", value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Select quality" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="good">Good</GlassSelectItem>
+                  <GlassSelectItem value="fair">Fair</GlassSelectItem>
+                  <GlassSelectItem value="poor">Poor</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1573,22 +1591,22 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
-              <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="wet">Wet</SelectItem>
-                  <SelectItem value="dirty">Dirty</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
-                  <SelectItem value="dry">Dry</SelectItem>
-                </SelectContent>
-              </Select>
+              <GlassSelect value={getString("type")} onValueChange={(value) => updateField("type", value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Select type" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="wet">Wet</GlassSelectItem>
+                  <GlassSelectItem value="dirty">Dirty</GlassSelectItem>
+                  <GlassSelectItem value="mixed">Mixed</GlassSelectItem>
+                  <GlassSelectItem value="dry">Dry</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="timestamp">Time</Label>
-              <Input
+              <GlassInput
                 id="timestamp"
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
@@ -1598,9 +1616,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1613,22 +1631,22 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="activityType">Type</Label>
-              <Select value={getString("activityType")} onValueChange={(value) => updateField("activityType", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tummy_time">Tummy Time</SelectItem>
-                  <SelectItem value="bath">Bath</SelectItem>
-                  <SelectItem value="outdoor">Outdoor</SelectItem>
-                  <SelectItem value="play">Play</SelectItem>
-                </SelectContent>
-              </Select>
+              <GlassSelect value={getString("activityType")} onValueChange={(value) => updateField("activityType", value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Select activity type" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="tummy_time">Tummy Time</GlassSelectItem>
+                  <GlassSelectItem value="bath">Bath</GlassSelectItem>
+                  <GlassSelectItem value="outdoor">Outdoor</GlassSelectItem>
+                  <GlassSelectItem value="play">Play</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="duration">Duration (minutes)</Label>
-              <Input
+              <GlassInput
                 id="duration"
                 type="number"
                 value={getValue("duration")}
@@ -1638,9 +1656,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1653,7 +1671,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="weight">Weight (kg)</Label>
-              <Input
+              <GlassInput
                 id="weight"
                 type="number"
                 step="0.01"
@@ -1664,7 +1682,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="height">Height (cm)</Label>
-              <Input
+              <GlassInput
                 id="height"
                 type="number"
                 step="0.1"
@@ -1675,7 +1693,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="headCircumference">Head Circumference (cm)</Label>
-              <Input
+              <GlassInput
                 id="headCircumference"
                 type="number"
                 step="0.1"
@@ -1686,7 +1704,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="timestamp">Date</Label>
-              <Input
+              <GlassInput
                 id="timestamp"
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
@@ -1696,9 +1714,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1711,7 +1729,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="name">Medication Name</Label>
-              <Input
+              <GlassInput
                 id="name"
                 value={getValue("name")}
                 onChange={(e) => updateField("name", e.target.value)}
@@ -1721,7 +1739,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="dosage">Dosage</Label>
-                <Input
+                <GlassInput
                   id="dosage"
                   value={getValue("dosage")}
                   onChange={(e) => updateField("dosage", e.target.value)}
@@ -1729,7 +1747,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unit">Unit</Label>
-                <Input
+                <GlassInput
                   id="unit"
                   value={getValue("unit")}
                   onChange={(e) => updateField("unit", e.target.value)}
@@ -1739,7 +1757,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="timestamp">Time</Label>
-              <Input
+              <GlassInput
                 id="timestamp"
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
@@ -1749,9 +1767,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1764,7 +1782,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="symptomType">Symptom Type</Label>
-              <Input
+              <GlassInput
                 id="symptomType"
                 value={getValue("symptomType")}
                 onChange={(e) => updateField("symptomType", e.target.value)}
@@ -1773,21 +1791,21 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="severity">Severity</Label>
-              <Select value={getString("severity")} onValueChange={(value) => updateField("severity", value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mild">Mild</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="severe">Severe</SelectItem>
-                </SelectContent>
-              </Select>
+              <GlassSelect value={getString("severity")} onValueChange={(value) => updateField("severity", value)}>
+                <GlassSelectTrigger>
+                  <GlassSelectValue placeholder="Select severity" />
+                </GlassSelectTrigger>
+                <GlassSelectContent>
+                  <GlassSelectItem value="mild">Mild</GlassSelectItem>
+                  <GlassSelectItem value="moderate">Moderate</GlassSelectItem>
+                  <GlassSelectItem value="severe">Severe</GlassSelectItem>
+                </GlassSelectContent>
+              </GlassSelect>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="temperature">Temperature (°C)</Label>
-              <Input
+              <GlassInput
                 id="temperature"
                 type="number"
                 step="0.1"
@@ -1798,7 +1816,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="timestamp">Time</Label>
-              <Input
+              <GlassInput
                 id="timestamp"
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
@@ -1808,9 +1826,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1823,7 +1841,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="vaccineName">Vaccine Name</Label>
-              <Input
+              <GlassInput
                 id="vaccineName"
                 value={getValue("vaccineName")}
                 onChange={(e) => updateField("vaccineName", e.target.value)}
@@ -1832,7 +1850,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="provider">Provider</Label>
-              <Input
+              <GlassInput
                 id="provider"
                 value={getValue("provider")}
                 onChange={(e) => updateField("provider", e.target.value)}
@@ -1841,7 +1859,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
-              <Input
+              <GlassInput
                 id="location"
                 value={getValue("location")}
                 onChange={(e) => updateField("location", e.target.value)}
@@ -1850,7 +1868,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="timestamp">Date</Label>
-              <Input
+              <GlassInput
                 id="timestamp"
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
@@ -1860,9 +1878,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1875,7 +1893,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           <>
             <div className="space-y-2">
               <Label htmlFor="visitType">Visit Type</Label>
-              <Input
+              <GlassInput
                 id="visitType"
                 value={getValue("visitType")}
                 onChange={(e) => updateField("visitType", e.target.value)}
@@ -1884,7 +1902,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="provider">Provider</Label>
-              <Input
+              <GlassInput
                 id="provider"
                 value={getValue("provider")}
                 onChange={(e) => updateField("provider", e.target.value)}
@@ -1893,7 +1911,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
-              <Input
+              <GlassInput
                 id="location"
                 value={getValue("location")}
                 onChange={(e) => updateField("location", e.target.value)}
@@ -1902,7 +1920,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="timestamp">Date</Label>
-              <Input
+              <GlassInput
                 id="timestamp"
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
@@ -1912,9 +1930,9 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
-              <Textarea
+              <GlassTextarea
                 id="notes"
-                value={getValue("notes")}
+                value={getValue("notes") as string}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
               />
@@ -1932,14 +1950,14 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto backdrop-blur-xl bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-3xl shadow-xl">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", config.color)}>
+            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shadow-lg", config.bgClass)}>
               <Icon className="w-5 h-5 text-white" />
             </div>
             <div>
-              <DialogTitle>Edit {entry.title}</DialogTitle>
+              <DialogTitle className="font-heading">Edit {entry.title}</DialogTitle>
               <DialogDescription>
                 Update the details for this entry
               </DialogDescription>
@@ -1951,17 +1969,18 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
           {renderFormFields()}
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
+            <GlassButton
               type="button"
-              variant="outline"
+              variant="default"
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
+            </GlassButton>
+            <GlassButton
               type="submit"
+              variant="primary"
               disabled={isSubmitting}
               className="flex-1"
             >
@@ -1976,7 +1995,7 @@ function EditEntryModal({ entry, open, onClose, onSubmit, isSubmitting }: EditEn
                   Save Changes
                 </>
               )}
-            </Button>
+            </GlassButton>
           </DialogFooter>
         </form>
       </DialogContent>

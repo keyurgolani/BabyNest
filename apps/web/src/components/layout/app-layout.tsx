@@ -1,5 +1,21 @@
 "use client";
 
+/**
+ * @deprecated This component has been replaced by AppShell.
+ * Use `@/components/layout/app-shell` instead.
+ * This file is kept for reference and will be removed in a future update.
+ * 
+ * Migration: The AppShell component now handles:
+ * - Responsive navigation (DesktopSidebar on lg+, MobileNav on mobile)
+ * - Mesh gradient background
+ * - Safe area insets
+ * - Page transitions with framer-motion
+ * - LogProvider context
+ * - Timer banners (ActiveTimerBanner, NursingTimerBanner, ActivityTimerBanner)
+ * - PendingInvitationsBanner
+ * - Authentication state handling
+ */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";

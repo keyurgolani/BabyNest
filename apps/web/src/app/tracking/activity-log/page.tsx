@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { PageHeader } from "@/components/ui/page-header";
+import { IconBadge, type ActivityColor } from "@/components/ui/icon-badge";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { api } from "@/lib/api-client";
 import { 
-  ChevronLeft, 
   Edit2, 
   Trash2, 
   Download, 
@@ -38,22 +39,23 @@ interface TimelineItem {
   icon: keyof typeof Icons;
   color: string;
   bgColor: string;
+  activityColor: ActivityColor;
   rawData?: Record<string, unknown>;
   notes?: string | null;
 }
 
-const TYPE_CONFIG: Record<string, { icon: keyof typeof Icons; color: string; bgColor: string; label: string }> = {
-  feeding: { icon: "Feed", color: "text-orange-500", bgColor: "bg-orange-500/10", label: "Feeding" },
-  sleep: { icon: "Sleep", color: "text-indigo-500", bgColor: "bg-indigo-500/10", label: "Sleep" },
-  diaper: { icon: "Diaper", color: "text-green-500", bgColor: "bg-green-500/10", label: "Diaper" },
-  activity: { icon: "Activity", color: "text-cyan-500", bgColor: "bg-cyan-500/10", label: "Activity" },
-  growth: { icon: "Growth", color: "text-emerald-500", bgColor: "bg-emerald-500/10", label: "Growth" },
-  medication: { icon: "Medication", color: "text-blue-500", bgColor: "bg-blue-500/10", label: "Medication" },
-  symptom: { icon: "Symptom", color: "text-red-500", bgColor: "bg-red-500/10", label: "Symptom" },
-  vaccination: { icon: "Vaccination", color: "text-purple-500", bgColor: "bg-purple-500/10", label: "Vaccination" },
-  doctor_visit: { icon: "DoctorVisit", color: "text-pink-500", bgColor: "bg-pink-500/10", label: "Doctor Visit" },
-  memory: { icon: "Memories", color: "text-yellow-500", bgColor: "bg-yellow-500/10", label: "Memory" },
-  milestone: { icon: "Milestone", color: "text-teal-500", bgColor: "bg-teal-500/10", label: "Milestone" },
+const TYPE_CONFIG: Record<string, { icon: keyof typeof Icons; color: string; bgColor: string; label: string; activityColor: ActivityColor }> = {
+  feeding: { icon: "Feed", color: "text-orange-500", bgColor: "bg-orange-500/10", label: "Feeding", activityColor: "feed" },
+  sleep: { icon: "Sleep", color: "text-indigo-500", bgColor: "bg-indigo-500/10", label: "Sleep", activityColor: "sleep" },
+  diaper: { icon: "Diaper", color: "text-green-500", bgColor: "bg-green-500/10", label: "Diaper", activityColor: "diaper" },
+  activity: { icon: "Activity", color: "text-cyan-500", bgColor: "bg-cyan-500/10", label: "Activity", activityColor: "activity" },
+  growth: { icon: "Growth", color: "text-emerald-500", bgColor: "bg-emerald-500/10", label: "Growth", activityColor: "growth" },
+  medication: { icon: "Medication", color: "text-blue-500", bgColor: "bg-blue-500/10", label: "Medication", activityColor: "health" },
+  symptom: { icon: "Symptom", color: "text-red-500", bgColor: "bg-red-500/10", label: "Symptom", activityColor: "health" },
+  vaccination: { icon: "Vaccination", color: "text-purple-500", bgColor: "bg-purple-500/10", label: "Vaccination", activityColor: "health" },
+  doctor_visit: { icon: "DoctorVisit", color: "text-pink-500", bgColor: "bg-pink-500/10", label: "Doctor Visit", activityColor: "health" },
+  memory: { icon: "Memories", color: "text-yellow-500", bgColor: "bg-yellow-500/10", label: "Memory", activityColor: "memory" },
+  milestone: { icon: "Milestone", color: "text-teal-500", bgColor: "bg-teal-500/10", label: "Milestone", activityColor: "growth" },
 };
 
 type DateRangeFilter = "today" | "week" | "month" | "custom";
@@ -568,31 +570,26 @@ export default function ActivityLogPage() {
     <MobileContainer>
       <div className="p-4 space-y-4 pb-32">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/tracking" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-heading font-bold text-foreground">Activity Log</h1>
-            <p className="text-sm text-muted-foreground">
-              {filteredAndSortedItems.length} {filteredAndSortedItems.length === 1 ? 'entry' : 'entries'}
-              {selectedItems.size > 0 && ` • ${selectedItems.size} selected`}
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className="gap-2"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </Button>
-        </div>
+        <PageHeader
+          title="Activity Log"
+          subtitle={`${filteredAndSortedItems.length} ${filteredAndSortedItems.length === 1 ? 'entry' : 'entries'}${selectedItems.size > 0 ? ` • ${selectedItems.size} selected` : ''}`}
+          backHref="/tracking"
+          action={
+            <GlassButton
+              variant="default"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="gap-2"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters
+            </GlassButton>
+          }
+        />
 
         {/* Filter Panel */}
         {showFilters && (
-          <Card className="p-4 space-y-4">
+          <GlassCard className="p-4 space-y-4">
             {/* Search */}
             <div className="space-y-2">
               <Label>Search</Label>
@@ -605,17 +602,17 @@ export default function ActivityLogPage() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="pl-9"
+                  className="pl-9 bg-white/5 border-white/10"
                 />
                 {searchQuery && (
-                  <Button
+                  <GlassButton
                     variant="ghost"
                     size="sm"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0 min-h-0 min-w-0"
                   >
                     <X className="w-4 h-4" />
-                  </Button>
+                  </GlassButton>
                 )}
               </div>
             </div>
@@ -625,12 +622,12 @@ export default function ActivityLogPage() {
               <div className="flex items-center justify-between">
                 <Label>Entry Types</Label>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={selectAllTypes} className="h-7 text-xs">
+                  <GlassButton variant="ghost" size="sm" onClick={selectAllTypes} className="h-7 text-xs min-h-0">
                     Select All
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={deselectAllTypes} className="h-7 text-xs">
+                  </GlassButton>
+                  <GlassButton variant="ghost" size="sm" onClick={deselectAllTypes} className="h-7 text-xs min-h-0">
                     Clear
-                  </Button>
+                  </GlassButton>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -655,7 +652,7 @@ export default function ActivityLogPage() {
               </div>
             </div>
 
-            <Separator />
+            <Separator className="bg-white/10" />
 
             {/* Date Range Filter */}
             <div className="space-y-2">
@@ -667,9 +664,9 @@ export default function ActivityLogPage() {
                   { key: "month" as const, label: "30 Days" },
                   { key: "custom" as const, label: "Custom" },
                 ].map((filter) => (
-                  <Button
+                  <GlassButton
                     key={filter.key}
-                    variant={dateFilter === filter.key ? "default" : "outline"}
+                    variant={dateFilter === filter.key ? "primary" : "default"}
                     size="sm"
                     onClick={() => {
                       setDateFilter(filter.key);
@@ -678,7 +675,7 @@ export default function ActivityLogPage() {
                     className="flex-1"
                   >
                     {filter.label}
-                  </Button>
+                  </GlassButton>
                 ))}
               </div>
               {dateFilter === "custom" && (
@@ -692,6 +689,7 @@ export default function ActivityLogPage() {
                         setCustomStartDate(e.target.value);
                         setCurrentPage(1);
                       }}
+                      className="bg-white/5 border-white/10"
                     />
                   </div>
                   <div className="space-y-1">
@@ -703,19 +701,20 @@ export default function ActivityLogPage() {
                         setCustomEndDate(e.target.value);
                         setCurrentPage(1);
                       }}
+                      className="bg-white/5 border-white/10"
                     />
                   </div>
                 </div>
               )}
             </div>
 
-            <Separator />
+            <Separator className="bg-white/10" />
 
             {/* Sort Options */}
             <div className="space-y-2">
               <Label>Sort By</Label>
               <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -725,12 +724,12 @@ export default function ActivityLogPage() {
                 </SelectContent>
               </Select>
             </div>
-          </Card>
+          </GlassCard>
         )}
 
         {/* Bulk Actions Bar */}
         {selectedItems.size > 0 && (
-          <Card className="p-3 bg-primary/5 border-primary/20">
+          <GlassCard variant="featured" className="p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Checkbox
@@ -748,15 +747,15 @@ export default function ActivityLogPage() {
                 </span>
               </div>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
+                <GlassButton
+                  variant="default"
                   size="sm"
                   onClick={deselectAll}
                 >
                   Clear
-                </Button>
-                <Button
-                  variant="destructive"
+                </GlassButton>
+                <GlassButton
+                  variant="danger"
                   size="sm"
                   onClick={() => {
                     const itemsToDelete = items.filter(item => selectedItems.has(item.id));
@@ -766,16 +765,16 @@ export default function ActivityLogPage() {
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Selected
-                </Button>
+                </GlassButton>
               </div>
             </div>
-          </Card>
+          </GlassCard>
         )}
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button
-            variant="outline"
+          <GlassButton
+            variant="default"
             size="sm"
             onClick={handleExportCSV}
             className="flex-1 gap-2"
@@ -783,9 +782,9 @@ export default function ActivityLogPage() {
           >
             <Download className="w-4 h-4" />
             Export CSV
-          </Button>
-          <Button
-            variant="outline"
+          </GlassButton>
+          <GlassButton
+            variant="default"
             size="sm"
             onClick={handleExportJSON}
             className="flex-1 gap-2"
@@ -793,24 +792,38 @@ export default function ActivityLogPage() {
           >
             <Download className="w-4 h-4" />
             Export JSON
-          </Button>
+          </GlassButton>
         </div>
 
         {/* Activity List */}
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-20 bg-muted/50 rounded-xl animate-pulse" />
+              <GlassCard key={i} size="sm" className="relative overflow-hidden">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded bg-white/10 animate-pulse" />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 animate-pulse" />
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />
+                    <div className="h-3 w-24 bg-white/10 rounded animate-pulse" />
+                  </div>
+                  <div className="text-right space-y-1">
+                    <div className="h-3 w-16 bg-white/10 rounded animate-pulse ml-auto" />
+                    <div className="h-3 w-12 bg-white/10 rounded animate-pulse ml-auto" />
+                  </div>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skeleton-shimmer" />
+              </GlassCard>
             ))}
           </div>
         ) : filteredAndSortedItems.length === 0 ? (
-          <Card className="p-8 text-center">
+          <GlassCard className="p-8 text-center">
             <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground">No entries found</p>
             <p className="text-sm text-muted-foreground mt-1">
               Try adjusting your filters or search query
             </p>
-          </Card>
+          </GlassCard>
         ) : (
           <>
             <div className="space-y-2">
@@ -819,11 +832,12 @@ export default function ActivityLogPage() {
                 const isSelected = selectedItems.has(item.id);
                 
                 return (
-                  <Card 
+                  <GlassCard 
                     key={item.id} 
+                    size="sm"
                     className={cn(
-                      "p-3 transition-all",
-                      isSelected && "ring-2 ring-primary bg-primary/5"
+                      "transition-all",
+                      isSelected && "ring-2 ring-primary bg-primary/10"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -831,13 +845,15 @@ export default function ActivityLogPage() {
                         checked={isSelected}
                         onCheckedChange={() => toggleItemSelection(item.id)}
                       />
-                      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", item.bgColor)}>
-                        <IconComponent className={cn("w-5 h-5", item.color)} />
-                      </div>
+                      <IconBadge
+                        color={item.activityColor}
+                        icon={IconComponent}
+                        size="default"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-foreground text-sm">{item.title}</p>
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs bg-white/5 border-white/10">
                             {TYPE_CONFIG[item.type]?.label}
                           </Badge>
                         </div>
@@ -854,27 +870,27 @@ export default function ActivityLogPage() {
                         </p>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
-                        <Button
+                        <GlassButton
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(item)}
-                          className="h-8 w-8 p-0 hover:bg-muted"
+                          className="h-8 w-8 p-0 min-h-0 min-w-0"
                           title="Edit entry"
                         >
                           <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
-                        </Button>
-                        <Button
+                        </GlassButton>
+                        <GlassButton
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick([item])}
-                          className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          className="h-8 w-8 p-0 min-h-0 min-w-0 hover:bg-red-500/10"
                           title="Delete entry"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-600 dark:hover:text-red-400" />
-                        </Button>
+                          <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500" />
+                        </GlassButton>
                       </div>
                     </div>
-                  </Card>
+                  </GlassCard>
                 );
               })}
             </div>
@@ -882,25 +898,25 @@ export default function ActivityLogPage() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
+                <GlassButton
+                  variant="default"
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
                   Previous
-                </Button>
+                </GlassButton>
                 <span className="text-sm text-muted-foreground">
                   Page {currentPage} of {totalPages}
                 </span>
-                <Button
-                  variant="outline"
+                <GlassButton
+                  variant="default"
                   size="sm"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
                   Next
-                </Button>
+                </GlassButton>
               </div>
             )}
           </>
@@ -909,7 +925,7 @@ export default function ActivityLogPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-background/80 backdrop-blur-xl border-white/10">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-600">
@@ -927,7 +943,7 @@ export default function ActivityLogPage() {
           {deletingItems.length > 0 && deletingItems.length <= 3 && (
             <div className="space-y-2">
               {deletingItems.map(item => (
-                <div key={item.id} className="p-3 bg-muted/50 rounded-lg">
+                <GlassCard key={item.id} size="sm" className="bg-white/5">
                   <p className="text-sm font-medium text-foreground">{item.title}</p>
                   {item.subtitle && (
                     <p className="text-xs text-muted-foreground">{item.subtitle}</p>
@@ -935,24 +951,24 @@ export default function ActivityLogPage() {
                   <p className="text-xs text-muted-foreground mt-1">
                     {item.timestamp.toLocaleString()}
                   </p>
-                </div>
+                </GlassCard>
               ))}
             </div>
           )}
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
+            <GlassButton
               type="button"
-              variant="outline"
+              variant="default"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
               className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
+            </GlassButton>
+            <GlassButton
               type="button"
-              variant="destructive"
+              variant="danger"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
               className="flex-1"
@@ -968,7 +984,7 @@ export default function ActivityLogPage() {
                   Delete
                 </>
               )}
-            </Button>
+            </GlassButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -990,7 +1006,7 @@ export default function ActivityLogPage() {
   );
 }
 
-// Edit Entry Modal Component (reused from Timeline page)
+// Edit Entry Modal Component
 interface EditEntryModalProps {
   item: TimelineItem;
   open: boolean;
@@ -1002,9 +1018,6 @@ interface EditEntryModalProps {
 function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEntryModalProps) {
   // Initialize form data directly from item.rawData, will reset when item.id changes
   const [formData, setFormData] = useState<Record<string, unknown>>(() => item.rawData || {});
-
-  // Use a key on the Dialog component instead of useEffect to reset state
-  // This is handled by the parent component passing item.id as key
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1037,7 +1050,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1059,6 +1072,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                       type="number"
                       value={getValue("leftDuration")}
                       onChange={(e) => updateField("leftDuration", e.target.value ? parseInt(e.target.value) : null)}
+                      className="bg-white/5 border-white/10"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1068,6 +1082,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                       type="number"
                       value={getValue("rightDuration")}
                       onChange={(e) => updateField("rightDuration", e.target.value ? parseInt(e.target.value) : null)}
+                      className="bg-white/5 border-white/10"
                     />
                   </div>
                 </div>
@@ -1083,12 +1098,13 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                     type="number"
                     value={getValue("amount")}
                     onChange={(e) => updateField("amount", e.target.value ? parseInt(e.target.value) : null)}
+                    className="bg-white/5 border-white/10"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bottleType">Bottle Type</Label>
                   <Select value={getString("bottleType")} onValueChange={(value) => updateField("bottleType", value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white/5 border-white/10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1108,6 +1124,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1119,7 +1136,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="sleepType">Type</Label>
               <Select value={getString("sleepType")} onValueChange={(value) => updateField("sleepType", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1136,6 +1153,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.startTime ? new Date(String(formData.startTime)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("startTime", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1146,13 +1164,14 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.endTime ? new Date(String(formData.endTime)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("endTime", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="quality">Quality</Label>
               <Select value={getString("quality")} onValueChange={(value) => updateField("quality", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue placeholder="Select quality" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1170,6 +1189,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1181,7 +1201,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select value={getString("type")} onValueChange={(value) => updateField("type", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1200,6 +1220,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1210,6 +1231,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1221,7 +1243,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
             <div className="space-y-2">
               <Label htmlFor="activityType">Type</Label>
               <Select value={getString("activityType")} onValueChange={(value) => updateField("activityType", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1240,6 +1262,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="number"
                 value={getValue("duration")}
                 onChange={(e) => updateField("duration", e.target.value ? parseInt(e.target.value) : null)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1250,6 +1273,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1266,6 +1290,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.01"
                 value={formData.weight ? (Number(formData.weight) / 1000).toFixed(2) : ""}
                 onChange={(e) => updateField("weight", e.target.value ? Math.round(parseFloat(e.target.value) * 1000) : null)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1277,6 +1302,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.1"
                 value={formData.height ? (Number(formData.height) / 10).toFixed(1) : ""}
                 onChange={(e) => updateField("height", e.target.value ? Math.round(parseFloat(e.target.value) * 10) : null)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1288,6 +1314,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.1"
                 value={formData.headCircumference ? (Number(formData.headCircumference) / 10).toFixed(1) : ""}
                 onChange={(e) => updateField("headCircumference", e.target.value ? Math.round(parseFloat(e.target.value) * 10) : null)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1298,6 +1325,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1308,6 +1336,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1322,6 +1351,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="name"
                 value={getValue("name")}
                 onChange={(e) => updateField("name", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1332,6 +1362,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                   id="dosage"
                   value={getValue("dosage")}
                   onChange={(e) => updateField("dosage", e.target.value)}
+                  className="bg-white/5 border-white/10"
                 />
               </div>
               <div className="space-y-2">
@@ -1340,6 +1371,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                   id="unit"
                   value={getValue("unit")}
                   onChange={(e) => updateField("unit", e.target.value)}
+                  className="bg-white/5 border-white/10"
                 />
               </div>
             </div>
@@ -1351,6 +1383,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1361,6 +1394,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1375,13 +1409,14 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="symptomType"
                 value={getValue("symptomType")}
                 onChange={(e) => updateField("symptomType", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="severity">Severity</Label>
               <Select value={getString("severity")} onValueChange={(value) => updateField("severity", value)}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1400,6 +1435,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 step="0.1"
                 value={getValue("temperature")}
                 onChange={(e) => updateField("temperature", e.target.value ? parseFloat(e.target.value) : null)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1410,6 +1446,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1420,6 +1457,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1434,6 +1472,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="vaccineName"
                 value={getValue("vaccineName")}
                 onChange={(e) => updateField("vaccineName", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1443,6 +1482,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="provider"
                 value={getValue("provider")}
                 onChange={(e) => updateField("provider", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1452,6 +1492,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 id="location"
                 value={getValue("location")}
                 onChange={(e) => updateField("location", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1462,6 +1503,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.timestamp ? new Date(String(formData.timestamp)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("timestamp", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1472,6 +1514,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1487,6 +1530,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 type="datetime-local"
                 value={formData.achievedDate ? new Date(String(formData.achievedDate)).toISOString().slice(0, 16) : ""}
                 onChange={(e) => updateField("achievedDate", e.target.value)}
+                className="bg-white/5 border-white/10"
               />
             </div>
 
@@ -1497,6 +1541,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                 value={getValue("notes")}
                 onChange={(e) => updateField("notes", e.target.value)}
                 rows={3}
+                className="bg-white/5 border-white/10"
               />
             </div>
           </>
@@ -1509,15 +1554,14 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto bg-background/80 backdrop-blur-xl border-white/10">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", item.bgColor)}>
-              {(() => {
-                const IconComponent = Icons[item.icon];
-                return IconComponent ? <IconComponent className={cn("w-5 h-5", item.color)} /> : null;
-              })()}
-            </div>
+            <IconBadge
+              color={item.activityColor}
+              icon={Icons[item.icon]}
+              size="default"
+            />
             <div>
               <DialogTitle>Edit {item.title}</DialogTitle>
               <DialogDescription>
@@ -1531,17 +1575,18 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
           {renderFormFields()}
 
           <DialogFooter className="flex gap-3 pt-2">
-            <Button
+            <GlassButton
               type="button"
-              variant="outline"
+              variant="default"
               onClick={onClose}
               disabled={isSubmitting}
               className="flex-1"
             >
               Cancel
-            </Button>
-            <Button
+            </GlassButton>
+            <GlassButton
               type="submit"
+              variant="primary"
               disabled={isSubmitting}
               className="flex-1"
             >
@@ -1556,7 +1601,7 @@ function EditEntryModal({ item, open, onClose, onSubmit, isSubmitting }: EditEnt
                   Save Changes
                 </>
               )}
-            </Button>
+            </GlassButton>
           </DialogFooter>
         </form>
       </DialogContent>

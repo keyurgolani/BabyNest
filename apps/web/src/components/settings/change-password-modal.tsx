@@ -1,32 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassButton } from "@/components/ui/glass-button";
 import { Icons } from "@/components/icons";
 import { ChangePasswordDto } from "@/lib/api-client";
 
+/**
+ * ChangePasswordModal Component
+ *
+ * A modal for changing the user's password with glassmorphism styling.
+ * Uses GlassModal wrapper, GlassInput for password fields, and GlassButton for actions.
+ *
+ * @requirements 18.5
+ */
+
 interface ChangePasswordModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Callback when the modal should close */
   onClose: () => void;
+  /** Callback when the password change is submitted */
   onSave: (data: ChangePasswordDto) => Promise<void>;
 }
 
-export function ChangePasswordModal({ onClose, onSave }: ChangePasswordModalProps) {
+export function ChangePasswordModal({ isOpen, onClose, onSave }: ChangePasswordModalProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Reset form state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setError(null);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentPassword || !newPassword || !confirmPassword) return;
     
+    // Validate required fields
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError("All fields are required");
+      return;
+    }
+    
+    // Validate password match
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match");
       return;
     }
 
+    // Validate password length
     if (newPassword.length < 6) {
       setError("New password must be at least 6 characters");
       return;
@@ -44,112 +76,138 @@ export function ChangePasswordModal({ onClose, onSave }: ChangePasswordModalProp
     }
   };
 
+  const isFormValid = currentPassword && newPassword && confirmPassword && newPassword.length >= 6;
+
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Change Password"
+      size="default"
     >
-      <Card variant="default" className="w-full max-w-md animate-scale-in shadow-2xl">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <Icons.Lock className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Change Password</CardTitle>
-                <CardDescription>Secure your account</CardDescription>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
+      <div className="space-y-6">
+        {/* Header Icon */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <Icons.Lock className="w-5 h-5" />
           </div>
-        </CardHeader>
+          <p className="text-sm text-muted-foreground">
+            Secure your account with a new password
+          </p>
+        </div>
 
-        <CardContent className="pt-0">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm flex items-center gap-2">
+            <Icons.AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Current Password
-              </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground placeholder:text-muted-foreground"
-                disabled={isSubmitting}
-                autoFocus
-              />
-            </div>
+        {/* Password Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Current Password */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="current-password"
+              className="block text-sm font-medium text-foreground"
+            >
+              Current Password
+            </label>
+            <GlassInput
+              id="current-password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+              disabled={isSubmitting}
+              autoFocus
+              autoComplete="current-password"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                New Password
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password (min. 6 chars)"
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground placeholder:text-muted-foreground"
-                disabled={isSubmitting}
-              />
-            </div>
+          {/* New Password */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="new-password"
+              className="block text-sm font-medium text-foreground"
+            >
+              New Password
+            </label>
+            <GlassInput
+              id="new-password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password (min. 6 characters)"
+              disabled={isSubmitting}
+              autoComplete="new-password"
+              error={newPassword.length > 0 && newPassword.length < 6}
+            />
+            {newPassword.length > 0 && newPassword.length < 6 && (
+              <p className="text-xs text-destructive">
+                Password must be at least 6 characters
+              </p>
+            )}
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                className="w-full px-4 py-3 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none transition-shadow text-foreground placeholder:text-muted-foreground"
-                disabled={isSubmitting}
-              />
-            </div>
+          {/* Confirm New Password */}
+          <div className="space-y-2">
+            <label 
+              htmlFor="confirm-password"
+              className="block text-sm font-medium text-foreground"
+            >
+              Confirm New Password
+            </label>
+            <GlassInput
+              id="confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm new password"
+              disabled={isSubmitting}
+              autoComplete="new-password"
+              error={confirmPassword.length > 0 && confirmPassword !== newPassword}
+            />
+            {confirmPassword.length > 0 && confirmPassword !== newPassword && (
+              <p className="text-xs text-destructive">
+                Passwords do not match
+              </p>
+            )}
+          </div>
 
-            <div className="flex gap-3 mt-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose} 
-                className="flex-1 rounded-xl" 
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                variant="glow"
-                className="flex-1 rounded-xl" 
-                disabled={isSubmitting || !currentPassword || !newPassword || !confirmPassword}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Changing...
-                  </div>
-                ) : (
-                  "Change Password"
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-2">
+            <GlassButton 
+              type="button" 
+              variant="default" 
+              onClick={onClose} 
+              className="flex-1" 
+              disabled={isSubmitting}
+            >
+              Cancel
+            </GlassButton>
+            <GlassButton 
+              type="submit" 
+              variant="primary"
+              className="flex-1" 
+              disabled={isSubmitting || !isFormValid}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                  <span>Changing...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Icons.Lock className="w-4 h-4" />
+                  <span>Change Password</span>
+                </div>
+              )}
+            </GlassButton>
+          </div>
+        </form>
+      </div>
+    </GlassModal>
   );
 }

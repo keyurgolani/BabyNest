@@ -9,3 +9,5 @@ export { UpcomingMedications } from "./UpcomingMedications";
 export { WakeWindowTimer } from "./WakeWindowTimer";
 export { MultiBabySelector, MultiBabySummaryDashboard } from "./multi-baby-selector";
 export { TopQuickActions } from "./TopQuickActions";
+export { HeroCard } from "./HeroCard";
+export { QuickStatsBar } from "./QuickStatsBar";

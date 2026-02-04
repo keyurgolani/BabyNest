@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
 import { Icons } from "@/components/icons";
 import { useAuth } from "@/components/auth-provider";
 import { api } from "@/lib/api-client";
@@ -126,21 +126,21 @@ export function UserAccountContent() {
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-foreground">Name</label>
           {!isEditingName && (
-            <Button variant="ghost" size="sm" onClick={() => setIsEditingName(true)}>
+            <GlassButton variant="ghost" size="sm" onClick={() => setIsEditingName(true)}>
               Edit
-            </Button>
+            </GlassButton>
           )}
         </div>
         {isEditingName ? (
           <div className="space-y-2">
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+            <GlassInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setIsEditingName(false); setName(user.name); }}>
+              <GlassButton variant="default" size="sm" onClick={() => { setIsEditingName(false); setName(user.name); }}>
                 Cancel
-              </Button>
-              <Button size="sm" onClick={handleUpdateName} disabled={isSubmitting || !name.trim()}>
+              </GlassButton>
+              <GlassButton variant="primary" size="sm" onClick={handleUpdateName} disabled={isSubmitting || !name.trim()}>
                 {isSubmitting ? "Saving..." : "Save"}
-              </Button>
+              </GlassButton>
             </div>
           </div>
         ) : (
@@ -153,21 +153,21 @@ export function UserAccountContent() {
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-foreground">Email</label>
           {!isEditingEmail && (
-            <Button variant="ghost" size="sm" onClick={() => setIsEditingEmail(true)}>
+            <GlassButton variant="ghost" size="sm" onClick={() => setIsEditingEmail(true)}>
               Change
-            </Button>
+            </GlassButton>
           )}
         </div>
         {isEditingEmail ? (
           <div className="space-y-2">
-            <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email" />
+            <GlassInput type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="New email" />
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => { setIsEditingEmail(false); setNewEmail(user.email); }}>
+              <GlassButton variant="default" size="sm" onClick={() => { setIsEditingEmail(false); setNewEmail(user.email); }}>
                 Cancel
-              </Button>
-              <Button size="sm" onClick={handleChangeEmail} disabled={isSubmitting || !newEmail || newEmail === user.email}>
+              </GlassButton>
+              <GlassButton variant="primary" size="sm" onClick={handleChangeEmail} disabled={isSubmitting || !newEmail || newEmail === user.email}>
                 {isSubmitting ? "Saving..." : "Update Email"}
-              </Button>
+              </GlassButton>
             </div>
           </div>
         ) : (
@@ -184,30 +184,30 @@ export function UserAccountContent() {
       </div>
 
       {/* Password */}
-      <div className="space-y-2 pt-2 border-t border-border/50">
+      <div className="space-y-2 pt-2 border-t border-white/10">
         <div className="flex justify-between items-center">
           <label className="text-sm font-medium text-foreground">Password</label>
           {!isChangingPassword && (
-            <Button variant="ghost" size="sm" onClick={() => setIsChangingPassword(true)}>
+            <GlassButton variant="ghost" size="sm" onClick={() => setIsChangingPassword(true)}>
               Change
-            </Button>
+            </GlassButton>
           )}
         </div>
         {isChangingPassword ? (
           <div className="space-y-3">
-            <Input
+            <GlassInput
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Current password"
             />
-            <Input
+            <GlassInput
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="New password"
             />
-            <Input
+            <GlassInput
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -217,8 +217,8 @@ export function UserAccountContent() {
               <p className="text-xs text-red-500">Passwords do not match</p>
             )}
             <div className="flex gap-2">
-              <Button
-                variant="outline"
+              <GlassButton
+                variant="default"
                 size="sm"
                 onClick={() => {
                   setIsChangingPassword(false);
@@ -228,14 +228,15 @@ export function UserAccountContent() {
                 }}
               >
                 Cancel
-              </Button>
-              <Button
+              </GlassButton>
+              <GlassButton
+                variant="primary"
                 size="sm"
                 onClick={handleChangePassword}
                 disabled={isSubmitting || !currentPassword || !newPassword || newPassword !== confirmPassword}
               >
                 {isSubmitting ? "Changing..." : "Change Password"}
-              </Button>
+              </GlassButton>
             </div>
           </div>
         ) : (
@@ -244,9 +245,9 @@ export function UserAccountContent() {
       </div>
 
       {/* Danger Zone */}
-      <div className="pt-4 border-t border-border/50">
+      <div className="pt-4 border-t border-white/10">
         {!showDeleteConfirm ? (
-          <Button
+          <GlassButton
             variant="ghost"
             size="sm"
             onClick={() => setShowDeleteConfirm(true)}
@@ -254,9 +255,9 @@ export function UserAccountContent() {
           >
             <Icons.Trash className="w-4 h-4 mr-1" />
             Delete Account
-          </Button>
+          </GlassButton>
         ) : (
-          <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg space-y-3">
+          <div className="p-3 bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-xl space-y-3">
             <p className="text-sm text-red-700 dark:text-red-400">
               This will permanently delete your account and all data.
             </p>
@@ -264,7 +265,7 @@ export function UserAccountContent() {
               <label className="block text-xs text-red-600 dark:text-red-400 mb-1">
                 Type <strong>DELETE MY ACCOUNT</strong> to confirm:
               </label>
-              <Input
+              <GlassInput
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="DELETE MY ACCOUNT"
@@ -272,21 +273,21 @@ export function UserAccountContent() {
               />
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
+              <GlassButton
+                variant="default"
                 size="sm"
                 onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
               >
                 Cancel
-              </Button>
-              <Button
-                variant="destructive"
+              </GlassButton>
+              <GlassButton
+                variant="danger"
                 size="sm"
                 disabled={deleteConfirmText !== "DELETE MY ACCOUNT" || isSubmitting}
                 onClick={handleDeleteAccount}
               >
                 {isSubmitting ? "Deleting..." : "Delete Account"}
-              </Button>
+              </GlassButton>
             </div>
           </div>
         )}

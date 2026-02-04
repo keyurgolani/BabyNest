@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import Link from "next/link";
-import { ChevronLeft, Pill } from "lucide-react";
+import { Pill } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { toast } from "sonner";
 import { api, MedicationFrequency } from "@/lib/api-client";
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
+import { LogFormWrapper } from "@/components/log/log-form-wrapper";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const UNITS = [
   { value: "ml", label: "ml" },
@@ -70,140 +73,174 @@ export default function MedicationLogPage() {
 
   return (
     <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/log" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Log Medication</h1>
-        </div>
-
-        {/* Medicine Name */}
-        <Card className="p-6 space-y-4 border-0 bg-gradient-to-br from-card to-muted/20">
-          <div className="space-y-2">
-            <label htmlFor="medicine-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Medicine Name</label>
-            <input
-              id="medicine-name"
-              name="medicine-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Tylenol, Vitamin D"
-              className="w-full h-12 rounded-xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 px-4 text-foreground placeholder:text-muted-foreground/50 outline-none transition-all"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {COMMON_MEDS.map((med) => (
-              <button
-                key={med}
-                onClick={() => setName(med)}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                  name === med
-                    ? "bg-purple-500 text-white"
-                    : "bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-500/25"
-                )}
-              >
-                {med}
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        {/* Desktop: Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Dosage */}
-          <Card className="p-6 space-y-4 border-0 bg-gradient-to-br from-card to-muted/20">
-            <div className="space-y-2">
-              <label htmlFor="dosage" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dosage</label>
-              <div className="flex gap-3">
-                <input
-                  id="dosage"
-                  name="dosage"
+      <div className="p-4 pb-32">
+        <LogFormWrapper
+          title="Log Medication"
+          backHref="/log"
+          showCard={false}
+        >
+          <div className="space-y-6">
+            {/* Medicine Name Card */}
+            <GlassCard size="lg" className="space-y-4">
+              <div className="space-y-2">
+                <label 
+                  htmlFor="medicine-name" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                >
+                  Medicine Name
+                </label>
+                <GlassInput
+                  id="medicine-name"
+                  name="medicine-name"
                   type="text"
-                  value={dosage}
-                  onChange={(e) => setDosage(e.target.value)}
-                  placeholder="Amount (e.g. 2.5)"
-                  className="flex-1 h-12 rounded-xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 px-4 text-foreground placeholder:text-muted-foreground/50 outline-none transition-all"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Tylenol, Vitamin D"
+                  className="h-12"
                 />
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {UNITS.map((u) => (
-                <button
-                  key={u.value}
-                  onClick={() => setUnit(u.value as typeof unit)}
-                  className={cn(
-                    "px-4 py-2 rounded-xl font-bold text-sm transition-all",
-                    unit === u.value
-                      ? "bg-purple-500 text-white shadow-lg shadow-purple-500/25"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
+              <div className="flex flex-wrap gap-2">
+                {COMMON_MEDS.map((med) => (
+                  <GlassButton
+                    key={med}
+                    type="button"
+                    variant={name === med ? "primary" : "default"}
+                    size="sm"
+                    onClick={() => setName(med)}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-bold",
+                      name === med
+                        ? "bg-purple-500 hover:bg-purple-600"
+                        : "bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-500/25"
+                    )}
+                  >
+                    {med}
+                  </GlassButton>
+                ))}
+              </div>
+            </GlassCard>
+
+            {/* Desktop: Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Dosage Card */}
+              <GlassCard size="lg" className="space-y-4">
+                <div className="space-y-2">
+                  <label 
+                    htmlFor="dosage" 
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Dosage
+                  </label>
+                  <GlassInput
+                    id="dosage"
+                    name="dosage"
+                    type="text"
+                    value={dosage}
+                    onChange={(e) => setDosage(e.target.value)}
+                    placeholder="Amount (e.g. 2.5)"
+                    className="h-12"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {UNITS.map((u) => (
+                    <GlassButton
+                      key={u.value}
+                      type="button"
+                      variant={unit === u.value ? "primary" : "default"}
+                      size="sm"
+                      onClick={() => setUnit(u.value as typeof unit)}
+                      className={cn(
+                        "px-4 py-2 font-bold text-sm",
+                        unit === u.value
+                          ? "bg-purple-500 hover:bg-purple-600 shadow-lg shadow-purple-500/25"
+                          : ""
+                      )}
+                    >
+                      {u.label}
+                    </GlassButton>
+                  ))}
+                </div>
+              </GlassCard>
+
+              {/* Frequency Card */}
+              <GlassCard size="lg" className="space-y-4">
+                <span 
+                  id="frequency-label" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                 >
-                  {u.label}
-                </button>
-              ))}
+                  Frequency
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {FREQUENCIES.map((f) => (
+                    <GlassButton
+                      key={f.value}
+                      type="button"
+                      variant={frequency === f.value ? "primary" : "default"}
+                      size="sm"
+                      onClick={() => setFrequency(f.value)}
+                      className={cn(
+                        "px-3 py-2 font-bold text-sm",
+                        frequency === f.value
+                          ? "bg-purple-500 hover:bg-purple-600 shadow-lg shadow-purple-500/25"
+                          : ""
+                      )}
+                    >
+                      {f.label}
+                    </GlassButton>
+                  ))}
+                </div>
+              </GlassCard>
             </div>
-          </Card>
 
-          {/* Frequency */}
-          <Card className="p-6 space-y-4 border-0 bg-gradient-to-br from-card to-muted/20">
-            <span id="frequency-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Frequency</span>
-            <div className="flex flex-wrap gap-2">
-              {FREQUENCIES.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setFrequency(f.value)}
-                  className={cn(
-                    "px-3 py-2 rounded-xl font-bold text-sm transition-all",
-                    frequency === f.value
-                      ? "bg-purple-500 text-white shadow-lg shadow-purple-500/25"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
+            {/* Desktop: Time and Notes Side by Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Time */}
+              <GlassCard size="lg" className="space-y-2">
+                <span 
+                  id="time-label" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
                 >
-                  {f.label}
-                </button>
-              ))}
+                  Time
+                </span>
+                <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+              </GlassCard>
+
+              {/* Notes */}
+              <GlassCard size="lg" className="space-y-2">
+                <label 
+                  htmlFor="medication-notes" 
+                  className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                >
+                  Notes
+                </label>
+                <GlassTextarea
+                  id="medication-notes"
+                  name="medication-notes"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Any reactions or additional info..."
+                  className="min-h-[80px]"
+                  rows={2}
+                />
+              </GlassCard>
             </div>
-          </Card>
-        </div>
 
-        {/* Desktop: Time and Notes Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Time */}
-          <div className="space-y-2">
-            <span id="time-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Time</span>
-            <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+            {/* Spacer for fixed button */}
+            <div className="h-5" />
           </div>
+        </LogFormWrapper>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <label htmlFor="medication-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
-            <textarea
-              id="medication-notes"
-              name="medication-notes"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Any reactions or additional info..."
-              className="w-full rounded-2xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 p-4 text-sm resize-none outline-none transition-all placeholder:text-muted-foreground/50"
-              rows={2}
-            />
-          </div>
-        </div>
-
-        {/* Spacer for fixed button */}
-        <div className="h-5" />
-
-        {/* Save Button */}
+        {/* Save Button - Fixed at bottom */}
         <div className="fixed bottom-32 left-4 right-4 z-50">
-          <Button
+          <GlassButton
             onClick={handleSave}
             disabled={!name.trim() || !dosage.trim() || isLoading}
-            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-purple-500/20 bg-purple-500 hover:bg-purple-600 text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+            variant="primary"
+            size="lg"
+            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-purple-500/20 bg-purple-500 hover:bg-purple-600 text-white"
           >
             {isLoading ? "Saving..." : <><Pill className="w-5 h-5 mr-2" /> Save Medication</>}
-          </Button>
+          </GlassButton>
         </div>
       </div>
     </MobileContainer>

@@ -53,6 +53,12 @@ import {
   Heart,
   Upload,
   FileUp,
+  Search,
+  SlidersHorizontal,
+  Share2,
+  Download,
+  Maximize2,
+  Minus,
 } from 'lucide-react';
 
 export const Icons = {
@@ -67,6 +73,7 @@ export const Icons = {
   Report: FileText,
   ChevronRight,
   ChevronDown,
+  ChevronLeft,
   Insights: Sparkles,
   Sparkles,
   Memories: Camera,
@@ -117,5 +124,12 @@ export const Icons = {
   Upload,
   PhotoImport: FileUp,
   ArrowLeft: ChevronLeft,
+  Search,
+  Filter: SlidersHorizontal,
+  // Lightbox icons
+  Share: Share2,
+  Download,
+  Maximize: Maximize2,
+  Minus,
 };
 

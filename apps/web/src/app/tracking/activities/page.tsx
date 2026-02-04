@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { PageHeader } from "@/components/ui/page-header";
+import { FilterPills, FilterOption } from "@/components/ui/filter-pills";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { cn } from "@/lib/utils";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { api, ActivityResponse } from "@/lib/api-client";
-import { ChevronLeft, Plus, Baby, Bath, TreePine, Gamepad2, Calendar } from "lucide-react";
+import { Plus, Baby, Bath, TreePine, Gamepad2, Calendar, Activity } from "lucide-react";
 
 type ActivityType = "tummy_time" | "bath" | "outdoor" | "play";
 
@@ -18,10 +21,16 @@ const ACTIVITY_CONFIG: Record<ActivityType, { label: string; icon: typeof Baby; 
   play: { label: "Play", icon: Gamepad2, color: "text-amber-500", bgColor: "bg-amber-500/10", emoji: "🎮" },
 };
 
+const DATE_FILTER_OPTIONS: FilterOption[] = [
+  { value: "today", label: "Today" },
+  { value: "week", label: "7 Days" },
+  { value: "month", label: "30 Days" },
+];
+
 export default function ActivitiesTrackingPage() {
   const [activities, setActivities] = useState<ActivityResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState<"today" | "week" | "month">("week");
+  const [dateFilter, setDateFilter] = useState<string>("week");
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -52,6 +61,8 @@ export default function ActivitiesTrackingPage() {
       case "month":
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
+      default:
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
     
     return activities.filter(a => a.startTime && new Date(a.startTime) >= startDate);
@@ -98,51 +109,34 @@ export default function ActivitiesTrackingPage() {
   return (
     <MobileContainer>
       <div className="p-4 space-y-6 pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/tracking" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-heading font-bold text-foreground">Activity Tracking</h1>
-            <p className="text-sm text-muted-foreground">Tummy time, play & more</p>
-          </div>
-          <Link href="/log/activity">
-            <Button size="sm" className="gap-1">
-              <Plus className="w-4 h-4" />
-              Add
-            </Button>
-          </Link>
-        </div>
+        {/* Header with PageHeader component */}
+        <PageHeader
+          title="Activity Tracking"
+          subtitle="Tummy time, play & more"
+          backHref="/tracking"
+          action={
+            <Link href="/log/activity">
+              <GlassButton variant="primary" size="sm" className="gap-1">
+                <Plus className="w-4 h-4" />
+                Add
+              </GlassButton>
+            </Link>
+          }
+        />
 
-        {/* Date Filter */}
-        <div className="flex gap-1 bg-muted/50 p-1 rounded-xl">
-          {[
-            { key: "today" as const, label: "Today" },
-            { key: "week" as const, label: "7 Days" },
-            { key: "month" as const, label: "30 Days" },
-          ].map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setDateFilter(filter.key)}
-              className={cn(
-                "flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-all",
-                dateFilter === filter.key
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
+        {/* Date Filter with FilterPills */}
+        <FilterPills
+          options={DATE_FILTER_OPTIONS}
+          selected={dateFilter}
+          onChange={setDateFilter}
+        />
 
-        {/* Stats Grid */}
+        {/* Stats Grid with GlassCard */}
         <div className="grid grid-cols-2 gap-3">
           {(Object.entries(stats) as [ActivityType, { count: number; totalMinutes: number }][]).map(([type, data]) => {
             const config = ACTIVITY_CONFIG[type];
             return (
-              <Card key={type} className={cn("p-4", config.bgColor)}>
+              <GlassCard key={type} size="sm" interactive>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{config.emoji}</span>
                   <div>
@@ -152,31 +146,38 @@ export default function ActivitiesTrackingPage() {
                     </p>
                   </div>
                 </div>
-              </Card>
+              </GlassCard>
             );
           })}
         </div>
 
-        {/* Activity Chart */}
+        {/* Activity Chart with GlassCard */}
         <ActivityChart activities={filteredActivities} isLoading={isLoading} />
 
-        {/* Activity List */}
+        {/* Activity List with GlassCard */}
         <div className="space-y-4">
           <h3 className="font-bold text-foreground">Recent Activities</h3>
           {isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
+                <GlassCard key={i} size="sm">
+                  <div className="h-10 bg-white/5 rounded-xl animate-pulse" />
+                </GlassCard>
               ))}
             </div>
           ) : Object.keys(groupedActivities).length === 0 ? (
-            <Card className="p-8 text-center">
-              <Gamepad2 className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">No activities recorded</p>
+            <GlassCard className="p-8 text-center">
+              <IconBadge 
+                icon={Gamepad2} 
+                color="activity" 
+                size="lg" 
+                className="mx-auto mb-3"
+              />
+              <p className="text-muted-foreground mb-4">No activities recorded</p>
               <Link href="/log/activity">
-                <Button className="mt-4" size="sm">Log Activity</Button>
+                <GlassButton variant="primary" size="sm">Log Activity</GlassButton>
               </Link>
-            </Card>
+            </GlassCard>
           ) : (
             Object.entries(groupedActivities).map(([dateKey, dayActivities]) => (
               <div key={dateKey} className="space-y-2">
@@ -187,7 +188,7 @@ export default function ActivitiesTrackingPage() {
                 {dayActivities.map((activity) => {
                   const config = ACTIVITY_CONFIG[activity.activityType as ActivityType];
                   return (
-                    <Card key={activity.id} className="p-3">
+                    <GlassCard key={activity.id} size="sm" interactive>
                       <div className="flex items-center gap-3">
                         <span className="text-xl">{config?.emoji || "🎯"}</span>
                         <div className="flex-1">
@@ -198,7 +199,7 @@ export default function ActivitiesTrackingPage() {
                           </p>
                         </div>
                       </div>
-                    </Card>
+                    </GlassCard>
                   );
                 })}
               </div>
@@ -212,7 +213,11 @@ export default function ActivitiesTrackingPage() {
 
 function ActivityChart({ activities, isLoading }: { activities: ActivityResponse[]; isLoading: boolean }) {
   if (isLoading) {
-    return <Card className="p-6"><div className="h-32 bg-muted/50 rounded-xl animate-pulse" /></Card>;
+    return (
+      <GlassCard>
+        <div className="h-32 bg-white/5 rounded-xl animate-pulse" />
+      </GlassCard>
+    );
   }
 
   // Group by day and calculate totals
@@ -239,13 +244,13 @@ function ActivityChart({ activities, isLoading }: { activities: ActivityResponse
   const maxMinutes = Math.max(...dailyTotals, 30);
 
   return (
-    <Card className="p-4">
+    <GlassCard>
       <h3 className="font-bold text-foreground mb-4">Daily Activity (minutes)</h3>
       <div className="flex items-end justify-between gap-2 h-24">
         {last7Days.map((day, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
             <div 
-              className="w-full bg-cyan-500 rounded-t-md transition-all"
+              className="w-full bg-gradient-to-t from-cyan-500 to-cyan-400 rounded-t-md transition-all"
               style={{ height: `${(dailyTotals[i] / maxMinutes) * 100}%`, minHeight: dailyTotals[i] > 0 ? 4 : 0 }}
             />
             <span className="text-[10px] text-muted-foreground">
@@ -254,6 +259,6 @@ function ActivityChart({ activities, isLoading }: { activities: ActivityResponse
           </div>
         ))}
       </div>
-    </Card>
+    </GlassCard>
   );
 }

@@ -1,16 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import Link from "next/link";
-import { ChevronLeft, Check, Droplets, Trash2, Save } from "lucide-react";
+import { Check, Droplets, Trash2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { MobileContainer } from "@/components/layout/mobile-container";
 import { toast } from "sonner";
 import { api, DiaperType } from "@/lib/api-client";
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
+import { LogFormWrapper } from "@/components/log/log-form-wrapper";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+
+/**
+ * Diaper Log Page
+ *
+ * Redesigned with glassmorphism components.
+ *
+ * @requirements 14.1 - Uses PageHeader with title and back navigation via LogFormWrapper
+ * @requirements 14.2 - Uses GlassCard as form container
+ * @requirements 14.3 - Uses GlassCard for type selection, GlassTextarea for notes
+ * @requirements 14.4 - Uses GlassButton for form submission
+ * @requirements 14.5 - All form inputs meet minimum 48px touch target
+ * @requirements 14.6 - Maintains existing form functionality
+ */
 
 const COLOR_OPTIONS = [
   { value: "yellow", label: "Yellow", bgClass: "bg-yellow-400" },
@@ -25,6 +39,13 @@ const AMOUNT_OPTIONS = [
   { value: "light", label: "Light", emoji: "💧" },
   { value: "medium", label: "Medium", emoji: "💧💧" },
   { value: "heavy", label: "Heavy", emoji: "💧💧💧" },
+];
+
+// Diaper type options with icons and colors
+const DIAPER_TYPES: { value: DiaperType; label: string; icon: typeof Droplets; color: string; bgColor: string }[] = [
+  { value: "wet", label: "Wet", icon: Droplets, color: "text-blue-500", bgColor: "bg-blue-500" },
+  { value: "dirty", label: "Dirty", icon: Trash2, color: "text-amber-500", bgColor: "bg-amber-500" },
+  { value: "mixed", label: "Both", icon: Check, color: "text-green-500", bgColor: "bg-green-500" },
 ];
 
 export default function DiaperLogPage() {
@@ -74,218 +95,219 @@ export default function DiaperLogPage() {
 
   const showWetDetails = type === "wet" || type === "mixed";
   const showDirtyDetails = type === "dirty" || type === "mixed";
+  const activeConfig = DIAPER_TYPES.find(t => t.value === type)!;
 
   return (
     <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Log Diaper</h1>
-        </div>
-
-        {/* Type Selection */}
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={() => setType("wet")}
-            className={cn(
-              "flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-200 border-2",
-              type === "wet"
-                ? "bg-blue-500 border-transparent text-white shadow-lg shadow-blue-500/25 -translate-y-1"
-                : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <Droplets className={cn("w-8 h-8 mb-2", type === "wet" ? "text-white" : "text-blue-500")} />
-            <span className="font-bold text-sm">Wet</span>
-          </button>
-
-          <button
-            onClick={() => setType("dirty")}
-            className={cn(
-              "flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-200 border-2",
-              type === "dirty"
-                ? "bg-amber-500 border-transparent text-white shadow-lg shadow-amber-500/25 -translate-y-1"
-                : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <Trash2 className={cn("w-8 h-8 mb-2", type === "dirty" ? "text-white" : "text-amber-500")} />
-            <span className="font-bold text-sm">Dirty</span>
-          </button>
-
-          <button
-            onClick={() => setType("mixed")}
-            className={cn(
-              "flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-200 border-2",
-              type === "mixed"
-                ? "bg-green-500 border-transparent text-white shadow-lg shadow-green-500/25 -translate-y-1"
-                : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <Check className={cn("w-8 h-8 mb-2", type === "mixed" ? "text-white" : "text-green-500")} />
-            <span className="font-bold text-sm">Both</span>
-          </button>
-        </div>
-
-        {/* Desktop: Side by side for mixed */}
-        <div className={cn("grid gap-4", type === "mixed" ? "md:grid-cols-2" : "grid-cols-1")}>
-          {/* Wet Details */}
-          {showWetDetails && (
-            <Card className="p-5 space-y-4 border-0 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
-              <h3 className="font-bold text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                <Droplets className="w-4 h-4" />
-                Wet Amount
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                {AMOUNT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setWetAmount(wetAmount === opt.value ? null : opt.value)}
+      <div className="p-4 pb-32">
+        <LogFormWrapper
+          title="Log Diaper"
+          backHref="/log"
+          showCard={false}
+        >
+          <div className="space-y-6">
+            {/* Type Selection - Requirement 14.3, 14.5 */}
+            <div className="grid grid-cols-3 gap-3">
+              {DIAPER_TYPES.map((diaperType) => {
+                const isActive = type === diaperType.value;
+                const Icon = diaperType.icon;
+                return (
+                  <GlassCard
+                    key={diaperType.value}
+                    interactive
+                    variant={isActive ? "featured" : "default"}
+                    size="default"
                     className={cn(
-                      "flex flex-col items-center gap-1 py-3 rounded-xl font-bold text-sm transition-all border-2",
-                      wetAmount === opt.value
-                        ? "bg-blue-500 border-transparent text-white shadow-lg"
-                        : "bg-card border-transparent text-muted-foreground hover:bg-muted"
+                      "flex flex-col items-center justify-center min-h-[100px] cursor-pointer transition-all duration-200",
+                      isActive && `${diaperType.bgColor} border-transparent text-white shadow-lg -translate-y-1`
                     )}
+                    onClick={() => setType(diaperType.value)}
                   >
-                    <span className="text-lg">{opt.emoji}</span>
-                    <span>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* Dirty Details */}
-          {showDirtyDetails && (
-            <Card className="p-5 space-y-4 border-0 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
-              <h3 className="font-bold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                <Trash2 className="w-4 h-4" />
-                Dirty Amount
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                {AMOUNT_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setDirtyAmount(dirtyAmount === opt.value ? null : opt.value)}
-                    className={cn(
-                      "flex flex-col items-center gap-1 py-3 rounded-xl font-bold text-sm transition-all border-2",
-                      dirtyAmount === opt.value
-                        ? "bg-amber-500 border-transparent text-white shadow-lg"
-                        : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-                    )}
-                  >
-                    <span className="text-lg">💩</span>
-                    <span>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </Card>
-          )}
-        </div>
-
-        {/* Stool Details - Color & Consistency */}
-        {showDirtyDetails && (
-          <Card className="p-5 space-y-5 border-0 bg-gradient-to-br from-card to-muted/20">
-            {/* Color Selection */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Color</label>
-              <div className="flex flex-wrap gap-2">
-                {COLOR_OPTIONS.map((c) => (
-                  <button
-                    key={c.value}
-                    onClick={() => setColor(color === c.value ? null : c.value)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all border-2",
-                      color === c.value
-                        ? "bg-primary/10 border-primary text-primary"
-                        : "bg-muted/50 border-transparent hover:bg-muted"
-                    )}
-                  >
-                    <span className={cn("w-4 h-4 rounded-full", c.bgClass)} />
-                    {c.label}
-                  </button>
-                ))}
-              </div>
+                    <Icon className={cn("w-8 h-8 mb-2", isActive ? "text-white" : diaperType.color)} />
+                    <span className="font-bold text-sm">{diaperType.label}</span>
+                  </GlassCard>
+                );
+              })}
             </div>
 
-            {/* Consistency Selection */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Consistency</label>
-              <div className="flex flex-wrap gap-2">
-                {["Normal", "Soft", "Runny", "Hard", "Seedy", "Mucousy"].map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setConsistency(consistency === t ? null : t)}
-                    className={cn(
-                      "px-3 py-2 rounded-xl text-sm font-medium transition-all border-2",
-                      consistency === t
-                        ? "bg-primary/10 border-primary text-primary"
-                        : "bg-muted/50 border-transparent hover:bg-muted"
-                    )}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
+            {/* Desktop: Side by side for mixed */}
+            <div className={cn("grid gap-4", type === "mixed" ? "md:grid-cols-2" : "grid-cols-1")}>
+              {/* Wet Details - Requirement 14.2, 14.5 */}
+              {showWetDetails && (
+                <GlassCard size="lg" className="space-y-4 bg-gradient-to-br from-blue-500/5 to-blue-500/10">
+                  <h3 className="font-bold text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                    <Droplets className="w-4 h-4" />
+                    Wet Amount
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {AMOUNT_OPTIONS.map((opt) => {
+                      const isSelected = wetAmount === opt.value;
+                      return (
+                        <GlassButton
+                          key={opt.value}
+                          variant={isSelected ? "primary" : "default"}
+                          onClick={() => setWetAmount(wetAmount === opt.value ? null : opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 py-3 h-auto min-h-[72px]",
+                            isSelected && "bg-blue-500 shadow-lg"
+                          )}
+                        >
+                          <span className="text-lg">{opt.emoji}</span>
+                          <span className="text-sm font-bold">{opt.label}</span>
+                        </GlassButton>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
+              )}
+
+              {/* Dirty Details - Requirement 14.2, 14.5 */}
+              {showDirtyDetails && (
+                <GlassCard size="lg" className="space-y-4 bg-gradient-to-br from-amber-500/5 to-amber-500/10">
+                  <h3 className="font-bold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
+                    <Trash2 className="w-4 h-4" />
+                    Dirty Amount
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {AMOUNT_OPTIONS.map((opt) => {
+                      const isSelected = dirtyAmount === opt.value;
+                      return (
+                        <GlassButton
+                          key={opt.value}
+                          variant={isSelected ? "primary" : "default"}
+                          onClick={() => setDirtyAmount(dirtyAmount === opt.value ? null : opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 py-3 h-auto min-h-[72px]",
+                            isSelected && "bg-amber-500 shadow-lg"
+                          )}
+                        >
+                          <span className="text-lg">💩</span>
+                          <span className="text-sm font-bold">{opt.label}</span>
+                        </GlassButton>
+                      );
+                    })}
+                  </div>
+                </GlassCard>
+              )}
             </div>
-          </Card>
-        )}
 
-        {/* Diaper Rash */}
-        <div className="flex items-center gap-3 px-1">
-          <button
-            onClick={() => setHasRash(!hasRash)}
-            className={cn(
-              "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-              hasRash
-                ? "bg-red-500 border-red-500 text-white"
-                : "border-muted-foreground/30"
+            {/* Stool Details - Color & Consistency - Requirement 14.2, 14.5 */}
+            {showDirtyDetails && (
+              <GlassCard size="lg" className="space-y-5">
+                {/* Color Selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Color</label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLOR_OPTIONS.map((c) => {
+                      const isSelected = color === c.value;
+                      return (
+                        <GlassButton
+                          key={c.value}
+                          variant={isSelected ? "primary" : "default"}
+                          size="sm"
+                          onClick={() => setColor(color === c.value ? null : c.value)}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2",
+                            isSelected && "bg-primary/10 border-primary text-primary"
+                          )}
+                        >
+                          <span className={cn("w-4 h-4 rounded-full", c.bgClass)} />
+                          {c.label}
+                        </GlassButton>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Consistency Selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Consistency</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Normal", "Soft", "Runny", "Hard", "Seedy", "Mucousy"].map((t) => {
+                      const isSelected = consistency === t;
+                      return (
+                        <GlassButton
+                          key={t}
+                          variant={isSelected ? "primary" : "default"}
+                          size="sm"
+                          onClick={() => setConsistency(consistency === t ? null : t)}
+                          className={cn(
+                            "px-3 py-2",
+                            isSelected && "bg-primary/10 border-primary text-primary"
+                          )}
+                        >
+                          {t}
+                        </GlassButton>
+                      );
+                    })}
+                  </div>
+                </div>
+              </GlassCard>
             )}
-          >
-            {hasRash && <Check className="w-4 h-4" />}
-          </button>
-          <span className="text-sm font-medium text-foreground">Has diaper rash</span>
-        </div>
 
-        {/* Time */}
-        <div className="space-y-2">
-          <span id="diaper-time-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Time</span>
-          <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
-        </div>
+            {/* Diaper Rash - Requirement 14.5 */}
+            <div className="flex items-center gap-3 px-1">
+              <GlassButton
+                variant={hasRash ? "danger" : "default"}
+                size="icon"
+                onClick={() => setHasRash(!hasRash)}
+                className={cn(
+                  "w-8 h-8 min-w-[48px] min-h-[48px] rounded-lg",
+                  hasRash && "bg-red-500 border-red-500 text-white"
+                )}
+              >
+                {hasRash && <Check className="w-4 h-4" />}
+              </GlassButton>
+              <span className="text-sm font-medium text-foreground">Has diaper rash</span>
+            </div>
 
-        {/* Notes */}
-        <div className="space-y-2">
-          <label htmlFor="diaper-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
-          <textarea
-            id="diaper-notes"
-            name="diaper-notes"
-            className="w-full rounded-2xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 p-4 text-sm resize-none outline-none transition-all placeholder:text-muted-foreground/50"
-            placeholder="Any additional observations..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            rows={2}
-          />
-        </div>
+            {/* Time - Requirement 14.3 */}
+            <div className="space-y-2">
+              <span id="diaper-time-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Time</span>
+              <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+            </div>
 
-        {/* Spacer for fixed button */}
-        <div className="h-5" />
+            {/* Notes - Requirement 14.3 */}
+            <div className="space-y-2">
+              <label htmlFor="diaper-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
+              <GlassTextarea
+                id="diaper-notes"
+                name="diaper-notes"
+                placeholder="Any additional observations..."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={2}
+                className="min-h-[80px]"
+              />
+            </div>
 
-        {/* Save Button */}
+            {/* Spacer for fixed button */}
+            <div className="h-5" />
+          </div>
+        </LogFormWrapper>
+
+        {/* Save Button - Requirement 14.4, 14.5 */}
         <div className="fixed bottom-32 left-4 right-4 z-50">
-          <Button
+          <GlassButton
+            variant="primary"
+            size="lg"
             onClick={handleSave}
             disabled={isLoading}
             className={cn(
-              "w-full h-16 rounded-full text-lg font-bold shadow-xl text-white transition-all hover:scale-[1.02] active:scale-95",
-              type === "wet" ? "bg-blue-500 hover:bg-blue-600 shadow-blue-500/20" :
-              type === "dirty" ? "bg-amber-500 hover:bg-amber-600 shadow-amber-500/20" :
-              "bg-green-500 hover:bg-green-600 shadow-green-500/20"
+              "w-full h-16 rounded-full text-lg shadow-xl",
+              activeConfig.bgColor,
+              `shadow-${activeConfig.bgColor.replace('bg-', '')}/20`
             )}
           >
-            {isLoading ? "Saving..." : <><Save className="w-5 h-5 mr-2" /> Save Diaper</>}
-          </Button>
+            {isLoading ? (
+              "Saving..."
+            ) : (
+              <>
+                <Save className="w-5 h-5 mr-2" />
+                Save Diaper
+              </>
+            )}
+          </GlassButton>
         </div>
       </div>
     </MobileContainer>

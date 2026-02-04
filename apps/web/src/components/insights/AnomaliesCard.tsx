@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CheckCircle, Activity, ChevronRight } from "lucide-react";
 import { AnomalyDetectionResponseDto } from "@/types/insights";
 import { InsightCard } from "./InsightCard";
+import { GlassCard } from "@/components/ui/glass-card";
 import { api } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
 
@@ -34,7 +35,7 @@ export function AnomaliesCard() {
       <InsightCard 
         title="Pattern Monitor" 
         icon={Activity} 
-        variant="glass"
+        variant="default"
         iconClassName="bg-orange-100 text-orange-500 dark:bg-orange-950/50 dark:text-orange-400"
       >
         <div className="h-32 bg-muted rounded-lg animate-pulse"></div>
@@ -47,7 +48,7 @@ export function AnomaliesCard() {
       <InsightCard 
         title="Pattern Monitor" 
         icon={Activity}
-        variant="glass"
+        variant="default"
         iconClassName="bg-orange-100 text-orange-500 dark:bg-orange-950/50 dark:text-orange-400"
       >
         <div className="flex flex-col items-center justify-center py-6 text-center">
@@ -65,7 +66,7 @@ export function AnomaliesCard() {
     <InsightCard 
       title="Pattern Monitor" 
       icon={Activity}
-      variant="glass"
+      variant="default"
       iconClassName="bg-orange-100 text-orange-500 dark:bg-orange-950/50 dark:text-orange-400"
     >
       <div className="mb-4 text-sm text-muted-foreground">

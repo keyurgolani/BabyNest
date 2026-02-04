@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, Thermometer } from "lucide-react";
+import { Thermometer } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MobileContainer } from "@/components/layout/mobile-container";
 import { toast } from "sonner";
 import { api, SymptomSeverity } from "@/lib/api-client";
 import { TimeAgoPicker } from "@/components/ui/time-ago-picker";
+import { LogFormWrapper } from "@/components/log/log-form-wrapper";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassTextarea } from "@/components/ui/glass-textarea";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassCard } from "@/components/ui/glass-card";
 
 const SYMPTOMS = [
   { value: "fever", label: "Fever", emoji: "🤒" },
@@ -39,12 +40,10 @@ export default function SymptomLogPage() {
 
 function SymptomPageLoading() {
   return (
-    <MobileContainer>
-      <div className="p-4 space-y-6 animate-pulse">
-        <div className="h-10 bg-muted rounded-lg w-1/3" />
-        <div className="h-32 bg-muted rounded-2xl" />
-      </div>
-    </MobileContainer>
+    <div className="p-4 space-y-6 animate-pulse">
+      <div className="h-10 bg-white/10 rounded-lg w-1/3" />
+      <div className="h-32 bg-white/10 rounded-3xl" />
+    </div>
   );
 }
 
@@ -101,141 +100,150 @@ function SymptomLogPageContent() {
   };
 
   return (
-    <MobileContainer>
-      <div className="p-4 space-y-6 animate-slide-up pb-32">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/log" className="p-3 rounded-full bg-muted/50 hover:bg-muted transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
-          </Link>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Log Symptom</h1>
-        </div>
-
-        {/* Symptom Type */}
-        <div className="space-y-2">
-          <span id="symptom-type-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Symptom</span>
-          <div className="grid grid-cols-4 gap-2">
-            {SYMPTOMS.map((s) => (
-              <button
-                key={s.value}
-                onClick={() => setSymptom(s.value)}
-                className={cn(
-                  "flex flex-col items-center justify-center p-3 rounded-2xl transition-all border-2",
-                  symptom === s.value
-                    ? "bg-red-500 border-transparent text-white shadow-lg shadow-red-500/25"
-                    : "bg-card border-transparent text-muted-foreground hover:bg-muted"
-                )}
-              >
-                <span className="text-2xl mb-1">{s.emoji}</span>
-                <span className="text-[10px] font-bold">{s.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Desktop: Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Severity */}
-          <Card className="p-5 space-y-3 border-0 bg-gradient-to-br from-card to-muted/20">
-            <span id="severity-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Severity</span>
-            <div className="grid grid-cols-3 gap-3">
-              {SEVERITIES.map((s) => (
+    <div className="p-4 pb-32">
+      <LogFormWrapper
+        title="Log Symptom"
+        backHref="/log"
+        showCard={false}
+      >
+        <div className="space-y-6">
+          {/* Symptom Type Selection */}
+          <GlassCard size="lg" className="space-y-4">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Symptom
+            </span>
+            <div className="grid grid-cols-4 gap-2">
+              {SYMPTOMS.map((s) => (
                 <button
                   key={s.value}
-                  onClick={() => setSeverity(s.value)}
+                  onClick={() => setSymptom(s.value)}
                   className={cn(
-                    "py-4 rounded-2xl font-bold text-sm transition-all flex flex-col items-center gap-2 border-2",
-                    severity === s.value
-                      ? `${s.bgColor} border-transparent text-white shadow-lg`
-                      : "bg-card border-transparent text-muted-foreground hover:bg-muted"
+                    "flex flex-col items-center justify-center p-3 rounded-2xl transition-all border min-h-[48px]",
+                    symptom === s.value
+                      ? "bg-red-500 border-red-400 text-white shadow-lg shadow-red-500/25"
+                      : "bg-[var(--glass-bg)] border-[var(--glass-border)] text-muted-foreground hover:bg-[var(--glass-bg-hover)]"
                   )}
                 >
-                  <div className={cn("w-3 h-3 rounded-full", severity === s.value ? "bg-white" : s.bgColor)} />
-                  {s.label}
+                  <span className="text-2xl mb-1">{s.emoji}</span>
+                  <span className="text-[10px] font-bold">{s.label}</span>
                 </button>
               ))}
             </div>
-          </Card>
+          </GlassCard>
 
-          {/* Temperature */}
-          <Card className="p-5 space-y-3 border-0 bg-gradient-to-br from-card to-muted/20">
-            <label htmlFor="symptom-temperature" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Temperature (Optional)</label>
-            <div className="flex gap-3">
-              <input
-                id="symptom-temperature"
-                name="symptom-temperature"
-                type="number"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-                placeholder={tempUnit === "F" ? "e.g. 101.5" : "e.g. 38.5"}
-                className="flex-1 h-12 rounded-xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 px-4 text-foreground placeholder:text-muted-foreground/50 outline-none transition-all"
-              />
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setTempUnit("F")}
-                  className={cn(
-                    "px-4 h-12 rounded-xl font-bold transition-all",
-                    tempUnit === "F"
-                      ? "bg-red-500 text-white"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  °F
-                </button>
-                <button
-                  onClick={() => setTempUnit("C")}
-                  className={cn(
-                    "px-4 h-12 rounded-xl font-bold transition-all",
-                    tempUnit === "C"
-                      ? "bg-red-500 text-white"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  °C
-                </button>
+          {/* Desktop: Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Severity */}
+            <GlassCard size="lg" className="space-y-4">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Severity
+              </span>
+              <div className="grid grid-cols-3 gap-3">
+                {SEVERITIES.map((s) => (
+                  <button
+                    key={s.value}
+                    onClick={() => setSeverity(s.value)}
+                    className={cn(
+                      "py-4 rounded-2xl font-bold text-sm transition-all flex flex-col items-center gap-2 border min-h-[48px]",
+                      severity === s.value
+                        ? `${s.bgColor} border-transparent text-white shadow-lg`
+                        : "bg-[var(--glass-bg)] border-[var(--glass-border)] text-muted-foreground hover:bg-[var(--glass-bg-hover)]"
+                    )}
+                  >
+                    <div className={cn("w-3 h-3 rounded-full", severity === s.value ? "bg-white" : s.bgColor)} />
+                    {s.label}
+                  </button>
+                ))}
               </div>
-            </div>
-          </Card>
-        </div>
+            </GlassCard>
 
-        {/* Desktop: Time and Notes Side by Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Time */}
-          <div className="space-y-2">
-            <span id="symptom-when-label" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">When</span>
-            <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+            {/* Temperature */}
+            <GlassCard size="lg" className="space-y-4">
+              <label htmlFor="symptom-temperature" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Temperature (Optional)
+              </label>
+              <div className="flex gap-3">
+                <GlassInput
+                  id="symptom-temperature"
+                  name="symptom-temperature"
+                  type="number"
+                  step="0.1"
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  placeholder={tempUnit === "F" ? "e.g. 101.5" : "e.g. 38.5"}
+                  className="flex-1 min-h-[48px]"
+                />
+                <div className="flex gap-1">
+                  <GlassButton
+                    onClick={() => setTempUnit("F")}
+                    variant={tempUnit === "F" ? "danger" : "default"}
+                    className="px-4"
+                  >
+                    °F
+                  </GlassButton>
+                  <GlassButton
+                    onClick={() => setTempUnit("C")}
+                    variant={tempUnit === "C" ? "danger" : "default"}
+                    className="px-4"
+                  >
+                    °C
+                  </GlassButton>
+                </div>
+              </div>
+            </GlassCard>
           </div>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <label htmlFor="symptom-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Notes</label>
-            <textarea
-              id="symptom-notes"
-              name="symptom-notes"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="When did it start? Any other observations..."
-              className="w-full rounded-2xl bg-muted/30 border border-transparent focus:bg-background focus:border-primary/20 p-4 text-sm resize-none outline-none transition-all placeholder:text-muted-foreground/50"
-              rows={2}
-            />
+          {/* Desktop: Time and Notes Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Time */}
+            <GlassCard size="lg" className="space-y-4">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                When
+              </span>
+              <TimeAgoPicker value={timestamp} onChange={setTimestamp} />
+            </GlassCard>
+
+            {/* Notes */}
+            <GlassCard size="lg" className="space-y-4">
+              <label htmlFor="symptom-notes" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Notes
+              </label>
+              <GlassTextarea
+                id="symptom-notes"
+                name="symptom-notes"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="When did it start? Any other observations..."
+                rows={2}
+                className="min-h-[80px]"
+              />
+            </GlassCard>
           </div>
-        </div>
 
-        {/* Spacer for fixed button */}
-        <div className="h-5" />
-
-        {/* Save Button */}
-        <div className="fixed bottom-32 left-4 right-4 z-50">
-          <Button
-            onClick={handleSave}
-            disabled={!symptom || isLoading}
-            className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-red-500/20 bg-red-500 hover:bg-red-600 text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
-          >
-            {isLoading ? "Saving..." : <><Thermometer className="w-5 h-5 mr-2" /> Save Symptom</>}
-          </Button>
+          {/* Spacer for fixed button */}
+          <div className="h-5" />
         </div>
+      </LogFormWrapper>
+
+      {/* Save Button - Fixed at bottom */}
+      <div className="fixed bottom-32 left-4 right-4 z-50">
+        <GlassButton
+          onClick={handleSave}
+          disabled={!symptom || isLoading}
+          variant="danger"
+          size="lg"
+          className="w-full h-16 rounded-full text-lg font-bold shadow-xl shadow-red-500/20"
+        >
+          {isLoading ? (
+            "Saving..."
+          ) : (
+            <>
+              <Thermometer className="w-5 h-5 mr-2" />
+              Save Symptom
+            </>
+          )}
+        </GlassButton>
       </div>
-    </MobileContainer>
+    </div>
   );
 }

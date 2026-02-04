@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Icons } from "@/components/icons";
 import { api } from "@/lib/api-client";
 import Link from "next/link";
@@ -63,7 +65,7 @@ export function DataManagementContent() {
   return (
     <div className="space-y-4 pt-2">
       {/* Export Data */}
-      <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+      <GlassCard size="sm" className="p-3">
         <h3 className="font-medium text-foreground text-sm mb-2">Export Data</h3>
         <p className="text-xs text-muted-foreground mb-3">
           Download all your baby tracking data for backup
@@ -74,10 +76,10 @@ export function DataManagementContent() {
             <button
               key={format}
               onClick={() => setExportFormat(format)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all backdrop-blur-sm border ${
                 exportFormat === format
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-background hover:bg-muted text-foreground'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]'
+                  : 'bg-white/5 hover:bg-white/10 text-foreground border-white/10'
               }`}
             >
               {format.toUpperCase()}
@@ -85,9 +87,9 @@ export function DataManagementContent() {
           ))}
         </div>
         
-        <Button 
+        <GlassButton 
           onClick={handleExport}
-          variant="outline"
+          variant="default"
           size="sm"
           className="w-full"
           disabled={isExporting}
@@ -103,11 +105,11 @@ export function DataManagementContent() {
               Export as {exportFormat.toUpperCase()}
             </>
           )}
-        </Button>
-      </div>
+        </GlassButton>
+      </GlassCard>
 
       {/* Import Data */}
-      <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+      <GlassCard size="sm" className="p-3">
         <h3 className="font-medium text-foreground text-sm mb-2">Import Data</h3>
         <p className="text-xs text-muted-foreground mb-3">
           Import data from a JSON backup file
@@ -125,80 +127,80 @@ export function DataManagementContent() {
               }
             }}
           />
-          <Button variant="outline" size="sm" className="w-full" asChild>
+          <GlassButton variant="default" size="sm" className="w-full" asChild>
             <span>
               <Icons.Plus className="w-3 h-3 mr-2" />
               Select JSON File
             </span>
-          </Button>
+          </GlassButton>
         </label>
-      </div>
+      </GlassCard>
 
       {/* Import from Photo */}
-      <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+      <GlassCard size="sm" className="p-3">
         <h3 className="font-medium text-foreground text-sm mb-2">Import from Photo</h3>
         <p className="text-xs text-muted-foreground mb-3">
           Use AI to extract tracking data from photos of handwritten logs
         </p>
         
         <Link href="/import">
-          <Button variant="outline" size="sm" className="w-full">
+          <GlassButton variant="default" size="sm" className="w-full">
             <Icons.PhotoImport className="w-3 h-3 mr-2" />
             Open Photo Import
-          </Button>
+          </GlassButton>
         </Link>
-      </div>
+      </GlassCard>
 
       {/* Clear Data */}
-      <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50">
+      <div className="p-3 rounded-xl bg-red-500/10 backdrop-blur-sm border border-red-500/20">
         <h3 className="font-medium text-red-700 dark:text-red-400 text-sm mb-2">Danger Zone</h3>
         <p className="text-xs text-red-600 dark:text-red-400/80 mb-3">
           Permanently delete all your data. This cannot be undone.
         </p>
         
         {!showClearConfirm ? (
-          <Button 
-            variant="outline"
+          <GlassButton 
+            variant="danger"
             size="sm"
-            className="w-full border-red-300 text-red-600 hover:bg-red-100 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
+            className="w-full"
             onClick={() => setShowClearConfirm(true)}
           >
             <Icons.Trash className="w-3 h-3 mr-2" />
             Clear All Data
-          </Button>
+          </GlassButton>
         ) : (
           <div className="space-y-2">
             <p className="text-xs text-red-600 dark:text-red-400">
               Type <strong>DELETE ALL DATA</strong> to confirm:
             </p>
-            <input
+            <GlassInput
               type="text"
               value={clearConfirmText}
               onChange={(e) => setClearConfirmText(e.target.value)}
               placeholder="DELETE ALL DATA"
-              className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-red-950/30 border border-red-300 dark:border-red-800 text-foreground text-xs"
+              className="text-xs"
             />
             <div className="flex gap-2">
-              <Button 
-                variant="outline"
+              <GlassButton 
+                variant="default"
                 size="sm"
-                className="flex-1 text-xs h-7"
+                className="flex-1"
                 onClick={() => {
                   setShowClearConfirm(false);
                   setClearConfirmText('');
                 }}
               >
                 Cancel
-              </Button>
-              <Button 
-                variant="destructive"
+              </GlassButton>
+              <GlassButton 
+                variant="danger"
                 size="sm"
-                className="flex-1 text-xs h-7"
+                className="flex-1"
                 disabled={clearConfirmText !== 'DELETE ALL DATA' || isClearing}
                 onClick={handleClearData}
               >
                 {isClearing ? 'Deleting...' : 'Confirm'}
-              </Button>
+              </GlassButton>
             </div>
           </div>
         )}

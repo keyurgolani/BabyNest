@@ -1,23 +1,44 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
 import { Icons } from "@/components/icons";
 import { api, ApiKeyListItem } from "@/lib/api-client";
 import { format } from "date-fns";
 
+/**
+ * ManageApiKeysModal Component
+ *
+ * A modal for managing API keys with glassmorphism styling.
+ * Uses GlassModal wrapper, GlassInput for key name input,
+ * and GlassButton components for actions.
+ *
+ * Features:
+ * - Create new API keys with custom names
+ * - View list of active API keys with metadata
+ * - Copy newly created keys to clipboard
+ * - Revoke existing API keys
+ *
+ * @requirements 18.5
+ */
+
 interface ManageApiKeysModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Callback when the modal should close */
   onClose: () => void;
 }
 
-export function ManageApiKeysModal({ onClose }: ManageApiKeysModalProps) {
+export function ManageApiKeysModal({ isOpen, onClose }: ManageApiKeysModalProps) {
   const [apiKeys, setApiKeys] = useState<ApiKeyListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState(false);
 
   const fetchKeys = async () => {
     setIsLoading(true);
@@ -33,8 +54,15 @@ export function ManageApiKeysModal({ onClose }: ManageApiKeysModalProps) {
   };
 
   useEffect(() => {
-    fetchKeys();
-  }, []);
+    if (isOpen) {
+      fetchKeys();
+      // Reset state when modal opens
+      setCreatedKey(null);
+      setError(null);
+      setNewKeyName("");
+      setCopiedKey(false);
+    }
+  }, [isOpen]);
 
   const handleCreateKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,12 +71,13 @@ export function ManageApiKeysModal({ onClose }: ManageApiKeysModalProps) {
     setIsCreating(true);
     setError(null);
     setCreatedKey(null);
+    setCopiedKey(false);
 
     try {
       const response = await api.auth.createApiKey({ name: newKeyName.trim() });
       setCreatedKey(response.key);
       setNewKeyName("");
-      fetchKeys(); // Refresh list to show the new key entry (though it won't show the full key again)
+      fetchKeys(); // Refresh list to show the new key entry
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create API key");
     } finally {
@@ -63,133 +92,179 @@ export function ManageApiKeysModal({ onClose }: ManageApiKeysModalProps) {
       await api.auth.revokeApiKey(id);
       setApiKeys(prev => prev.filter(key => key.id !== id));
     } catch {
-      alert("Failed to revoke API key");
+      setError("Failed to revoke API key");
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
+    } catch {
+      setError("Failed to copy to clipboard");
+    }
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="API Keys"
+      size="lg"
     >
-      <Card variant="default" className="w-full max-w-2xl animate-scale-in shadow-2xl max-h-[90vh] flex flex-col">
-        <CardHeader className="pb-4 shrink-0">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
-                <Icons.Key className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">API Keys</CardTitle>
-                <CardDescription>Manage API keys for external access</CardDescription>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
+      <div className="space-y-6">
+        {/* Header Icon and Description */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <Icons.Key className="w-5 h-5" />
           </div>
-        </CardHeader>
+          <p className="text-sm text-muted-foreground">
+            Manage API keys for external access to your data
+          </p>
+        </div>
 
-        <CardContent className="pt-0 overflow-y-auto flex-1">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
-              {error}
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/30 text-destructive text-sm flex items-center gap-2">
+            <Icons.AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
+        {/* Success Message - Newly Created Key */}
+        {createdKey && (
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Icons.Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <h4 className="font-medium text-emerald-700 dark:text-emerald-300">
+                API Key Created Successfully
+              </h4>
             </div>
-          )}
-
-          {createdKey && (
-            <div className="mb-6 p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-xl animate-scale-in">
-              <h4 className="font-medium text-green-800 dark:text-green-300 mb-2">API Key Created Successfully</h4>
-              <p className="text-sm text-green-700 dark:text-green-400 mb-3">
-                Please copy this key now. You won&apos;t be able to see it again!
-              </p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 bg-white dark:bg-black/20 p-2 rounded border border-green-200 dark:border-green-800 font-mono text-sm break-all">
-                  {createdKey}
-                </code>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => copyToClipboard(createdKey)}
-                  className="shrink-0"
-                >
+            <p className="text-sm text-emerald-600 dark:text-emerald-400 mb-3">
+              Please copy this key now. You won&apos;t be able to see it again!
+            </p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 bg-white/10 dark:bg-black/20 p-3 rounded-xl border border-emerald-500/20 font-mono text-sm break-all text-foreground">
+                {createdKey}
+              </code>
+              <GlassButton 
+                size="icon" 
+                variant={copiedKey ? "primary" : "default"}
+                onClick={() => copyToClipboard(createdKey)}
+                className="flex-shrink-0"
+              >
+                {copiedKey ? (
+                  <Icons.Check className="w-4 h-4" />
+                ) : (
                   <Icons.Copy className="w-4 h-4" />
-                </Button>
-              </div>
+                )}
+              </GlassButton>
             </div>
-          )}
+            {copiedKey && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
+                Copied to clipboard!
+              </p>
+            )}
+          </div>
+        )}
 
-          <div className="space-y-6">
-            <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
-              <h3 className="text-sm font-medium text-foreground mb-3">Create New API Key</h3>
-              <form onSubmit={handleCreateKey} className="flex gap-3">
-                <input
-                  type="text"
-                  value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
-                  placeholder="Key Name (e.g. Home Assistant)"
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border focus:ring-2 focus:ring-primary outline-none text-sm"
-                  disabled={isCreating}
-                />
-                <Button 
-                  type="submit" 
-                  variant="glow"
-                  disabled={isCreating || !newKeyName.trim()}
-                >
-                  {isCreating ? "Creating..." : "Create Key"}
-                </Button>
-              </form>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">Active API Keys</h3>
-              {isLoading ? (
-                <div className="py-8 text-center text-muted-foreground">Loading...</div>
-              ) : apiKeys.length > 0 ? (
-                <div className="space-y-3">
-                  {apiKeys.map((key) => (
-                    <div key={key.id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border shadow-sm">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <Icons.Key className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span className="font-medium text-foreground">{key.name}</span>
-                        </div>
-                        <div className="flex gap-4 text-xs text-muted-foreground">
-                          <span>Prefix: <code className="bg-muted px-1 rounded">{key.prefix}</code></span>
-                          <span>Created: {format(new Date(key.createdAt), 'MMM d, yyyy')}</span>
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          Last used: {key.lastUsedAt ? format(new Date(key.lastUsedAt), 'MMM d, yyyy HH:mm') : 'Never'}
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-                        onClick={() => handleRevokeKey(key.id, key.name)}
-                      >
-                        Revoke
-                      </Button>
-                    </div>
-                  ))}
+        {/* Create New API Key Section */}
+        <div className="p-4 rounded-xl bg-white/5 border border-[var(--glass-border)]">
+          <h3 className="font-medium text-foreground mb-3">Create New API Key</h3>
+          <form onSubmit={handleCreateKey} className="flex gap-3">
+            <GlassInput
+              type="text"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              placeholder="Key Name (e.g. Home Assistant)"
+              disabled={isCreating}
+              className="flex-1"
+            />
+            <GlassButton 
+              type="submit" 
+              variant="primary"
+              disabled={isCreating || !newKeyName.trim()}
+            >
+              {isCreating ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Creating...
                 </div>
               ) : (
-                <div className="py-8 text-center text-muted-foreground border-2 border-dashed border-border/50 rounded-xl">
-                  No active API keys found
-                </div>
+                <>
+                  <Icons.Plus className="w-4 h-4 mr-2" />
+                  Create
+                </>
               )}
+            </GlassButton>
+          </form>
+        </div>
+
+        {/* Active API Keys Section */}
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            Active API Keys
+          </h3>
+          
+          {isLoading ? (
+            <div className="py-8 text-center text-muted-foreground">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+              Loading...
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          ) : apiKeys.length > 0 ? (
+            <div className="space-y-3">
+              {apiKeys.map((key) => (
+                <div 
+                  key={key.id} 
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-[var(--glass-border)]"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icons.Key className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium text-foreground truncate">{key.name}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <span>
+                        Prefix: <code className="bg-white/10 dark:bg-black/20 px-1.5 py-0.5 rounded">{key.prefix}</code>
+                      </span>
+                      <span>Created: {format(new Date(key.createdAt), 'MMM d, yyyy')}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      Last used: {key.lastUsedAt ? format(new Date(key.lastUsedAt), 'MMM d, yyyy HH:mm') : 'Never'}
+                    </div>
+                  </div>
+                  <GlassButton 
+                    variant="danger" 
+                    size="sm"
+                    onClick={() => handleRevokeKey(key.id, key.name)}
+                    className="ml-3 flex-shrink-0"
+                  >
+                    <Icons.Trash className="w-4 h-4 mr-1" />
+                    Revoke
+                  </GlassButton>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center text-muted-foreground border-2 border-dashed border-[var(--glass-border)] rounded-xl">
+              <Icons.Key className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No active API keys found</p>
+              <p className="text-xs mt-1">Create a key above to get started</p>
+            </div>
+          )}
+        </div>
+
+        {/* Close Button */}
+        <GlassButton 
+          variant="primary" 
+          onClick={onClose} 
+          className="w-full"
+        >
+          <Icons.Check className="w-4 h-4 mr-2" />
+          Done
+        </GlassButton>
+      </div>
+    </GlassModal>
   );
 }

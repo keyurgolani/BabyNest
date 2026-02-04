@@ -1,12 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
 import { Icons } from "@/components/icons";
 import { api, InvitationListItemDto } from "@/lib/api-client";
 import { format, isPast } from "date-fns";
 import { useAuth } from "@/components/auth-provider";
+import { cn } from "@/lib/utils";
+
+/**
+ * ManageCaregiversModal Component
+ *
+ * A modal for managing caregivers with glassmorphism styling.
+ * Features:
+ * - GlassModal wrapper for consistent modal styling
+ * - GlassCard for caregiver list items
+ * - Role badges with glassmorphism styling
+ * - Invite and remove caregiver functionality
+ *
+ * @requirements 18.5
+ */
 
 interface Caregiver {
   caregiverId: string;
@@ -17,10 +33,12 @@ interface Caregiver {
 
 interface ManageCaregiversModalProps {
   babyId: string;
+  /** Whether the modal is open. If not provided, defaults to true for backward compatibility */
+  isOpen?: boolean;
   onClose: () => void;
 }
 
-export function ManageCaregiversModal({ babyId, onClose }: ManageCaregiversModalProps) {
+export function ManageCaregiversModal({ babyId, isOpen = true, onClose }: ManageCaregiversModalProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'caregivers' | 'invitations'>('caregivers');
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
@@ -32,6 +50,8 @@ export function ManageCaregiversModal({ babyId, onClose }: ManageCaregiversModal
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
+    
     const fetchData = async () => {
       setIsLoading(true);
       try {
@@ -53,7 +73,7 @@ export function ManageCaregiversModal({ babyId, onClose }: ManageCaregiversModal
     };
 
     fetchData();
-  }, [babyId]);
+  }, [babyId, isOpen]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,10 +134,7 @@ export function ManageCaregiversModal({ babyId, onClose }: ManageCaregiversModal
     
     try {
       await api.invitations.revoke(invitationId);
-      // Optimistically update or re-fetch. Since revoke is void, we remove it or mark as revoked.
-      // Backend status update might not be instant in list call if strictly consistent?
-      // But typically we can just re-fetch or filter.
-      // Re-fetch is safer.
+      // Re-fetch invitations
       const invites = await api.invitations.list(babyId);
       setInvitations(invites);
     } catch {
@@ -125,212 +142,272 @@ export function ManageCaregiversModal({ babyId, onClose }: ManageCaregiversModal
     }
   };
 
-  return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <Card variant="default" className="w-full max-w-2xl animate-scale-in shadow-2xl max-h-[90vh] flex flex-col">
-        <CardHeader className="pb-4 shrink-0">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600">
-                <Icons.Users className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Manage Caregivers</CardTitle>
-                <CardDescription>Invite and manage access to your baby&apos;s profile</CardDescription>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </button>
-          </div>
-        </CardHeader>
+  // Role badge styling with glassmorphism
+  const getRoleBadgeClasses = (role: string) => {
+    const baseClasses = "text-[10px] px-2.5 py-1 rounded-full font-medium backdrop-blur-sm";
+    switch (role) {
+      case 'primary':
+        return cn(baseClasses, "bg-purple-500/20 text-purple-300 border border-purple-400/30");
+      case 'secondary':
+        return cn(baseClasses, "bg-blue-500/20 text-blue-300 border border-blue-400/30");
+      case 'viewer':
+        return cn(baseClasses, "bg-gray-500/20 text-gray-300 border border-gray-400/30");
+      default:
+        return cn(baseClasses, "bg-gray-500/20 text-gray-300 border border-gray-400/30");
+    }
+  };
 
-        <div className="px-6 border-b border-border/50 shrink-0">
-          <div className="flex gap-6">
-            <button
-              onClick={() => setActiveTab('caregivers')}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'caregivers' 
-                  ? 'border-primary text-primary' 
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Active Caregivers
-            </button>
-            <button
-              onClick={() => setActiveTab('invitations')}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'invitations' 
-                  ? 'border-primary text-primary' 
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
+  // Status badge styling with glassmorphism
+  const getStatusBadgeClasses = (status: string, isExpired: boolean) => {
+    const baseClasses = "text-[10px] px-2.5 py-1 rounded-full font-medium backdrop-blur-sm";
+    if (isExpired && status === 'pending') {
+      return cn(baseClasses, "bg-gray-500/20 text-gray-300 border border-gray-400/30");
+    }
+    switch (status) {
+      case 'pending':
+        return cn(baseClasses, "bg-yellow-500/20 text-yellow-300 border border-yellow-400/30");
+      case 'accepted':
+        return cn(baseClasses, "bg-green-500/20 text-green-300 border border-green-400/30");
+      case 'revoked':
+        return cn(baseClasses, "bg-red-500/20 text-red-300 border border-red-400/30");
+      default:
+        return cn(baseClasses, "bg-gray-500/20 text-gray-300 border border-gray-400/30");
+    }
+  };
+
+  return (
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Manage Caregivers"
+      size="lg"
+    >
+      <div className="space-y-6">
+        {/* Tab Navigation */}
+        <div className="flex gap-2 p-1 rounded-xl bg-white/5 border border-white/10">
+          <button
+            onClick={() => setActiveTab('caregivers')}
+            className={cn(
+              "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+              activeTab === 'caregivers'
+                ? "bg-white/10 text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Icons.Users className="w-4 h-4" />
+              Caregivers
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('invitations')}
+            className={cn(
+              "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200",
+              activeTab === 'invitations'
+                ? "bg-white/10 text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
+          >
+            <span className="flex items-center justify-center gap-2">
+              <Icons.Mail className="w-4 h-4" />
               Invitations
-            </button>
-          </div>
+            </span>
+          </button>
         </div>
 
-        <CardContent className="pt-6 overflow-y-auto flex-1">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
-              {error}
-            </div>
-          )}
+        {/* Error Message */}
+        {error && (
+          <GlassCard variant="danger" size="sm">
+            <p className="text-sm text-red-400">{error}</p>
+          </GlassCard>
+        )}
 
-          {activeTab === 'caregivers' ? (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Current Caregivers</h3>
-                 {isLoading ? (
-                   <div className="py-8 text-center text-muted-foreground">Loading...</div>
-                 ) : caregivers.length > 0 ? (
-                   <div className="space-y-2">
-                     {caregivers.map((caregiver) => (
-                       <div key={caregiver.caregiverId} className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/50">
-                         <div className="flex items-center gap-3">
-                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                             {caregiver.name.charAt(0).toUpperCase()}
-                           </div>
-                           <div>
-                             <p className="font-medium text-foreground">{caregiver.name}</p>
-                             <div className="flex items-center gap-2">
-                               <span className="text-xs text-muted-foreground">{caregiver.email}</span>
-                               <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                                 caregiver.role === 'primary' 
-                                   ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
-                                   : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                               }`}>
-                                 {caregiver.role}
-                               </span>
-                             </div>
-                           </div>
-                         </div>
-                         {caregiver.role !== 'primary' && user?.id !== caregiver.caregiverId && (
-                           <Button 
-                             variant="ghost" 
-                             size="sm" 
-                             className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-                             onClick={() => handleRemoveCaregiver(caregiver.caregiverId)}
-                           >
-                              Remove
-                           </Button>
-                         )}
-                       </div>
-                     ))}
-                   </div>
-                 ) : (
-                   <div className="py-8 text-center text-muted-foreground">No caregivers found</div>
-                 )}
-              </div>
-
-              <div className="pt-4 border-t border-border/50">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">Invite New Caregiver</h3>
-                <form onSubmit={handleInvite} className="flex flex-col gap-4">
-                  <div className="flex gap-3">
-                    <input
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="Email address"
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary outline-none text-sm"
-                      disabled={isInviting}
-                    />
-                    <Button 
-                      type="submit" 
-                      variant="glow"
-                      className="rounded-xl px-6"
-                      disabled={isInviting || !inviteEmail}
-                    >
-                      {isInviting ? "Sending..." : "Invite"}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground pl-1">
-                    Caregivers will be invited as <strong>Secondary</strong> caregivers by default.
-                  </p>
-                </form>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
+        {/* Caregivers Tab */}
+        {activeTab === 'caregivers' && (
+          <div className="space-y-6">
+            {/* Current Caregivers Section */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Current Caregivers
+              </h3>
+              
               {isLoading ? (
-                 <div className="py-8 text-center text-muted-foreground">Loading...</div>
-               ) : invitations.length > 0 ? (
-                 <div className="space-y-2">
-                   {invitations.map((invite) => {
-                     const isExpired = isPast(new Date(invite.expiresAt));
-                     return (
-                       <div key={invite.id} className="p-3 rounded-xl bg-muted/50 border border-border/50">
-                         <div className="flex items-center justify-between mb-2">
-                           <p className="font-medium text-foreground">{invite.inviteeEmail}</p>
-                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                             invite.status === 'pending' && !isExpired ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                             invite.status === 'accepted' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                             invite.status === 'revoked' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
-                             'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                           }`}>
-                             {isExpired && invite.status === 'pending' ? 'EXPIRED' : invite.status.toUpperCase()}
-                           </span>
-                         </div>
-                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
-                           <span>Sent: {format(new Date(invite.createdAt), 'MMM d, yyyy')}</span>
-                           <span>•</span>
-                           <span className={isExpired ? 'text-red-500' : ''}>
-                             Expires: {format(new Date(invite.expiresAt), 'MMM d, yyyy')}
-                           </span>
-                         </div>
-                         {invite.status === 'pending' && !isExpired && (
-                           <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/30">
-                             <div className="flex-1 px-2 py-1.5 bg-muted rounded-lg text-xs font-mono text-muted-foreground truncate">
-                               {invite.tokenHint}
-                             </div>
-                             <Button 
-                               variant="ghost" 
-                               size="sm"
-                               className="text-xs shrink-0"
-                               onClick={() => handleCopyInviteCode(invite)}
-                             >
-                               {copiedId === invite.id ? (
-                                 <>
-                                   <Icons.Check className="w-3 h-3 mr-1" />
-                                   Copied
-                                 </>
-                               ) : (
-                                 <>
-                                   <Icons.Copy className="w-3 h-3 mr-1" />
-                                   Copy Link
-                                 </>
-                               )}
-                             </Button>
-                             <Button 
-                               variant="ghost" 
-                               size="sm"
-                               className="text-red-500 hover:text-red-600 text-xs shrink-0"
-                               onClick={() => handleRevokeInvitation(invite.id)}
-                             >
-                               Revoke
-                             </Button>
-                           </div>
-                         )}
-                       </div>
-                     );
-                   })}
-                 </div>
-               ) : (
-                 <div className="py-12 flex flex-col items-center justify-center text-muted-foreground">
-                   <Icons.Mail className="w-12 h-12 mb-3 opacity-20" />
-                   <p>No invitations sent yet</p>
-                 </div>
-               )}
+                <div className="py-8 text-center text-muted-foreground">
+                  <Icons.Spinner className="w-6 h-6 animate-spin mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Loading caregivers...</p>
+                </div>
+              ) : caregivers.length > 0 ? (
+                <div className="space-y-2">
+                  {caregivers.map((caregiver) => (
+                    <GlassCard
+                      key={caregiver.caregiverId}
+                      size="sm"
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Avatar */}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold backdrop-blur-sm">
+                          {caregiver.name.charAt(0).toUpperCase()}
+                        </div>
+                        {/* Info */}
+                        <div>
+                          <p className="font-medium text-foreground">{caregiver.name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-muted-foreground">{caregiver.email}</span>
+                            <span className={getRoleBadgeClasses(caregiver.role)}>
+                              {caregiver.role}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Remove Button (not for primary or self) */}
+                      {caregiver.role !== 'primary' && user?.id !== caregiver.caregiverId && (
+                        <GlassButton
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          onClick={() => handleRemoveCaregiver(caregiver.caregiverId)}
+                        >
+                          Remove
+                        </GlassButton>
+                      )}
+                    </GlassCard>
+                  ))}
+                </div>
+              ) : (
+                <GlassCard size="sm" className="py-8 text-center">
+                  <Icons.Users className="w-10 h-10 mx-auto mb-2 opacity-20" />
+                  <p className="text-muted-foreground text-sm">No caregivers found</p>
+                </GlassCard>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+
+            {/* Invite Section */}
+            <div className="pt-4 border-t border-white/10">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+                Invite New Caregiver
+              </h3>
+              <form onSubmit={handleInvite} className="space-y-4">
+                <div className="flex gap-3">
+                  <GlassInput
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="Email address"
+                    disabled={isInviting}
+                    className="flex-1"
+                  />
+                  <GlassButton
+                    type="submit"
+                    variant="primary"
+                    disabled={isInviting || !inviteEmail}
+                  >
+                    {isInviting ? (
+                      <>
+                        <Icons.Spinner className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Invite"
+                    )}
+                  </GlassButton>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Caregivers will be invited as <strong className="text-foreground/80">Secondary</strong> caregivers by default.
+                </p>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Invitations Tab */}
+        {activeTab === 'invitations' && (
+          <div className="space-y-3">
+            {isLoading ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <Icons.Spinner className="w-6 h-6 animate-spin mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Loading invitations...</p>
+              </div>
+            ) : invitations.length > 0 ? (
+              <div className="space-y-2">
+                {invitations.map((invite) => {
+                  const isExpired = isPast(new Date(invite.expiresAt));
+                  return (
+                    <GlassCard key={invite.id} size="sm">
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-medium text-foreground">{invite.inviteeEmail}</p>
+                        <span className={getStatusBadgeClasses(invite.status, isExpired)}>
+                          {isExpired && invite.status === 'pending' ? 'EXPIRED' : invite.status.toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      {/* Date Info */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mb-2">
+                        <span>Sent: {format(new Date(invite.createdAt), 'MMM d, yyyy')}</span>
+                        <span className="opacity-50">•</span>
+                        <span className={isExpired ? 'text-red-400' : ''}>
+                          Expires: {format(new Date(invite.expiresAt), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                      
+                      {/* Actions for pending invitations */}
+                      {invite.status === 'pending' && !isExpired && (
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/10">
+                          {/* Token Display */}
+                          <div className="flex-1 px-3 py-2 bg-white/5 rounded-lg text-xs font-mono text-muted-foreground truncate border border-white/10">
+                            {invite.tokenHint}
+                          </div>
+                          
+                          {/* Copy Button */}
+                          <GlassButton
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyInviteCode(invite)}
+                          >
+                            {copiedId === invite.id ? (
+                              <>
+                                <Icons.Check className="w-3.5 h-3.5 mr-1.5 text-green-400" />
+                                Copied
+                              </>
+                            ) : (
+                              <>
+                                <Icons.Copy className="w-3.5 h-3.5 mr-1.5" />
+                                Copy
+                              </>
+                            )}
+                          </GlassButton>
+                          
+                          {/* Revoke Button */}
+                          <GlassButton
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            onClick={() => handleRevokeInvitation(invite.id)}
+                          >
+                            Revoke
+                          </GlassButton>
+                        </div>
+                      )}
+                    </GlassCard>
+                  );
+                })}
+              </div>
+            ) : (
+              <GlassCard size="sm" className="py-12 text-center">
+                <Icons.Mail className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                <p className="text-muted-foreground">No invitations sent yet</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Switch to the Caregivers tab to invite someone
+                </p>
+              </GlassCard>
+            )}
+          </div>
+        )}
+      </div>
+    </GlassModal>
   );
 }
+
+export default ManageCaregiversModal;

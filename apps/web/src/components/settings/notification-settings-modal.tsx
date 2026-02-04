@@ -1,12 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassButton } from "@/components/ui/glass-button";
+import { GlassInput } from "@/components/ui/glass-input";
+import {
+  GlassSelect,
+  GlassSelectContent,
+  GlassSelectItem,
+  GlassSelectTrigger,
+  GlassSelectValue,
+} from "@/components/ui/glass-select";
 import { Icons } from "@/components/icons";
 import { Switch } from "@/components/ui/switch";
+
+/**
+ * NotificationSettingsModal Component
+ *
+ * A modal for managing notification preferences with glassmorphism styling.
+ * Uses GlassModal wrapper, Switch components for toggles, and GlassButton for actions.
+ *
+ * @requirements 18.5
+ */
 
 interface NotificationSettings {
   pushEnabled: boolean;
@@ -19,6 +34,9 @@ interface NotificationSettings {
 }
 
 interface NotificationSettingsModalProps {
+  /** Whether the modal is open */
+  isOpen: boolean;
+  /** Callback when the modal should close */
   onClose: () => void;
 }
 
@@ -30,7 +48,7 @@ const NOTIFICATION_SOUNDS = [
   { id: 'none', name: 'Silent' },
 ];
 
-export function NotificationSettingsModal({ onClose }: NotificationSettingsModalProps) {
+export function NotificationSettingsModal({ isOpen, onClose }: NotificationSettingsModalProps) {
   const [settings, setSettings] = useState<NotificationSettings>(() => {
     // Load from localStorage or use defaults
     if (typeof window !== 'undefined') {
@@ -51,6 +69,13 @@ export function NotificationSettingsModal({ onClose }: NotificationSettingsModal
   });
   const [isSaving, setIsSaving] = useState(false);
 
+  // Reset form state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsSaving(false);
+    }
+  }, [isOpen]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -70,161 +95,154 @@ export function NotificationSettingsModal({ onClose }: NotificationSettingsModal
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Notifications"
+      size="default"
     >
-      <Card variant="default" className="w-full max-w-md animate-scale-in shadow-2xl max-h-[90vh] overflow-y-auto">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600">
-                <Icons.Reminders className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Notifications</CardTitle>
-                <CardDescription>Manage your notification preferences</CardDescription>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl"
+      <div className="space-y-6">
+        {/* Header Icon */}
+        <div className="flex items-center gap-3 pb-2">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <Icons.Reminders className="w-5 h-5" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Manage your notification preferences
+          </p>
+        </div>
+
+        {/* Push Notifications */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-foreground">Push Notifications</p>
+            <p className="text-sm text-muted-foreground">Receive push notifications on your device</p>
+          </div>
+          <Switch
+            checked={settings.pushEnabled}
+            onCheckedChange={(checked) => updateSetting('pushEnabled', checked)}
+          />
+        </div>
+
+        {/* Email Notifications */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-foreground">Email Notifications</p>
+            <p className="text-sm text-muted-foreground">Receive notifications via email</p>
+          </div>
+          <Switch
+            checked={settings.emailEnabled}
+            onCheckedChange={(checked) => updateSetting('emailEnabled', checked)}
+          />
+        </div>
+
+        {/* Sound */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-foreground">Notification Sound</p>
+            <p className="text-sm text-muted-foreground">Play sound for notifications</p>
+          </div>
+          <Switch
+            checked={settings.soundEnabled}
+            onCheckedChange={(checked) => updateSetting('soundEnabled', checked)}
+          />
+        </div>
+
+        {/* Sound Selection */}
+        {settings.soundEnabled && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-foreground">
+              Sound Type
+            </label>
+            <GlassSelect
+              value={settings.notificationSound}
+              onValueChange={(value) => updateSetting('notificationSound', value)}
             >
-              <Icons.Close className="w-4 h-4" />
-            </Button>
+              <GlassSelectTrigger>
+                <GlassSelectValue placeholder="Select sound" />
+              </GlassSelectTrigger>
+              <GlassSelectContent>
+                {NOTIFICATION_SOUNDS.map(sound => (
+                  <GlassSelectItem key={sound.id} value={sound.id}>
+                    {sound.name}
+                  </GlassSelectItem>
+                ))}
+              </GlassSelectContent>
+            </GlassSelect>
           </div>
-        </CardHeader>
+        )}
 
-        <CardContent className="pt-0 space-y-6">
-          {/* Push Notifications */}
-          <div className="flex items-center justify-between">
+        {/* Quiet Hours */}
+        <div className="border-t border-white/10 pt-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="font-medium text-foreground">Push Notifications</p>
-              <p className="text-sm text-muted-foreground">Receive push notifications on your device</p>
+              <p className="font-medium text-foreground">Quiet Hours</p>
+              <p className="text-sm text-muted-foreground">Mute notifications during specific hours</p>
             </div>
             <Switch
-              checked={settings.pushEnabled}
-              onCheckedChange={(checked) => updateSetting('pushEnabled', checked)}
+              checked={settings.quietHoursEnabled}
+              onCheckedChange={(checked) => updateSetting('quietHoursEnabled', checked)}
             />
           </div>
 
-          {/* Email Notifications */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Email Notifications</p>
-              <p className="text-sm text-muted-foreground">Receive notifications via email</p>
-            </div>
-            <Switch
-              checked={settings.emailEnabled}
-              onCheckedChange={(checked) => updateSetting('emailEnabled', checked)}
-            />
-          </div>
-
-          {/* Sound */}
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-foreground">Notification Sound</p>
-              <p className="text-sm text-muted-foreground">Play sound for notifications</p>
-            </div>
-            <Switch
-              checked={settings.soundEnabled}
-              onCheckedChange={(checked) => updateSetting('soundEnabled', checked)}
-            />
-          </div>
-
-          {/* Sound Selection */}
-          {settings.soundEnabled && (
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Sound Type
-              </label>
-              <Select
-                value={settings.notificationSound}
-                onValueChange={(value) => updateSetting('notificationSound', value)}
-              >
-                <SelectTrigger className="w-full rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary">
-                  <SelectValue placeholder="Select sound" />
-                </SelectTrigger>
-                <SelectContent>
-                  {NOTIFICATION_SOUNDS.map(sound => (
-                    <SelectItem key={sound.id} value={sound.id}>{sound.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {settings.quietHoursEnabled && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-muted-foreground">
+                  Start Time
+                </label>
+                <GlassInput
+                  type="time"
+                  value={settings.quietHoursStart}
+                  onChange={(e) => updateSetting('quietHoursStart', e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-muted-foreground">
+                  End Time
+                </label>
+                <GlassInput
+                  type="time"
+                  value={settings.quietHoursEnd}
+                  onChange={(e) => updateSetting('quietHoursEnd', e.target.value)}
+                />
+              </div>
             </div>
           )}
+        </div>
 
-          {/* Quiet Hours */}
-          <div className="border-t border-border/50 pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-medium text-foreground">Quiet Hours</p>
-                <p className="text-sm text-muted-foreground">Mute notifications during specific hours</p>
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
+          <GlassButton 
+            type="button" 
+            variant="default" 
+            onClick={onClose} 
+            className="flex-1" 
+            disabled={isSaving}
+          >
+            Cancel
+          </GlassButton>
+          <GlassButton 
+            type="button"
+            variant="primary"
+            onClick={handleSave}
+            className="flex-1" 
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                <span>Saving...</span>
               </div>
-              <Switch
-                checked={settings.quietHoursEnabled}
-                onCheckedChange={(checked) => updateSetting('quietHoursEnabled', checked)}
-              />
-            </div>
-
-            {settings.quietHoursEnabled && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Start Time
-                  </label>
-                  <Input
-                    type="time"
-                    value={settings.quietHoursStart}
-                    onChange={(e) => updateSetting('quietHoursStart', e.target.value)}
-                    className="rounded-xl bg-muted border-0 focus-visible:ring-2 focus-visible:ring-primary transition-shadow"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    End Time
-                  </label>
-                  <Input
-                    type="time"
-                    value={settings.quietHoursEnd}
-                    onChange={(e) => updateSetting('quietHoursEnd', e.target.value)}
-                    className="rounded-xl bg-muted border-0 focus-visible:ring-2 focus-visible:ring-primary transition-shadow"
-                  />
-                </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Icons.Check className="w-4 h-4" />
+                <span>Save Settings</span>
               </div>
             )}
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose} 
-              className="flex-1 rounded-xl" 
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave}
-              variant="glow"
-              className="flex-1 rounded-xl" 
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Saving...
-                </div>
-              ) : (
-                "Save Settings"
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </GlassButton>
+        </div>
+      </div>
+    </GlassModal>
   );
 }

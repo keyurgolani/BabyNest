@@ -44,6 +44,10 @@
   --color-play: var(--color-play);
   --color-outdoor: var(--color-outdoor);
   --color-tummy: var(--color-tummy);
+  --color-nursing: var(--color-nursing);
+  --color-activity: var(--color-activity);
+  --color-growth: var(--color-growth);
+  --color-health: var(--color-health);
   /* Status colors */
   --color-sleep-dark: var(--color-sleep-dark);
   --color-sleep-accent: var(--color-sleep-accent);
@@ -66,49 +70,75 @@
 }
 
 :root {
-  /* Warm & Cozy Light Mode - BabyNest Theme (matching mocks exactly) */
-  /* Creamy white background from mocks */
-  --background: #FFFBF5;
-  --foreground: #4A403A;
+  /* Glassmorphism Design System Variables */
+  /* Glassmorphism Backgrounds */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-bg-hover: rgba(255, 255, 255, 0.15);
+  --glass-bg-active: rgba(255, 255, 255, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
-  /* Pure white cards */
+  /* Mesh Gradient Background */
+  --mesh-gradient: linear-gradient(
+    135deg,
+    #e0f7fa 0%,
+    #fce4ec 50%,
+    #fff9c4 100%
+  );
+
+  /* Activity Type Colors (Glassmorphism Design System) */
+  --color-feed: #f97316;
+  --color-sleep: #6366f1;
+  --color-diaper: #22c55e;
+  --color-nursing: #ec4899;
+  --color-activity: #06b6d4;
+  --color-growth: #10b981;
+  --color-health: #f43f5e;
+  --color-memory: #f59e0b;
+
+  /* Warm & Cozy Light Mode - BabyNest Theme (High Contrast) */
+  /* Creamy white background - slightly more contrast */
+  --background: #FDF8F3;
+  --foreground: #2D2520;
+
+  /* Pure white cards with better separation */
   --card: #FFFFFF;
-  --card-foreground: #4A403A;
+  --card-foreground: #2D2520;
 
   --popover: #FFFFFF;
-  --popover-foreground: #4A403A;
+  --popover-foreground: #2D2520;
 
-  /* Warm Orange/Peach Primary - from mocks */
-  --primary: #F4A261;
+  /* Warm Orange/Peach Primary - slightly deeper for better contrast */
+  --primary: #E8923D;
   --primary-foreground: #FFFFFF;
 
-  /* Soft Yellow Secondary - from mocks */
-  --secondary: #E9C46A;
-  --secondary-foreground: #4A403A;
+  /* Soft Yellow Secondary - deeper for readability */
+  --secondary: #D4A84A;
+  --secondary-foreground: #2D2520;
 
-  /* Light beige muted tones */
-  --muted: #F3EFEA;
-  --muted-foreground: #8D8179;
+  /* Light beige muted tones - improved contrast */
+  --muted: #F0EBE5;
+  --muted-foreground: #5C524A;
 
-  /* Very light peach accent */
+  /* Very light peach accent - deeper accent foreground */
   --accent: #FFF5EB;
-  --accent-foreground: #F4A261;
+  --accent-foreground: #C97B2E;
 
-  /* Warm coral for destructive */
-  --destructive: #E76F51;
+  /* Warm coral for destructive - deeper for better contrast */
+  --destructive: #D45A3A;
   --destructive-foreground: #FFFFFF;
 
-  /* Warm light borders */
-  --border: #E8E2DC;
-  --input: #E8E2DC;
-  --ring: rgba(244, 162, 97, 0.3);
+  /* Warm light borders - slightly more visible */
+  --border: #DDD6CE;
+  --input: #DDD6CE;
+  --ring: rgba(232, 146, 61, 0.4);
 
-  /* Chart colors matching the warm theme */
-  --chart-1: #F4A261;
-  --chart-2: #E9C46A;
-  --chart-3: #A8DADC;
-  --chart-4: #A7C957;
-  --chart-5: #F28482;
+  /* Chart colors matching the warm theme - High Contrast */
+  --chart-1: #D97706;
+  --chart-2: #B8860B;
+  --chart-3: #4F8B8D;
+  --chart-4: #5D8A2F;
+  --chart-5: #C75B5B;
 
   /* Unified radius - using 1.25rem (20px) for even rounder, more playful look */
   --radius: 1.25rem;
@@ -123,24 +153,29 @@
   --glow-secondary: 0 0 25px rgba(233, 196, 106, 0.35);
   --glow-accent: 0 0 20px rgba(168, 218, 220, 0.3);
 
-  --sidebar: #FFF8F2;
-  --sidebar-foreground: #4A403A;
-  --sidebar-primary: #F4A261;
+  --sidebar: #FFF5ED;
+  --sidebar-foreground: #2D2520;
+  --sidebar-primary: #E8923D;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #FFF5EB;
-  --sidebar-accent-foreground: #4A403A;
-  --sidebar-border: #E8E2DC;
-  --sidebar-ring: rgba(244, 162, 97, 0.3);
+  --sidebar-accent: #FFEDE0;
+  --sidebar-accent-foreground: #2D2520;
+  --sidebar-border: #DDD6CE;
+  --sidebar-ring: rgba(232, 146, 61, 0.4);
 
-  /* Activity type colors (matching mocks exactly) */
-  --color-feed: #F4A261;
-  --color-sleep: #A8DADC;
-  --color-diaper: #A7C957;
-  --color-medicine: #D4C5E2;
-  --color-bath: #A8DADC;
-  --color-play: #E9C46A;
-  --color-outdoor: #A7C957;
-  --color-tummy: #F28482;
+  /* Activity type colors - High Contrast Light Mode */
+  /* Deepened for WCAG AA compliance against light backgrounds */
+  --color-feed: #D97706;
+  --color-sleep: #4F8B8D;
+  --color-diaper: #5D8A2F;
+  --color-medicine: #8B6CAF;
+  --color-bath: #4F8B8D;
+  --color-play: #B8860B;
+  --color-outdoor: #5D8A2F;
+  --color-tummy: #C75B5B;
+  --color-nursing: #C2185B;
+  --color-activity: #0891B2;
+  --color-growth: #059669;
+  --color-health: #DC2626;
 
   /* Status-specific colors for StatusCard and similar components */
   --color-sleep-dark: #5A7B9A;
@@ -164,74 +199,101 @@
 }
 
 .dark {
-  /* Warm Dark Mode - BabyNest Theme */
-  --background: #1A1512;
-  --foreground: #F3EFEA;
+  /* Glassmorphism Design System Variables (Dark Mode) */
+  --glass-bg: rgba(0, 0, 0, 0.4);
+  --glass-bg-hover: rgba(0, 0, 0, 0.45);
+  --glass-bg-active: rgba(0, 0, 0, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  --card: rgba(42, 35, 30, 0.9);
-  --card-foreground: #F3EFEA;
+  /* Dark mode mesh gradient - warm dark tones for better contrast */
+  --mesh-gradient: linear-gradient(
+    135deg,
+    #1a1512 0%,
+    #1e1815 25%,
+    #221a16 50%,
+    #1a1614 75%,
+    #161412 100%
+  );
 
-  --popover: #2A231E;
-  --popover-foreground: #F3EFEA;
+  /* Warm Dark Mode - BabyNest Theme (High Contrast) */
+  --background: #141110;
+  --foreground: #F8F5F2;
 
-  /* Warmer orange in dark mode */
-  --primary: #F4A261;
-  --primary-foreground: #1A1512;
+  --card: rgba(38, 32, 28, 0.95);
+  --card-foreground: #F8F5F2;
 
-  /* Muted yellow */
-  --secondary: #D4B85A;
-  --secondary-foreground: #F3EFEA;
+  --popover: #262018;
+  --popover-foreground: #F8F5F2;
 
-  --muted: #3D3229;
-  --muted-foreground: #A89F96;
+  /* Warmer orange in dark mode - brighter for visibility */
+  --primary: #F5A862;
+  --primary-foreground: #141110;
 
-  --accent: #4A3D30;
-  --accent-foreground: #F4A261;
+  /* Muted yellow - brighter for better contrast with dark background */
+  --secondary: #C9A84A;
+  --secondary-foreground: #141110;
 
-  --destructive: #CF6679;
-  --destructive-foreground: #F3EFEA;
+  --muted: #2E2620;
+  /* WCAG AA compliant: #E8E4E0 provides excellent contrast ratio against dark backgrounds */
+  --muted-foreground: #E8E4E0;
 
-  --border: #4A403A;
-  --input: #4A403A;
-  --ring: rgba(244, 162, 97, 0.4);
+  --accent: #3A3028;
+  --accent-foreground: #F5A862;
 
-  --chart-1: #F4A261;
-  --chart-2: #D4B85A;
-  --chart-3: #7BBFC4;
-  --chart-4: #8BAF6E;
-  --chart-5: #D4736E;
+  /* Destructive - brighter for better visibility in dark mode */
+  --destructive: #E85A5A;
+  --destructive-foreground: #F8F5F2;
 
-  --sidebar: #2A231E;
-  --sidebar-foreground: #F3EFEA;
-  --sidebar-primary: #F4A261;
-  --sidebar-primary-foreground: #1A1512;
-  --sidebar-accent: #3D3229;
-  --sidebar-accent-foreground: #F3EFEA;
-  --sidebar-border: #4A403A;
-  --sidebar-ring: rgba(244, 162, 97, 0.4);
+  --border: #3D352E;
+  --input: #3D352E;
+  --ring: rgba(245, 168, 98, 0.5);
 
-  /* Activity type colors (dark mode) */
-  --color-feed: #F4A261;
-  --color-sleep: #7BBFC4;
-  --color-diaper: #8BAF6E;
-  --color-medicine: #B8A5CC;
-  --color-bath: #7BBFC4;
-  --color-play: #D4B85A;
-  --color-outdoor: #8BAF6E;
-  --color-tummy: #D4736E;
+  --chart-1: #FBBF24;
+  --chart-2: #FCD34D;
+  --chart-3: #67E8F9;
+  --chart-4: #A3E635;
+  --chart-5: #FDA4AF;
 
-  /* Status-specific colors for StatusCard (dark mode) */
-  --color-sleep-dark: #5A7B9A;
-  --color-sleep-dark-mid: #4A6B8A;
-  --color-sleep-dark-deep: #3A5B7A;
-  --color-sleep-accent: #7EB8DA;
-  --color-sleep-light: #C4E0ED;
-  --color-awake-light: #FFF5EB;
-  --color-awake-mid: #FFE8D6;
-  --color-awake-warm: #F4D4C4;
-  --color-awake-text: #3D3229;
-  --color-awake-muted: #8B7E74;
-  --color-awake-indicator: #A8D5BA;
+  --sidebar: #1E1A16;
+  --sidebar-foreground: #F8F5F2;
+  --sidebar-primary: #F5A862;
+  --sidebar-primary-foreground: #141110;
+  --sidebar-accent: #2E2620;
+  --sidebar-accent-foreground: #F8F5F2;
+  --sidebar-border: #3D352E;
+  --sidebar-ring: rgba(245, 168, 98, 0.5);
+  
+  /* High contrast muted text for dark mode - use for secondary/description text */
+  --muted-foreground-high: #F0EBE8;
+
+  /* Activity type colors (dark mode) - High Contrast */
+  /* Brightened and saturated for visibility against dark backgrounds */
+  --color-feed: #FBBF24;
+  --color-sleep: #67E8F9;
+  --color-diaper: #A3E635;
+  --color-medicine: #D8B4FE;
+  --color-bath: #67E8F9;
+  --color-play: #FCD34D;
+  --color-outdoor: #A3E635;
+  --color-tummy: #FDA4AF;
+  --color-nursing: #F472B6;
+  --color-activity: #22D3EE;
+  --color-growth: #34D399;
+  --color-health: #F87171;
+
+  /* Status-specific colors for StatusCard (dark mode) - improved contrast */
+  --color-sleep-dark: #6A8BAA;
+  --color-sleep-dark-mid: #5A7B9A;
+  --color-sleep-dark-deep: #4A6B8A;
+  --color-sleep-accent: #90C8E8;
+  --color-sleep-light: #D4F0FF;
+  --color-awake-light: #FFF8F2;
+  --color-awake-mid: #FFEDE0;
+  --color-awake-warm: #FFD8C4;
+  --color-awake-text: #F8F5F2;
+  --color-awake-muted: #C8C0B8;
+  --color-awake-indicator: #B8E5CA;
 
   /* Chart colors (dark mode) */
   --color-chart-feed: #E07A5F;
@@ -239,6 +301,21 @@
   --color-chart-sleep: #7BBFC4;
   --color-chart-sleep-bg: #263540;
   --color-chart-diaper-bg: #263D2E;
+}
+
+/* Dark mode mesh gradient override - placed outside @layer for higher specificity */
+/* This ensures the dark gradient is applied when .dark class is present on html */
+.dark .bg-mesh,
+:is(.dark) .bg-mesh,
+html.dark .bg-mesh {
+  background: linear-gradient(
+    135deg,
+    #1a1512 0%,
+    #1e1815 25%,
+    #221a16 50%,
+    #1a1614 75%,
+    #161412 100%
+  ) !important;
 }
 
 @layer base {
@@ -290,11 +367,46 @@
   }
 }
 
-/* Animation Utilities */
+/* ============================================
+   ANIMATION PERFORMANCE UTILITIES
+   (Requirements 21.3 - 60fps Animation Performance)
+   
+   All animations use GPU-accelerated properties:
+   - transform (translate, scale, rotate)
+   - opacity
+   
+   Avoid animating layout-triggering properties:
+   - width, height, top, left, margin, padding
+   - background-color, border-color (trigger paint)
+   ============================================ */
+
 @layer utilities {
+  /* GPU acceleration hints for frequently animated elements */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Will-change hints for elements that will animate */
+  .will-animate {
+    will-change: transform, opacity;
+  }
+
+  .will-animate-transform {
+    will-change: transform;
+  }
+
+  .will-animate-opacity {
+    will-change: opacity;
+  }
+
+  /* Shimmer animation - GPU accelerated */
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
     background-size: 200% 100%;
+    will-change: background-position;
+    transform: translateZ(0);
   }
 
   /* Gradient text utility */
@@ -302,13 +414,55 @@
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
 
-  /* Glass morphism effect */
+  /* Glassmorphism base - Design System (Requirements 1.1, 1.2) */
   .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-[var(--glass-bg)] backdrop-blur-xl border border-[var(--glass-border)] shadow-xl;
   }
 
-  .dark .glass {
-    @apply bg-black/10 border-white/10;
+  /* Sidebar-specific glass styling without backdrop-blur to prevent rendering artifacts */
+  .glass-sidebar {
+    @apply bg-sidebar/95 border border-[var(--glass-border)] shadow-xl;
+  }
+
+  /* Glassmorphism hover state - Design System (Requirements 1.1, 1.2) */
+  .glass-hover {
+    @apply hover:bg-[var(--glass-bg-hover)] transition-colors duration-200;
+  }
+
+  /* Mesh gradient background - Design System (Requirements 1.2) */
+  .bg-mesh {
+    background: var(--mesh-gradient);
+  }
+
+  /* Safe area utilities - Design System (Requirements 20.5) */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Touch target minimum - Design System (Requirements 20.2) */
+  .touch-target {
+    @apply min-h-[48px] min-w-[48px];
+  }
+
+  /* Glow effects - Design System */
+  .glow-primary {
+    box-shadow: 0 0 20px var(--primary);
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 10px currentColor;
   }
 
   /* Consistent focus ring styles */
@@ -344,7 +498,8 @@
   }
 }
 
-/* Unified animation keyframes */
+/* Unified animation keyframes - GPU accelerated */
+/* All keyframes use transform and opacity for 60fps performance */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -363,79 +518,89 @@
   }
 }
 
+/* GPU-accelerated slide-up using transform: translate3d */
 @keyframes slide-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translate3d(0, 10px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
+/* GPU-accelerated scale-in using transform: scale3d */
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale3d(0.95, 0.95, 1);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale3d(1, 1, 1);
   }
 }
 
+/* GPU-accelerated aurora pulse - uses transform and opacity only */
 @keyframes aurora-pulse {
   0%,
   100% {
     opacity: 0.5;
-    transform: scale(1);
+    transform: scale3d(1, 1, 1);
   }
   50% {
     opacity: 0.8;
-    transform: scale(1.05);
+    transform: scale3d(1.05, 1.05, 1);
   }
 }
 
+/* GPU-accelerated bounce using transform: translate3d */
 @keyframes bounce-subtle {
   0%, 100% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translate3d(0, -4px, 0);
   }
 }
 
+/* GPU-accelerated pulse using transform: scale3d and opacity */
 @keyframes pulse-subtle {
   0%, 100% {
     opacity: 1;
-    transform: scale(1);
+    transform: scale3d(1, 1, 1);
   }
   50% {
     opacity: 0.95;
-    transform: scale(1.01);
+    transform: scale3d(1.01, 1.01, 1);
   }
 }
 
-/* Animation utility classes */
+/* Animation utility classes - GPU accelerated for 60fps */
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
+  will-change: opacity;
 }
 
 .animate-slide-up {
   animation: slide-up 0.4s ease-out forwards;
+  will-change: transform, opacity;
 }
 
 .animate-scale-in {
   animation: scale-in 0.2s ease-out forwards;
+  will-change: transform, opacity;
 }
 
 .animate-bounce-subtle {
   animation: bounce-subtle 2s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-pulse-subtle {
   animation: pulse-subtle 3s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 /* ============================================
@@ -443,6 +608,7 @@
    ============================================ */
 
 /* Base Card Styles - Enhanced warm shadows and glow */
+/* GPU-accelerated hover effects for 60fps performance */
 .card,
 [data-slot='card'] {
   border-radius: var(--radius, 1.25rem);
@@ -451,7 +617,10 @@
     0 8px 32px -4px rgba(74, 64, 58, 0.12),
     0 0 0 1px rgba(244, 162, 97, 0.08),
     0 0 20px rgba(244, 162, 97, 0.08);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+  transform: translate3d(0, 0, 0);
 }
 
 .card:hover,
@@ -461,18 +630,18 @@
     0 16px 48px -4px rgba(74, 64, 58, 0.18),
     0 0 0 1px rgba(244, 162, 97, 0.15),
     0 0 40px rgba(244, 162, 97, 0.15);
-  transform: translateY(-3px);
+  transform: translate3d(0, -3px, 0);
 }
 
-/* Enhanced glow effect for primary elements */
-.glow-primary {
+/* Enhanced glow effect for primary elements - extended version */
+.glow-primary-extended {
   box-shadow:
     0 0 30px rgba(244, 162, 97, 0.3),
     0 0 60px rgba(244, 162, 97, 0.15),
     0 8px 24px rgba(244, 162, 97, 0.2);
 }
 
-.glow-primary:hover {
+.glow-primary-extended:hover {
   box-shadow:
     0 0 45px rgba(244, 162, 97, 0.45),
     0 0 90px rgba(244, 162, 97, 0.25),
@@ -487,14 +656,17 @@
     0 0 40px rgba(233, 196, 106, 0.15);
 }
 
-/* Glow effect for buttons */
+/* Glow effect for buttons - GPU accelerated */
 button[data-variant="glow"],
 .btn-glow {
   box-shadow:
     0 0 0 1px rgba(244, 162, 97, 0.2),
     0 2px 8px rgba(244, 162, 97, 0.2),
     0 4px 16px rgba(244, 162, 97, 0.1);
-  transition: all 0.3s ease;
+  transition: box-shadow 0.3s ease,
+              transform 0.3s ease;
+  will-change: transform, box-shadow;
+  transform: translate3d(0, 0, 0);
 }
 
 button[data-variant="glow"]:hover,
@@ -503,7 +675,7 @@ button[data-variant="glow"]:hover,
     0 0 0 1px rgba(244, 162, 97, 0.4),
     0 4px 16px rgba(244, 162, 97, 0.3),
     0 8px 32px rgba(244, 162, 97, 0.15);
-  transform: translateY(-1px);
+  transform: translate3d(0, -1px, 0);
 }
 
 /* Aurora gradient backgrounds */
@@ -609,12 +781,16 @@ input:focus, textarea:focus, select:focus {
     1px 0 0 rgba(74, 64, 58, 0.5);
 }
 
-/* Elevated card with stronger shadow */
+/* Elevated card with stronger shadow - GPU accelerated */
 .card-elevated {
   box-shadow:
     0 4px 16px -4px rgba(244, 162, 97, 0.1),
     0 8px 32px -8px rgba(74, 64, 58, 0.12),
     0 0 0 1px rgba(244, 162, 97, 0.05);
+  transition: box-shadow 0.3s ease,
+              transform 0.3s ease;
+  will-change: transform, box-shadow;
+  transform: translate3d(0, 0, 0);
 }
 
 .card-elevated:hover {
@@ -622,7 +798,7 @@ input:focus, textarea:focus, select:focus {
     0 8px 24px -4px rgba(244, 162, 97, 0.15),
     0 16px 48px -8px rgba(74, 64, 58, 0.15),
     0 0 0 1px rgba(244, 162, 97, 0.1);
-  transform: translateY(-4px);
+  transform: translate3d(0, -4px, 0);
 }
 
 /* Floating action button glow */
@@ -723,15 +899,6 @@ input:focus, textarea:focus, select:focus {
 }
 
 
-/* Safe area padding for mobile devices with notches */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.pt-safe {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
 /* Improved touch targets for mobile */
 @media (hover: none) and (pointer: coarse) {
   button, a, [role="button"] {
@@ -745,9 +912,9 @@ input:focus, textarea:focus, select:focus {
   animation: fade-in 0.2s ease-out;
 }
 
-/* Haptic feedback simulation - visual pulse on tap */
+/* Haptic feedback simulation - visual pulse on tap - GPU accelerated */
 .tap-feedback:active {
-  transform: scale(0.97);
+  transform: scale3d(0.97, 0.97, 1);
   transition: transform 0.1s ease-out;
 }
 
@@ -789,13 +956,1027 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* Reduced motion support */
+/* ============================================
+   REDUCED MOTION SUPPORT (Requirements 20.6)
+   Accessibility: Respects prefers-reduced-motion
+   for users with vestibular disorders
+   ============================================ */
+
+/* Reduced motion support - comprehensive implementation */
 @media (prefers-reduced-motion: reduce) {
+  /* Disable all animations and transitions globally */
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    /* Reset will-change to prevent unnecessary GPU layer creation */
+    will-change: auto !important;
+  }
+
+  /* Disable transform-based animations */
+  .card:hover,
+  [data-slot='card']:hover,
+  .card-elevated:hover,
+  button[data-variant="glow"]:hover,
+  .btn-glow:hover,
+  .tap-feedback:active {
+    transform: none !important;
+  }
+
+  /* Disable aurora and rotating animations */
+  .aurora::before,
+  .aurora-animated::before {
+    animation: none !important;
+  }
+
+  /* Disable glow pulse animations */
+  .status-glow-active,
+  .status-glow-warning,
+  .status-glow-error {
+    animation: none !important;
+  }
+
+  /* Disable bounce and pulse animations */
+  .animate-bounce-subtle,
+  .animate-pulse-subtle {
+    animation: none !important;
+  }
+
+  /* Disable shimmer animations */
+  .animate-shimmer,
+  .skeleton {
+    animation: none !important;
+    background-position: 0 0 !important;
+  }
+
+  /* Keep hover states visible but instant (no animation) */
+  .glass-hover:hover {
+    transition: none !important;
+  }
+
+  /* Disable page transition animations */
+  .page-transition,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Ensure focus rings are still visible (instant, no animation) */
+  *:focus-visible {
+    transition: none !important;
+  }
+
+  /* Disable backdrop-filter transitions */
+  .glass,
+  [class*="backdrop-blur"] {
+    transition: none !important;
+  }
+
+  /* Disable body color transitions */
+  body {
+    transition: none !important;
+  }
+}
+
+/* Motion-safe utilities - only apply when motion is allowed */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe\:animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
+  }
+
+  .motion-safe\:animate-pulse-subtle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .motion-safe\:animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+
+  .motion-safe\:animate-fade-in {
+    animation: fade-in 0.3s ease-out forwards;
+  }
+
+  .motion-safe\:animate-slide-up {
+    animation: slide-up 0.4s ease-out forwards;
+  }
+
+  .motion-safe\:animate-scale-in {
+    animation: scale-in 0.2s ease-out forwards;
+  }
+
+  .motion-safe\:transition-all {
+    transition: all 0.3s ease;
+  }
+
+  .motion-safe\:transition-colors {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .motion-safe\:transition-transform {
+    transition: transform 0.2s ease;
+  }
+
+  .motion-safe\:transition-opacity {
+    transition: opacity 0.2s ease;
+  }
+
+  .motion-safe\:hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  .motion-safe\:hover\:-translate-y-1:hover {
+    transform: translateY(-0.25rem);
+  }
+
+  .motion-safe\:active\:scale-95:active {
+    transform: scale(0.95);
+  }
+}
+
+/* Motion-reduce utilities - only apply when reduced motion is preferred */
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce\:animate-none {
+    animation: none !important;
+  }
+
+  .motion-reduce\:transition-none {
+    transition: none !important;
+  }
+
+  .motion-reduce\:transform-none {
+    transform: none !important;
+  }
+
+  /* Ensure state changes are still visible without animation */
+  .motion-reduce\:opacity-100 {
+    opacity: 1 !important;
+  }
+}
+
+/* ============================================
+   BACKDROP-FILTER PERFORMANCE OPTIMIZATION
+   (Requirements 21.1, 21.4)
+   
+   backdrop-filter is GPU-intensive and can cause
+   performance issues on low-end mobile devices.
+   These optimizations provide:
+   1. Reduced blur on mobile touch devices
+   2. Fallbacks for browsers without backdrop-filter
+   3. Data-saver mode support
+   4. Manual performance mode toggle
+   ============================================ */
+
+/* 
+ * Performance optimization for mobile touch devices
+ * Targets devices with:
+ * - Small screens (max-width: 640px)
+ * - Touch-only input (hover: none)
+ * - Coarse pointer (touch screens)
+ * 
+ * Reduces blur intensity from 24px (blur-xl) to 8px
+ * for better performance while maintaining glass effect
+ */
+@media (max-width: 640px) and (hover: none) and (pointer: coarse) {
+  /* Reduce blur intensity on mobile touch devices */
+  .glass,
+  .backdrop-blur-xl,
+  [class*="backdrop-blur-xl"] {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  .backdrop-blur-lg,
+  [class*="backdrop-blur-lg"] {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+
+  .backdrop-blur-md,
+  [class*="backdrop-blur-md"] {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  .backdrop-blur-sm,
+  [class*="backdrop-blur-sm"] {
+    backdrop-filter: blur(2px) !important;
+    -webkit-backdrop-filter: blur(2px) !important;
+  }
+}
+
+/*
+ * Data-saver mode support
+ * When users have data-saver enabled, they likely have
+ * limited device resources. Remove blur entirely and
+ * use solid semi-transparent backgrounds instead.
+ */
+@media (prefers-reduced-data: reduce) {
+  .glass,
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Light mode fallback - solid semi-transparent white */
+  :root .glass,
+  :root [class*="backdrop-blur"] {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  /* Dark mode fallback - solid semi-transparent dark */
+  .dark .glass,
+  .dark [class*="backdrop-blur"] {
+    background-color: rgba(26, 21, 18, 0.9) !important;
+  }
+}
+
+/*
+ * Fallback for browsers without backdrop-filter support
+ * (Requirements 21.4 - Graceful Degradation)
+ * 
+ * Uses @supports to detect capability and provides
+ * solid semi-transparent backgrounds as fallback.
+ * Targets browsers like IE11, older Safari versions that
+ * don't support backdrop-filter.
+ * 
+ * Strategy:
+ * 1. Override CSS variables with higher opacity values
+ * 2. Disable backdrop-filter on all blur classes
+ * 3. Apply solid semi-transparent backgrounds
+ * 4. Maintain readability and visual hierarchy
+ */
+@supports not (backdrop-filter: blur(1px)) {
+  /* Override CSS variables with solid fallback backgrounds */
+  :root {
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-bg-hover: rgba(255, 255, 255, 0.95);
+    --glass-bg-active: rgba(255, 255, 255, 0.98);
+    --glass-border: rgba(232, 226, 220, 0.9);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark {
+    --glass-bg: rgba(26, 21, 18, 0.92);
+    --glass-bg-hover: rgba(26, 21, 18, 0.95);
+    --glass-bg-active: rgba(26, 21, 18, 0.98);
+    --glass-border: rgba(74, 64, 58, 0.9);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Disable backdrop-filter on all blur utility classes */
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Light mode fallback - .glass utility class */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(232, 226, 220, 0.9) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Light mode fallback - backdrop-blur classes */
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  [class*="backdrop-blur"] {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  /* Dark mode fallback - .glass utility class */
+  .dark .glass {
+    background-color: rgba(26, 21, 18, 0.92) !important;
+    border-color: rgba(74, 64, 58, 0.9) !important;
+  }
+
+  /* Dark mode fallback - backdrop-blur classes */
+  .dark .backdrop-blur-xl,
+  .dark .backdrop-blur-lg,
+  .dark .backdrop-blur-md,
+  .dark .backdrop-blur-sm,
+  .dark .backdrop-blur,
+  .dark [class*="backdrop-blur"] {
+    background-color: rgba(26, 21, 18, 0.88) !important;
+  }
+
+  /* 
+   * Component-specific fallbacks
+   * These ensure specific glassmorphism components maintain
+   * their visual appearance without backdrop-filter
+   */
+
+  /* GlassCard component fallback (Requirements 2.1) */
+  [class*="backdrop-blur-xl"][class*="bg-[var(--glass-bg)]"],
+  [class*="backdrop-blur-xl"][class*="rounded-3xl"] {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(232, 226, 220, 0.5) !important;
+  }
+
+  .dark [class*="backdrop-blur-xl"][class*="bg-[var(--glass-bg)]"],
+  .dark [class*="backdrop-blur-xl"][class*="rounded-3xl"] {
+    background-color: rgba(26, 21, 18, 0.92) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(74, 64, 58, 0.5) !important;
+  }
+
+  /* GlassModal backdrop fallback (Requirements 18.2) */
+  .backdrop-blur-sm[class*="bg-black"] {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* MobileNav fallback - fixed bottom navigation (Requirements 11.1, 11.2) */
+  nav.glass[class*="fixed"][class*="bottom-0"],
+  nav[class*="lg:hidden"][class*="fixed"][class*="bottom-0"].glass {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-top-color: rgba(232, 226, 220, 0.8) !important;
+  }
+
+  .dark nav.glass[class*="fixed"][class*="bottom-0"],
+  .dark nav[class*="lg:hidden"][class*="fixed"][class*="bottom-0"].glass {
+    background-color: rgba(26, 21, 18, 0.95) !important;
+    border-top-color: rgba(74, 64, 58, 0.8) !important;
+  }
+
+  /* DesktopSidebar fallback - fixed left sidebar (Requirements 10.1, 10.2) */
+  aside.glass[class*="fixed"][class*="left-0"],
+  aside[class*="lg:flex"][class*="fixed"][class*="left-0"].glass {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-right-color: rgba(232, 226, 220, 0.8) !important;
+  }
+
+  .dark aside.glass[class*="fixed"][class*="left-0"],
+  .dark aside[class*="lg:flex"][class*="fixed"][class*="left-0"].glass {
+    background-color: rgba(26, 21, 18, 0.95) !important;
+    border-right-color: rgba(74, 64, 58, 0.8) !important;
+  }
+
+  /* Mobile sheet modal fallback (Requirements 18.3) */
+  [class*="backdrop-blur-xl"][class*="rounded-t-3xl"],
+  [class*="h-[90vh]"][class*="backdrop-blur-xl"] {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .dark [class*="backdrop-blur-xl"][class*="rounded-t-3xl"],
+  .dark [class*="h-[90vh]"][class*="backdrop-blur-xl"] {
+    background-color: rgba(26, 21, 18, 0.95) !important;
+  }
+
+  /* Dialog content fallback */
+  [class*="DialogContent"][class*="backdrop-blur"],
+  [role="dialog"][class*="backdrop-blur"] {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  .dark [class*="DialogContent"][class*="backdrop-blur"],
+  .dark [role="dialog"][class*="backdrop-blur"] {
+    background-color: rgba(26, 21, 18, 0.95) !important;
+  }
+
+  /* Ensure text remains readable on fallback backgrounds */
+  .glass,
+  [class*="backdrop-blur"] {
+    color: var(--foreground);
+  }
+
+  /* Enhance borders for better visual separation without blur */
+  .glass {
+    border-width: 1px !important;
+  }
+}
+
+/*
+ * Manual performance mode toggle
+ * Apply .glass-performance-mode to the root element
+ * (html or body) to enable reduced blur across the app.
+ * Useful for user-controlled performance settings.
+ */
+.glass-performance-mode .glass,
+.glass-performance-mode .backdrop-blur-xl,
+.glass-performance-mode [class*="backdrop-blur-xl"] {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.glass-performance-mode .backdrop-blur-lg,
+.glass-performance-mode [class*="backdrop-blur-lg"] {
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+.glass-performance-mode .backdrop-blur-md,
+.glass-performance-mode [class*="backdrop-blur-md"] {
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.glass-performance-mode .backdrop-blur-sm,
+.glass-performance-mode [class*="backdrop-blur-sm"] {
+  backdrop-filter: blur(2px) !important;
+  -webkit-backdrop-filter: blur(2px) !important;
+}
+
+/*
+ * No-blur mode - completely removes backdrop-filter
+ * Apply .glass-no-blur to the root element to disable
+ * all blur effects and use solid backgrounds instead.
+ * Useful for very low-end devices or accessibility needs.
+ */
+.glass-no-blur .glass,
+.glass-no-blur .backdrop-blur-xl,
+.glass-no-blur .backdrop-blur-lg,
+.glass-no-blur .backdrop-blur-md,
+.glass-no-blur .backdrop-blur-sm,
+.glass-no-blur [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Light mode solid backgrounds for no-blur mode */
+:root.glass-no-blur .glass,
+:root.glass-no-blur [class*="backdrop-blur"] {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Dark mode solid backgrounds for no-blur mode */
+.dark.glass-no-blur .glass,
+.dark.glass-no-blur [class*="backdrop-blur"] {
+  background-color: rgba(26, 21, 18, 0.92) !important;
+}
+
+/*
+ * Utility classes for component-level blur control
+ * Use these to override blur on specific components
+ */
+@layer utilities {
+  /* Reduced blur - use on performance-critical components */
+  .blur-reduced {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+
+  /* Minimal blur - very light effect */
+  .blur-minimal {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+
+  /* No blur - solid background fallback */
+  .blur-none-fallback {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.85);
+  }
+
+  .dark .blur-none-fallback {
+    background-color: rgba(26, 21, 18, 0.9);
+  }
+}
+
+/* ============================================
+   SKELETON SHIMMER ANIMATION
+   (Requirements 21.2 - Lazy Loading Skeletons)
+   (Requirements 21.3 - 60fps Animation Performance)
+   
+   Provides a smooth shimmer effect for loading
+   skeleton components used with lazy-loaded content.
+   Uses GPU-accelerated transform for 60fps.
+   ============================================ */
+
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+.skeleton-shimmer {
+  animation: skeleton-shimmer 2s infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Respect reduced motion preference for skeleton animations */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none !important;
+    will-change: auto;
+  }
+}
+
+/* ============================================
+   MICROINTERACTION ANIMATIONS
+   (Requirements 3.3, 3.4 - Button Feedback)
+   (Requirements 21.3 - 60fps Animation Performance)
+   
+   Success, error, and loading state animations for
+   form submissions, toasts, and interactive feedback.
+   All animations use GPU-accelerated properties
+   (transform, opacity, box-shadow) for 60fps.
+   ============================================ */
+
+/* -----------------------------------------
+   SUCCESS STATE ANIMATION
+   Green glow pulse effect for successful actions
+   ----------------------------------------- */
+@keyframes success-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(34, 197, 94, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes success-checkmark {
+  0% {
+    transform: scale3d(0, 0, 1);
+    opacity: 0;
+  }
+  50% {
+    transform: scale3d(1.2, 1.2, 1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+
+@keyframes success-border-glow {
+  0% {
+    border-color: rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    border-color: rgba(34, 197, 94, 0.6);
+    box-shadow: 0 0 15px 5px rgba(34, 197, 94, 0.15);
+  }
+  100% {
+    border-color: rgba(34, 197, 94, 0.3);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-success {
+  animation: success-pulse 0.6s ease-out;
+  will-change: box-shadow;
+}
+
+.animate-success-checkmark {
+  animation: success-checkmark 0.4s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.animate-success-border {
+  animation: success-border-glow 0.8s ease-out;
+  will-change: border-color, box-shadow;
+}
+
+/* Success state utility class - combines glow with green tint */
+.state-success {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.2), 0 4px 16px rgba(34, 197, 94, 0.1);
+}
+
+/* -----------------------------------------
+   ERROR STATE ANIMATION
+   Red shake effect for error feedback
+   ----------------------------------------- */
+@keyframes error-shake {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  10%, 50%, 90% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  30%, 70% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+@keyframes error-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes error-border-pulse {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.8);
+  }
+}
+
+.animate-error {
+  animation: error-shake 0.5s ease-out;
+  will-change: transform;
+}
+
+.animate-error-glow {
+  animation: error-glow 0.6s ease-out;
+  will-change: box-shadow;
+}
+
+.animate-error-shake-glow {
+  animation: error-shake 0.5s ease-out, error-glow 0.6s ease-out;
+  will-change: transform, box-shadow;
+}
+
+.animate-error-border {
+  animation: error-border-pulse 0.8s ease-out;
+  will-change: border-color;
+}
+
+/* Error state utility class - combines shake with red tint */
+.state-error {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2), 0 4px 16px rgba(239, 68, 68, 0.1);
+}
+
+/* -----------------------------------------
+   LOADING STATE ANIMATION
+   Subtle pulse effect for loading states
+   ----------------------------------------- */
+@keyframes loading-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale3d(0.98, 0.98, 1);
+  }
+}
+
+@keyframes loading-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(244, 162, 97, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(244, 162, 97, 0.15);
+  }
+}
+
+@keyframes loading-border {
+  0%, 100% {
+    border-color: var(--glass-border);
+  }
+  50% {
+    border-color: rgba(244, 162, 97, 0.4);
+  }
+}
+
+@keyframes loading-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-loading {
+  animation: loading-pulse 1.5s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.animate-loading-glow {
+  animation: loading-glow 2s ease-in-out infinite;
+  will-change: box-shadow;
+}
+
+.animate-loading-border {
+  animation: loading-border 2s ease-in-out infinite;
+  will-change: border-color;
+}
+
+.animate-loading-spinner {
+  animation: loading-spinner 1s linear infinite;
+  will-change: transform;
+}
+
+/* Loading state utility class */
+.state-loading {
+  opacity: 0.8;
+  pointer-events: none;
+  cursor: wait;
+}
+
+/* -----------------------------------------
+   WARNING STATE ANIMATION
+   Amber/yellow pulse for warnings
+   ----------------------------------------- */
+@keyframes warning-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.2);
+  }
+}
+
+.animate-warning {
+  animation: warning-pulse 1s ease-out;
+  will-change: box-shadow;
+}
+
+.state-warning {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2), 0 4px 16px rgba(245, 158, 11, 0.1);
+}
+
+/* -----------------------------------------
+   CARD HOVER MICROINTERACTIONS
+   Enhanced hover effects for interactive cards
+   ----------------------------------------- */
+@keyframes card-hover-glow {
+  0% {
+    box-shadow: var(--glass-shadow);
+  }
+  100% {
+    box-shadow: 0 12px 40px rgba(244, 162, 97, 0.15), 0 0 20px rgba(244, 162, 97, 0.1);
+  }
+}
+
+/* Subtle lift effect on hover - GPU accelerated */
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  will-change: transform, box-shadow;
+  transform: translate3d(0, 0, 0);
+}
+
+.hover-lift:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(244, 162, 97, 0.1);
+}
+
+/* Subtle scale effect on hover */
+.hover-scale {
+  transition: transform 0.2s ease-out;
+  will-change: transform;
+  transform: scale3d(1, 1, 1);
+}
+
+.hover-scale:hover {
+  transform: scale3d(1.02, 1.02, 1);
+}
+
+/* Glow effect on hover */
+.hover-glow {
+  transition: box-shadow 0.2s ease-out;
+  will-change: box-shadow;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(244, 162, 97, 0.2), 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* -----------------------------------------
+   BUTTON PRESS MICROINTERACTIONS
+   Enhanced press feedback for buttons
+   ----------------------------------------- */
+@keyframes button-press {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    transform: scale3d(0.95, 0.95, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes button-ripple {
+  0% {
+    transform: scale3d(0, 0, 1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale3d(2.5, 2.5, 1);
+    opacity: 0;
+  }
+}
+
+.animate-press {
+  animation: button-press 0.15s ease-out;
+  will-change: transform;
+}
+
+/* Ripple effect container */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-container::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  transform: translate(-50%, -50%) scale3d(0, 0, 1);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ripple-container:active::after {
+  animation: button-ripple 0.4s ease-out;
+}
+
+/* -----------------------------------------
+   TOAST/NOTIFICATION ANIMATIONS
+   Slide-in animations for toasts
+   ----------------------------------------- */
+@keyframes toast-slide-in-right {
+  0% {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-in-top {
+  0% {
+    transform: translate3d(0, -100%, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-in-bottom {
+  0% {
+    transform: translate3d(0, 100%, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out-right {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+}
+
+.animate-toast-in-right {
+  animation: toast-slide-in-right 0.3s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.animate-toast-in-top {
+  animation: toast-slide-in-top 0.3s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.animate-toast-in-bottom {
+  animation: toast-slide-in-bottom 0.3s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.animate-toast-out-right {
+  animation: toast-slide-out-right 0.2s ease-in forwards;
+  will-change: transform, opacity;
+}
+
+/* -----------------------------------------
+   FOCUS RING ANIMATION
+   Animated focus ring for accessibility
+   ----------------------------------------- */
+@keyframes focus-ring-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px rgba(244, 162, 97, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--primary), 0 0 0 6px rgba(244, 162, 97, 0.1);
+  }
+}
+
+.focus-ring-animated:focus-visible {
+  animation: focus-ring-pulse 1.5s ease-in-out infinite;
+  outline: none;
+}
+
+/* -----------------------------------------
+   REDUCED MOTION SUPPORT FOR MICROINTERACTIONS
+   (Requirements 20.6)
+   ----------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all microinteraction animations */
+  .animate-success,
+  .animate-success-checkmark,
+  .animate-success-border,
+  .animate-error,
+  .animate-error-glow,
+  .animate-error-shake-glow,
+  .animate-error-border,
+  .animate-loading,
+  .animate-loading-glow,
+  .animate-loading-border,
+  .animate-loading-spinner,
+  .animate-warning,
+  .animate-press,
+  .animate-toast-in-right,
+  .animate-toast-in-top,
+  .animate-toast-in-bottom,
+  .animate-toast-out-right,
+  .focus-ring-animated:focus-visible {
+    animation: none !important;
+    will-change: auto !important;
+  }
+
+  /* Disable hover transform effects */
+  .hover-lift:hover,
+  .hover-scale:hover {
+    transform: none !important;
+  }
+
+  /* Keep state colors visible without animation */
+  .state-success,
+  .state-error,
+  .state-warning {
+    transition: none !important;
+  }
+
+  /* Disable ripple effect */
+  .ripple-container:active::after {
+    animation: none !important;
+  }
+
+  /* Ensure loading state is still visually indicated */
+  .state-loading {
+    opacity: 0.6;
+  }
+}
+
+/* -----------------------------------------
+   MOTION-SAFE UTILITIES FOR MICROINTERACTIONS
+   Only apply when motion is allowed
+   ----------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe\:animate-success {
+    animation: success-pulse 0.6s ease-out;
+  }
+
+  .motion-safe\:animate-error {
+    animation: error-shake 0.5s ease-out;
+  }
+
+  .motion-safe\:animate-loading {
+    animation: loading-pulse 1.5s ease-in-out infinite;
+  }
+
+  .motion-safe\:hover-lift:hover {
+    transform: translate3d(0, -4px, 0);
+  }
+
+  .motion-safe\:hover-scale:hover {
+    transform: scale3d(1.02, 1.02, 1);
   }
 }

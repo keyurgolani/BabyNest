@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { GlassButton } from "@/components/ui/glass-button";
+import { IconBadge } from "@/components/ui/icon-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { api, TrendInsightsResponse } from "@/lib/api-client";
@@ -123,7 +124,7 @@ export function TrendAnalysisCard({
 
   if (loading) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30">
+      <GlassCard className="border-0 bg-gradient-to-br from-cyan-50/80 to-blue-50/80 dark:from-cyan-950/30 dark:to-blue-950/30">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-6 w-40" />
@@ -132,33 +133,31 @@ export function TrendAnalysisCard({
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   if (error) {
     return (
-      <Card className="p-4 border-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30">
+      <GlassCard className="border-0 bg-gradient-to-br from-cyan-50/80 to-blue-50/80 dark:from-cyan-950/30 dark:to-blue-950/30">
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <BarChart3 className="w-12 h-12 text-muted-foreground/30 mb-3" />
           <p className="text-muted-foreground text-sm">{error}</p>
-          <Button variant="outline" size="sm" onClick={fetchTrends} className="mt-3 gap-2">
+          <GlassButton variant="default" size="sm" onClick={fetchTrends} className="mt-3 gap-2">
             <RefreshCw className="w-4 h-4" />
             Retry
-          </Button>
+          </GlassButton>
         </div>
-      </Card>
+      </GlassCard>
     );
   }
 
   return (
-    <Card className="p-4 border-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30">
+    <GlassCard className="border-0 bg-gradient-to-br from-cyan-50/80 to-blue-50/80 dark:from-cyan-950/30 dark:to-blue-950/30">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white">
-            <BarChart3 className="w-4 h-4" />
-          </div>
+          <IconBadge color="activity" icon={BarChart3} size="sm" gradient />
           <div>
             <h3 className="font-semibold text-foreground">Trend Analysis</h3>
             {data && (
@@ -166,23 +165,23 @@ export function TrendAnalysisCard({
             )}
           </div>
         </div>
-        <Button
+        <GlassButton
           variant="ghost"
           size="icon"
           onClick={fetchTrends}
           className="h-8 w-8"
         >
           <RefreshCw className="w-4 h-4" />
-        </Button>
+        </GlassButton>
       </div>
 
       {/* Period Selector */}
       {showPeriodSelector && (
-        <div className="flex gap-1 mb-4 p-1 bg-muted/50 rounded-lg">
+        <div className="flex gap-1 mb-4 p-1 bg-white/30 dark:bg-black/20 rounded-xl backdrop-blur-sm">
           {periodOptions.map((option) => (
-            <Button
+            <GlassButton
               key={option.value}
-              variant={period === option.value ? "default" : "ghost"}
+              variant={period === option.value ? "primary" : "ghost"}
               size="sm"
               onClick={() => setPeriod(option.value)}
               className={cn(
@@ -192,7 +191,7 @@ export function TrendAnalysisCard({
             >
               {option.icon}
               {option.label}
-            </Button>
+            </GlassButton>
           ))}
         </div>
       )}
@@ -204,13 +203,13 @@ export function TrendAnalysisCard({
             <div
               key={idx}
               className={cn(
-                "p-3 rounded-xl border transition-colors",
+                "p-3 rounded-xl border transition-colors backdrop-blur-sm",
                 getTrendColor(insight.trend)
               )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 flex-1">
-                  <div className="w-8 h-8 rounded-lg bg-white/50 dark:bg-black/20 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-white/50 dark:bg-black/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
                     {getCategoryIcon(insight.category)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -222,9 +221,9 @@ export function TrendAnalysisCard({
                         variant="secondary"
                         className={cn(
                           "text-xs capitalize",
-                          insight.trend === "improving" && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                          insight.trend === "declining" && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-                          insight.trend === "new" && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                          insight.trend === "improving" && "bg-green-100/80 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+                          insight.trend === "declining" && "bg-red-100/80 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                          insight.trend === "new" && "bg-blue-100/80 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                         )}
                       >
                         {insight.trend}
@@ -264,7 +263,7 @@ export function TrendAnalysisCard({
 
       {/* AI Summary */}
       {data?.aiSummary && data.aiSummaryGenerated && (
-        <div className="mt-4 pt-4 border-t border-muted">
+        <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/10">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -279,7 +278,7 @@ export function TrendAnalysisCard({
 
       {/* Highlights & Concerns */}
       {data && (data.highlights.length > 0 || data.areasOfConcern.length > 0) && (
-        <div className="mt-4 pt-4 border-t border-muted grid grid-cols-2 gap-4">
+        <div className="mt-4 pt-4 border-t border-white/20 dark:border-white/10 grid grid-cols-2 gap-4">
           {data.highlights.length > 0 && (
             <div>
               <h4 className="text-xs font-semibold text-green-600 dark:text-green-400 mb-2">
@@ -310,6 +309,6 @@ export function TrendAnalysisCard({
           )}
         </div>
       )}
-    </Card>
+    </GlassCard>
   );
 }

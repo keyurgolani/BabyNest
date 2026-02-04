@@ -154,17 +154,17 @@ export function DailySummaryCard() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-[#FFE8D6] flex items-center justify-center mx-auto mb-2">
-            <Icons.Feed className="w-4 h-4 text-[#E07A5F]" />
+        <div className="bg-white dark:bg-card rounded-xl p-4 text-center shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-feed)]/15 flex items-center justify-center mx-auto mb-2">
+            <Icons.Feed className="w-4 h-4 text-[var(--color-feed)]" />
           </div>
           <span className="text-2xl font-bold text-foreground">{stats.feedCount}</span>
           <p className="text-xs text-muted-foreground">Feedings</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-[#E0F4FF] flex items-center justify-center mx-auto mb-2">
-            <Icons.Sleep className="w-4 h-4 text-[#90E0EF]" />
+        <div className="bg-white dark:bg-card rounded-xl p-4 text-center shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-sleep)]/15 flex items-center justify-center mx-auto mb-2">
+            <Icons.Sleep className="w-4 h-4 text-[var(--color-sleep)]" />
           </div>
           <span className="text-2xl font-bold text-foreground">
             {stats.sleepHours}h {stats.sleepMins}m
@@ -172,9 +172,9 @@ export function DailySummaryCard() {
           <p className="text-xs text-muted-foreground">Sleep</p>
         </div>
 
-        <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-[#F2F7D9] flex items-center justify-center mx-auto mb-2">
-            <Icons.Diaper className="w-4 h-4 text-[#A7C957]" />
+        <div className="bg-white dark:bg-card rounded-xl p-4 text-center shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-diaper)]/15 flex items-center justify-center mx-auto mb-2">
+            <Icons.Diaper className="w-4 h-4 text-[var(--color-diaper)]" />
           </div>
           <span className="text-2xl font-bold text-foreground">{stats.diaperCount}</span>
           <p className="text-xs text-muted-foreground">Diapers</p>
@@ -184,7 +184,7 @@ export function DailySummaryCard() {
       {/* Hourly activity chart */}
       <div>
         <h4 className="text-sm font-semibold text-foreground mb-3">Hourly Activity</h4>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-white dark:bg-card rounded-xl p-4 shadow-sm">
           <div className="flex items-end justify-between gap-1 h-24">
             {hourlyActivity.map((hour, idx) => {
               const totalHeight = ((hour.feeds + hour.sleeps + hour.diapers) / maxActivity) * 100;
@@ -201,24 +201,24 @@ export function DailySummaryCard() {
                   <div className="w-full flex flex-col justify-end" style={{ height: "100%" }}>
                     {hour.diapers > 0 && (
                       <div
-                        className="w-full bg-[#A7C957] rounded-t-sm"
+                        className="w-full bg-[var(--color-diaper)] rounded-t-sm"
                         style={{ height: `${diaperHeight}%`, minHeight: hour.diapers > 0 ? "4px" : "0" }}
                       />
                     )}
                     {hour.sleeps > 0 && (
                       <div
-                        className="w-full bg-[#90E0EF]"
+                        className="w-full bg-[var(--color-sleep)]"
                         style={{ height: `${sleepHeight}%`, minHeight: hour.sleeps > 0 ? "4px" : "0" }}
                       />
                     )}
                     {hour.feeds > 0 && (
                       <div
-                        className="w-full bg-[#E07A5F] rounded-b-sm"
+                        className="w-full bg-[var(--color-feed)] rounded-b-sm"
                         style={{ height: `${feedHeight}%`, minHeight: hour.feeds > 0 ? "4px" : "0" }}
                       />
                     )}
                     {totalHeight === 0 && (
-                      <div className="w-full bg-gray-100 rounded-sm" style={{ height: "4px" }} />
+                      <div className="w-full bg-gray-100 dark:bg-muted rounded-sm" style={{ height: "4px" }} />
                     )}
                   </div>
 
@@ -245,15 +245,15 @@ export function DailySummaryCard() {
           {/* Legend */}
           <div className="flex justify-center gap-4 mt-3 text-xs">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-sm bg-[#E07A5F]" />
+              <div className="w-3 h-3 rounded-sm bg-[var(--color-feed)]" />
               <span className="text-muted-foreground">Feed</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-sm bg-[#90E0EF]" />
+              <div className="w-3 h-3 rounded-sm bg-[var(--color-sleep)]" />
               <span className="text-muted-foreground">Sleep</span>
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded-sm bg-[#A7C957]" />
+              <div className="w-3 h-3 rounded-sm bg-[var(--color-diaper)]" />
               <span className="text-muted-foreground">Diaper</span>
             </div>
           </div>

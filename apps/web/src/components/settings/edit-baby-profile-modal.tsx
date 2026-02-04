@@ -2,15 +2,30 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GlassModal } from "@/components/ui/glass-modal";
+import { GlassInput } from "@/components/ui/glass-input";
+import { GlassButton } from "@/components/ui/glass-button";
+import {
+  GlassSelect,
+  GlassSelectContent,
+  GlassSelectItem,
+  GlassSelectTrigger,
+  GlassSelectValue,
+} from "@/components/ui/glass-select";
 import { Icons } from "@/components/icons";
 import { api, BabyResponseDto } from "@/lib/api-client";
-
 import { formatDateForInput } from "@/lib/date-utils";
 import { ThemedDatePicker } from "@/components/ui/themed-date-picker";
+import { Upload, X } from "lucide-react";
+
+/**
+ * EditBabyProfileModal Component
+ *
+ * A modal for editing baby profile information with glassmorphism styling.
+ * Uses GlassModal wrapper, GlassInput, GlassSelect, and GlassButton components.
+ *
+ * @requirements 18.5
+ */
 
 interface EditBabyProfileModalProps {
   baby: BabyResponseDto;
@@ -118,214 +133,196 @@ export function EditBabyProfileModal({ baby, onClose, onSave }: EditBabyProfileM
   const fallbackAvatarUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${baby.name}`;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+    <GlassModal
+      isOpen={true}
+      onClose={onClose}
+      title="Edit Baby Profile"
+      size="default"
+      closeOnBackdropClick={!isSubmitting && !isUploading}
+      closeOnEscape={!isSubmitting && !isUploading}
     >
-      <Card variant="default" className="w-full max-w-md max-h-[90vh] overflow-y-auto animate-scale-in shadow-2xl">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-600">
-                <Icons.Diaper className="w-5 h-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Edit Baby Profile</CardTitle>
-                <CardDescription>Update your baby&apos;s information</CardDescription>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="w-9 h-9 rounded-xl"
-            >
-              <Icons.Close className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardHeader>
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+          {error}
+        </div>
+      )}
 
-        <CardContent className="pt-0">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-xl text-red-700 dark:text-red-400 text-sm">
-              {error}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        {/* Photo Upload Section */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Profile Photo
+          </label>
+          
+          {/* Photo Preview */}
+          {photoPreview ? (
+            <div className="relative mb-3">
+              <div className="relative w-24 h-24 mx-auto rounded-full overflow-hidden ring-4 ring-primary/20 shadow-lg">
+                <Image
+                  src={photoPreview}
+                  alt="Baby photo preview"
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                  </div>
+                )}
+              </div>
+              <GlassButton
+                type="button"
+                variant="danger"
+                size="icon"
+                onClick={clearPhoto}
+                className="absolute top-0 right-1/2 translate-x-14 -translate-y-1 w-7 h-7 min-w-0 min-h-0 rounded-full shadow-md"
+                disabled={isSubmitting || isUploading}
+              >
+                <X className="w-3.5 h-3.5" />
+              </GlassButton>
+            </div>
+          ) : (
+            <div className="flex justify-center mb-3">
+              <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-[var(--glass-border)] shadow-lg">
+                <Image
+                  src={fallbackAvatarUrl}
+                  alt="Default avatar"
+                  fill
+                  sizes="96px"
+                  className="object-cover opacity-50"
+                />
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Photo Upload Section */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Profile Photo
-              </label>
-              
-              {/* Photo Preview */}
-              {photoPreview ? (
-                <div className="relative mb-3">
-                  <div className="relative w-24 h-24 mx-auto rounded-full overflow-hidden ring-4 ring-primary/20 shadow-lg">
-                    <Image
-                      src={photoPreview}
-                      alt="Baby photo preview"
-                      fill
-                      sizes="96px"
-                      className="object-cover"
-                    />
-                    {isUploading && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    onClick={clearPhoto}
-                    className="absolute top-0 right-1/2 translate-x-14 -translate-y-1 w-6 h-6 rounded-full shadow-md h-6 w-6 p-0"
-                    disabled={isSubmitting || isUploading}
-                  >
-                    <Icons.Close className="w-3 h-3 text-white" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex justify-center mb-3">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden ring-4 ring-muted shadow-lg">
-                    <Image
-                      src={fallbackAvatarUrl}
-                      alt="Default avatar"
-                      fill
-                      sizes="96px"
-                      className="object-cover opacity-50"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Upload Area */}
-              {!photoPreview && (
-                <div
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => !isUploading && fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-                    isUploading
-                      ? "border-primary bg-primary/5"
-                      : isDragging
-                        ? "border-primary bg-primary/10 scale-[1.02]"
-                        : "border-muted-foreground/30 hover:border-primary hover:bg-muted/50"
-                  }`}
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-                      <p className="text-sm font-medium text-foreground">
-                        Uploading...
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <Icons.Memories className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm font-medium text-foreground mb-1">
-                        Drop photo here
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        or click to browse
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileInputChange}
-                className="hidden"
-                disabled={isSubmitting || isUploading}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Baby Name
-              </label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Baby's name"
-                className="rounded-xl bg-muted border-0 focus-visible:ring-2 focus-visible:ring-primary transition-shadow"
-                disabled={isSubmitting}
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <ThemedDatePicker
-                value={dateOfBirth}
-                onChange={setDateOfBirth}
-                label="Date of Birth"
-                disabled={isSubmitting}
-                maxDate={new Date()}
-                minDate={new Date(1900, 0, 1)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Gender
-              </label>
-              <Select
-                value={gender}
-                onValueChange={setGender}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger className="w-full rounded-xl bg-muted border-0 focus:ring-2 focus:ring-primary">
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-3 mt-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={onClose} 
-                className="flex-1 rounded-xl" 
-                disabled={isSubmitting || isUploading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                variant="glow"
-                className="flex-1 rounded-xl" 
-                disabled={isSubmitting || isUploading || !name.trim() || !dateOfBirth}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Saving...
-                  </div>
-                ) : isUploading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          {/* Upload Area */}
+          {!photoPreview && (
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                isUploading
+                  ? "border-primary bg-primary/5"
+                  : isDragging
+                    ? "border-primary bg-primary/10 scale-[1.02]"
+                    : "border-[var(--glass-border)] hover:border-primary hover:bg-[var(--glass-bg-hover)]"
+              }`}
+            >
+              {isUploading ? (
+                <>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">
                     Uploading...
-                  </div>
-                ) : (
-                  "Save Changes"
-                )}
-              </Button>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Drop photo here
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    or click to browse
+                  </p>
+                </>
+              )}
             </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileInputChange}
+            className="hidden"
+            disabled={isSubmitting || isUploading}
+          />
+        </div>
+
+        {/* Baby Name Input */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Baby Name
+          </label>
+          <GlassInput
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Baby's name"
+            disabled={isSubmitting}
+            autoFocus
+          />
+        </div>
+
+        {/* Date of Birth */}
+        <div>
+          <ThemedDatePicker
+            value={dateOfBirth}
+            onChange={setDateOfBirth}
+            label="Date of Birth"
+            disabled={isSubmitting}
+            maxDate={new Date()}
+            minDate={new Date(1900, 0, 1)}
+          />
+        </div>
+
+        {/* Gender Select */}
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">
+            Gender
+          </label>
+          <GlassSelect
+            value={gender}
+            onValueChange={setGender}
+            disabled={isSubmitting}
+          >
+            <GlassSelectTrigger className="w-full">
+              <GlassSelectValue placeholder="Select gender" />
+            </GlassSelectTrigger>
+            <GlassSelectContent>
+              <GlassSelectItem value="male">Male</GlassSelectItem>
+              <GlassSelectItem value="female">Female</GlassSelectItem>
+              <GlassSelectItem value="other">Other</GlassSelectItem>
+            </GlassSelectContent>
+          </GlassSelect>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-2">
+          <GlassButton 
+            type="button" 
+            variant="default" 
+            onClick={onClose} 
+            className="flex-1" 
+            disabled={isSubmitting || isUploading}
+          >
+            Cancel
+          </GlassButton>
+          <GlassButton 
+            type="submit" 
+            variant="primary"
+            className="flex-1" 
+            disabled={isSubmitting || isUploading || !name.trim() || !dateOfBirth}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Saving...
+              </div>
+            ) : isUploading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Uploading...
+              </div>
+            ) : (
+              "Save Changes"
+            )}
+          </GlassButton>
+        </div>
+      </form>
+    </GlassModal>
   );
 }
