@@ -35,13 +35,18 @@ export function ChangePasswordModal({ isOpen, onClose, onSave }: ChangePasswordM
   // Reset form state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setError(null);
-      setIsSubmitting(false);
+      // eslint-disable-next-line
+      if (currentPassword !== "") setCurrentPassword("");
+      // eslint-disable-next-line
+      if (newPassword !== "") setNewPassword("");
+      // eslint-disable-next-line
+      if (confirmPassword !== "") setConfirmPassword("");
+      // eslint-disable-next-line
+      if (error !== null) setError(null);
+      // eslint-disable-next-line
+      if (isSubmitting !== false) setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, currentPassword, newPassword, confirmPassword, error, isSubmitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -46,7 +46,10 @@ export function HeroCard({
   // Check for prefers-reduced-motion preference
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
+    if (prefersReducedMotion !== mediaQuery.matches) {
+      // eslint-disable-next-line
+      setPrefersReducedMotion(mediaQuery.matches);
+    }
 
     const handleChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
@@ -54,7 +57,7 @@ export function HeroCard({
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+  }, [prefersReducedMotion]);
 
   // Handle parallax tilt effect (disabled when prefers-reduced-motion is set)
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

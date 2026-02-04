@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { CheckCircle, Activity, ChevronRight } from "lucide-react";
 import { AnomalyDetectionResponseDto } from "@/types/insights";
 import { InsightCard } from "./InsightCard";
-import { GlassCard } from "@/components/ui/glass-card";
 import { api } from "@/lib/api-client";
 import { useBaby } from "@/context/baby-context";
 
