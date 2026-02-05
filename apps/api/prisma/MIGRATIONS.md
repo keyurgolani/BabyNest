@@ -125,7 +125,7 @@ For manual control over production migrations:
 docker-compose exec api npx prisma migrate status
 
 # Apply pending migrations
-docker-compose exec api npx prisma migrate deploy
+docker-compose exec api npx prisma migrate deploy --config=prisma.config.ts
 
 # Or from host with DATABASE_URL set
 npm run prisma:migrate:prod
@@ -137,7 +137,7 @@ The GitHub Actions workflow automatically runs migrations during CI:
 
 ```yaml
 - name: Run database migrations
-  run: npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma
+  run: npx prisma migrate deploy --schema=apps/api/prisma/schema.prisma --config=apps/api/prisma.config.ts
   env:
     DATABASE_URL: ${{ secrets.DATABASE_URL }}
 ```

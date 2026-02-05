@@ -48,7 +48,7 @@ run_migrations() {
     echo "🔄 Running database migrations..."
     
     # Deploy migrations (safe for production - only applies pending migrations)
-    if npx prisma migrate deploy; then
+    if npx prisma migrate deploy --config=prisma.config.ts; then
         echo "✅ Migrations completed successfully!"
     else
         echo "❌ Migration failed!"
