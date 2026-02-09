@@ -67,7 +67,7 @@
     "@types/ioredis": "^4.28.10",
     "@types/jest": "^29.5.12",
     "@types/multer": "^1.4.13",
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.2.2",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.16.0",
     "@types/tesseract.js": "^2.0.0",
