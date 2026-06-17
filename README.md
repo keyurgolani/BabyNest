@@ -6,6 +6,14 @@ A self-hosted, open-source baby tracking application designed for privacy-consci
 [![Docker Publish](https://github.com/keyurgolani/BabyNest/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/keyurgolani/BabyNest/actions/workflows/docker-publish.yml)
 [![Release](https://github.com/keyurgolani/BabyNest/actions/workflows/release.yml/badge.svg)](https://github.com/keyurgolani/BabyNest/actions/workflows/release.yml)
 
+<p align="center">
+  <img src="docs/screenshots/03-dashboard.png" alt="Dashboard with AI health summary" width="30%" />
+  <img src="docs/screenshots/02-quick-log.png" alt="One-tap quick log" width="30%" />
+  <img src="docs/screenshots/04-tracking.png" alt="Activity timeline" width="30%" />
+</p>
+
+<p align="center"><strong>📸 <a href="SHOWCASE.md">See the full visual showcase »</a></strong> — dashboard & AI insights, one-tap logging, milestones, and medical reports.</p>
+
 ## Features
 
 - 📱 **Mobile-first PWA** with native mobile app support (iOS & Android)
