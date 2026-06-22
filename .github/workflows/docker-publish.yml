@@ -71,7 +71,7 @@ jobs:
 
       - name: Extract metadata for API
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.GHCR_API_IMAGE }}
@@ -134,7 +134,7 @@ jobs:
 
       - name: Extract metadata for Web
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.GHCR_WEB_IMAGE }}
